@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #F6F2E8;
+    color: #243126;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* Subtle Indian Agricultural Visual Motifs */
+.bg-grain-texture {
+  background-color: #F6F2E8;
+  background-image: radial-gradient(#245C3A 0.4px, transparent 0.4px), radial-gradient(#245C3A 0.4px, #F6F2E8 0.4px);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.bg-field-pattern {
+  background-image: repeating-linear-gradient(-45deg, rgba(36, 92, 58, 0.02), rgba(36, 92, 58, 0.02) 10px, transparent 10px, transparent 20px);
+}
+
+.paper-surface {
+  background-color: #FFFDF7;
+  border: 1px solid #EAE4D8;
+  box-shadow: 0 1px 3px rgba(36, 49, 38, 0.04), 0 4px 12px rgba(36, 49, 38, 0.02);
+}
+
+.paper-card {
+  background-color: #FFFDF7;
+  border: 1px solid #EAE4D8;
+  border-radius: 1rem; /* 16px */
+  box-shadow: 0 1px 3px rgba(36, 49, 38, 0.04);
+  transition: all 0.2s ease-in-out;
+}
+
+.paper-card:hover {
+  border-color: #D0C6B4;
+  box-shadow: 0 4px 12px rgba(36, 49, 38, 0.06);
+}
+
+/* Touch Target Minimum (44px) */
+.touch-target {
+  min-height: 44px;
+}
+
+/* Mobile Safe Bottom Padding for Sticky Bottom Bar */
+.pb-mobile-nav {
+  padding-bottom: 5.25rem; /* 84px to prevent bottom nav overlay */
+}
+
+/* Custom Scrollbar for Agricultural Theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F6F2E8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D0C6B4;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #245C3A;
+}
+
