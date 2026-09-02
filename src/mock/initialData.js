@@ -28,16 +28,16 @@ export const initialCentres = [
     distanceKm: 14.5,
     lat: 29.6857,
     lng: 76.9905,
-    queueCount: 38,
-    estWaitMinutes: 75,
-    capacityPercent: 91,
-    availableSlots: 2,
+    queueCount: 22,
+    estWaitMinutes: 35,
+    capacityPercent: 65,
+    availableSlots: 10,
     totalSlots: 50,
     activeCounters: 6,
     operatingHours: '07:30 AM - 07:00 PM',
-    status: 'CONGESTED',
+    status: 'MODERATE',
     recommended: false,
-    recommendationReason: 'High congestion. Consider Sonipat or Panipat.'
+    recommendationReason: 'Moderate queue clearance & steady intake'
   },
   {
     id: 'cnt-panipat',

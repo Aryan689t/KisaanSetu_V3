@@ -1,14 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, RefreshCw } from 'lucide-react';
+import { fetchQueuePosition } from '../../lib/apiService';
+import { MandiCongestionBanner } from '../ui/MandiCongestionBanner';
 
 export const LiveQueueTracker = () => {
-  const { queueItems, activeBooking, lang, centres } = useDemo();
-  const [expandedItemId, setExpandedItemId] = React.useState(null);
+  const { queueItems, activeBooking, farmerBookings = [], selectActiveBooking, lang, centres } = useDemo();
+  const [expandedItemId, setExpandedItemId] = useState(null);
+  const [livePosition, setLivePosition] = useState(null);
+  const [isRefreshingQueue, setIsRefreshingQueue] = useState(false);
 
   const currentCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
   const youTokenIndex = queueItems.findIndex(q => q.token === activeBooking?.token);
-  const farmersAheadCount = Math.max(0, youTokenIndex - 1);
+  
+  // Real backend queue position query with graceful fallback
+  const loadQueuePosition = async () => {
+    if (!activeBooking?.token || !currentCentre?.id) return;
+    setIsRefreshingQueue(true);
+    try {
+      const res = await fetchQueuePosition(currentCentre.id, activeBooking.token);
+      if (res?.success && res?.data) {
+        setLivePosition(res.data);
+      }
+    } catch (err) {
+      console.debug('[LiveQueueTracker] Live position API sync:', err.message);
+    } finally {
+      setIsRefreshingQueue(false);
+    }
+  };
+
+  useEffect(() => {
+    loadQueuePosition();
+  }, [activeBooking?.token, currentCentre?.id, queueItems]);
+
+  const farmersAheadCount = livePosition?.farmersAhead != null
+    ? livePosition.farmersAhead
+    : Math.max(0, youTokenIndex);
+
+  const estWaitMins = livePosition?.estWaitMinutes != null
+    ? livePosition.estWaitMinutes
+    : Math.max(8, farmersAheadCount * 8);
 
   const isCompleted = activeBooking?.status === 'COMPLETED';
   const isDisbursed = activeBooking?.paymentStatus === 'DISBURSED';
@@ -18,24 +49,73 @@ export const LiveQueueTracker = () => {
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
 
+      {/* COMPACT CONGESTION ADVISORY BANNER */}
+      <MandiCongestionBanner />
+
+      {/* MULTIPLE BOOKINGS SELECTOR (IF FARMER HAS > 1 BOOKING) */}
+      {farmerBookings.length > 1 && (
+        <div className="bg-white p-3 rounded-2xl border border-agri-ivory-muted shadow-sm flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-bold text-agri-text">
+            {lang === 'hi' ? '📋 आपके टोकन पास:' : '📋 Your Active Token Passes:'}
+          </span>
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+            {farmerBookings.map((b) => {
+              const isActive = b.token === activeBooking?.token;
+              return (
+                <button
+                  key={b.token}
+                  onClick={() => selectActiveBooking(b.token)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
+                    isActive
+                      ? 'bg-agri-green text-white shadow-sm ring-2 ring-agri-gold'
+                      : 'bg-agri-ivory text-agri-text hover:bg-agri-ivory-muted border border-agri-ivory-muted'
+                  }`}
+                >
+                  <span>{b.token}</span>
+                  <span className="text-[10px] opacity-90">({b.status})</span>
+                  {isActive && <CheckCircle2 className="w-3 h-3 text-agri-gold" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 1. PRIMARY FARMER TOKEN & TURN HERO CARD */}
       <div className="bg-[#17432A] text-white rounded-2xl p-5 sm:p-6 shadow-agri-md relative space-y-4">
 
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div>
-            <span className="text-[11px] font-bold text-agri-gold bg-agri-gold/20 px-2.5 py-0.5 rounded-full border border-agri-gold/30 font-mono inline-block mb-1">
-              🎫 {lang === 'hi' ? 'आपकी बारी' : 'YOUR TURN'}
-            </span>
-            <h1 className="font-heading text-xl sm:text-2xl font-bold text-white">
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] font-bold text-agri-gold bg-agri-gold/20 px-2.5 py-0.5 rounded-full border border-agri-gold/30 font-mono inline-block">
+                🎫 {lang === 'hi' ? 'आपकी बारी' : 'YOUR TURN'}
+              </span>
+              {livePosition && (
+                <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
+                  Live DB Sync
+                </span>
+              )}
+            </div>
+            <h1 className="font-heading text-xl sm:text-2xl font-bold text-white mt-1">
               {lang === 'hi' ? 'लाइव कतार ट्रैक करें' : 'Live Queue Tracker'}
             </h1>
           </div>
 
-          <div className="text-right">
-            <span className="text-[10px] text-agri-ivory/70 block">{lang === 'hi' ? 'टोकन नंबर' : 'Token'}</span>
-            <span className="font-heading font-extrabold text-3xl text-agri-gold font-mono">
-              {activeBooking?.token || 'SNP-014'}
-            </span>
+          <div className="text-right flex items-center space-x-2">
+            <div>
+              <span className="text-[10px] text-agri-ivory/70 block">{lang === 'hi' ? 'टोकन नंबर' : 'Token'}</span>
+              <span className="font-heading font-extrabold text-3xl text-agri-gold font-mono">
+                {activeBooking?.token || 'SNP-014'}
+              </span>
+            </div>
+            <button
+              onClick={loadQueuePosition}
+              disabled={isRefreshingQueue}
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-agri-ivory transition-all self-end"
+              title="Refresh queue telemetry"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshingQueue ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
 
@@ -62,7 +142,7 @@ export const LiveQueueTracker = () => {
                 <div className="bg-[#17432A] p-2.5 rounded-xl border border-white/10">
                   <span className="text-[11px] text-agri-ivory/80 block">{lang === 'hi' ? 'अनुमानित समय' : 'Estimated wait'}</span>
                   <p className="font-heading text-xl font-extrabold text-agri-gold font-mono mt-0.5">
-                    ~{farmersAheadCount * 10 + 12} min
+                    ~{estWaitMins} min
                   </p>
                 </div>
               </div>

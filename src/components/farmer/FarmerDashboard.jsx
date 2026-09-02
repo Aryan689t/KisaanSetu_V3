@@ -9,10 +9,13 @@ import { Accordion } from '../ui/Accordion';
 export const FarmerDashboard = () => {
   const {
     activeBooking,
+    farmerBookings = [],
+    selectActiveBooking,
     setFarmerTab,
     centres,
     getRecommendedCentre,
     switchBookingCentre,
+    demoCondition,
     dismissedRerouteAlert,
     setDismissedRerouteAlert,
     lang,
@@ -25,8 +28,12 @@ export const FarmerDashboard = () => {
   // Derived booked centre vs recommended centre
   const bookedCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
   const recommendedCentre = getRecommendedCentre(centres);
+  
+  // Single source of truth for demo congestion
+  const isCongestionActive = demoCondition === 'CONGESTED_SONIPAT';
+  const congestedCentre = isCongestionActive ? (centres.find(c => c.id === 'cnt-sonipat') || centres[0]) : null;
 
-  const isBookedCentreCongested = bookedCentre.status === 'CONGESTED' || bookedCentre.capacityPercent > 85;
+  const isBookedCentreCongested = isCongestionActive && (bookedCentre.id === 'cnt-sonipat');
   const isAlternativeBetter = recommendedCentre.id !== bookedCentre.id;
   
   const isCompleted = activeBooking?.status === 'COMPLETED';
@@ -34,8 +41,11 @@ export const FarmerDashboard = () => {
   const isProcessing = activeBooking?.status === 'PROCESSING';
   const isCheckedIn = activeBooking?.status === 'CHECKED_IN';
 
-  // Congestion alert condition
-  const shouldShowRerouteWarning = isBookedCentreCongested && isAlternativeBetter && !dismissedRerouteAlert && !isCompleted && !isDisbursed;
+  // Booking-specific rerouting alert: active booking is at congested mandi and is not completed/disbursed
+  const shouldShowBookingReroute = isCongestionActive && isBookedCentreCongested && isAlternativeBetter && !dismissedRerouteAlert && !isCompleted && !isDisbursed;
+
+  // General congestion advisory: congestion is active, not dismissed, but booking does not need reroute
+  const shouldShowGeneralAdvisory = isCongestionActive && !dismissedRerouteAlert && !shouldShowBookingReroute;
 
   // Accordion Items Definition
   const bookingSummaryItems = [
@@ -126,8 +136,10 @@ export const FarmerDashboard = () => {
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
       
-      {/* 1. DYNAMIC CONGESTION REROUTING ALERT */}
-      {shouldShowRerouteWarning && (
+      {/* 1. DYNAMIC CONGESTION ALERTS */}
+      
+      {/* 1A. BOOKING-SPECIFIC REROUTING ALERT (Only when active booking is at the congested mandi and still active) */}
+      {shouldShowBookingReroute && (
         <div className="bg-[#4A1510] text-white rounded-2xl p-4 sm:p-5 shadow-lg border-2 border-rose-500 relative overflow-hidden animate-in slide-in-from-top duration-300">
           <div className="space-y-3">
             <div className="flex items-start space-x-3">
@@ -147,8 +159,8 @@ export const FarmerDashboard = () => {
 
                 <p className="text-xs text-rose-100 leading-relaxed max-w-xl">
                   {lang === 'hi'
-                    ? `आपकी वर्तमान बुकिंग ${bookedCentre.name} की ही है। पास की पानीपत मंडी में केवल ~${recommendedCentre.estWaitMinutes} मिनट का इंतजार है।`
-                    : `Your current booking remains at ${bookedCentre.name}. Panipat Mandi is available nearby with only ~${recommendedCentre.estWaitMinutes} min wait.`}
+                    ? `आपकी वर्तमान बुकिंग (${activeBooking?.token}) इसी केंद्र पर है। पास की पानीपत मंडी में केवल ~${recommendedCentre.estWaitMinutes} मिनट का इंतजार है।`
+                    : `Your current token (${activeBooking?.token}) is registered at this congested yard. Panipat Mandi is available nearby with only ~${recommendedCentre.estWaitMinutes} min wait.`}
                 </p>
               </div>
             </div>
@@ -161,7 +173,7 @@ export const FarmerDashboard = () => {
                 }}
                 className="bg-amber-400 hover:bg-amber-300 text-rose-950 font-extrabold text-xs px-4 py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5 touch-target min-h-[44px]"
               >
-                <span>👉 {lang === 'hi' ? `पानीपत बदलें (~${recommendedCentre.estWaitMinutes}म)` : `Switch to Panipat (~${recommendedCentre.estWaitMinutes}m)`}</span>
+                <span>👉 {lang === 'hi' ? `${recommendedCentre.name.split(' ')[0]} बदलें (~${recommendedCentre.estWaitMinutes}म)` : `Switch to ${recommendedCentre.name.split(' ')[0]} (~${recommendedCentre.estWaitMinutes}m)`}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -169,13 +181,98 @@ export const FarmerDashboard = () => {
                 onClick={() => setDismissedRerouteAlert(true)}
                 className="bg-rose-950 hover:bg-rose-900 text-rose-200 text-xs font-semibold px-4 py-3 rounded-xl transition-colors border border-rose-700 text-center touch-target min-h-[44px]"
               >
-                {t('keepSonipat', 'Keep Sonipat')}
+                {lang === 'hi' ? `${bookedCentre.name.split(' ')[0]} ही रखें` : `Keep ${bookedCentre.name.split(' ')[0]}`}
               </button>
             </div>
 
           </div>
         </div>
       )}
+
+      {/* 1B. GENERAL MANDI CONGESTION ADVISORY (When active booking is NOT at congested mandi or farmer has no active booking) */}
+      {shouldShowGeneralAdvisory && congestedCentre && (
+        <div className="bg-amber-950/90 text-amber-50 rounded-2xl p-4 sm:p-5 shadow-md border-2 border-amber-500 relative overflow-hidden animate-in slide-in-from-top duration-300">
+          <div className="space-y-3">
+            <div className="flex items-start space-x-3">
+              <div className="p-2 bg-amber-900 text-amber-300 rounded-xl shrink-0 border border-amber-600">
+                <AlertTriangle className="w-5 h-5 text-amber-300 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-extrabold uppercase bg-amber-400 text-amber-950 px-2 py-0.5 rounded font-mono">
+                  {lang === 'hi' ? '⚠️ राज्य मंडी यातायात सूचना' : '⚠️ STATE MANDI TRAFFIC ADVISORY'}
+                </span>
+
+                <h3 className="font-heading text-base font-bold text-white">
+                  {lang === 'hi'
+                    ? `${congestedCentre.name} में भारी भीड़ (~${congestedCentre.estWaitMinutes} मिनट इंतजार)`
+                    : `${congestedCentre.name} experiencing heavy truck traffic (~${congestedCentre.estWaitMinutes} min wait)`}
+                </h3>
+
+                <p className="text-xs text-amber-100 leading-relaxed max-w-xl">
+                  {lang === 'hi'
+                    ? `सोनीपत में ट्रकों की भारी आमद के कारण इंतजार बढ़ गया है। नई बुकिंग के लिए पानीपत मंडी (~${recommendedCentre.estWaitMinutes} मिनट) सुझाई गई है।`
+                    : `High influx of harvest trucks reported at Sonipat Main Yard. Panipat Mandi (~${recommendedCentre.estWaitMinutes} min wait) is currently recommended for open slot arrivals.`}
+                  {activeBooking && (
+                    <span className="block mt-1 text-emerald-300 font-semibold">
+                      ✓ {lang === 'hi'
+                        ? `आपकी वर्तमान बुकिंग (${activeBooking.token}) ${bookedCentre.name} पर है और प्रभावित नहीं है।`
+                        : `Your current token (${activeBooking.token}) is booked at ${bookedCentre.name} and is unaffected.`}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Advisory Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+              <button
+                onClick={() => setFarmerTab('centres')}
+                className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1.5 touch-target min-h-[40px]"
+              >
+                <span>{lang === 'hi' ? 'मंडी स्थिति व विकल्प देखें' : 'View Mandi Options & Live Status'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setDismissedRerouteAlert(true)}
+                className="bg-amber-900/60 hover:bg-amber-900 text-amber-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-colors border border-amber-700/60 text-center touch-target min-h-[40px]"
+              >
+                {lang === 'hi' ? 'सूचना हटाएं' : 'Dismiss Advisory'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* PROMINENT MANDI SLOT BOOKING ACTION HEADER */}
+      <div className="bg-gradient-to-r from-agri-green-dark to-agri-green rounded-2xl p-4 sm:p-5 text-white shadow-agri-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-agri-gold/30">
+        <div className="space-y-1">
+          <span className="text-[10px] font-extrabold uppercase bg-agri-gold/20 text-agri-gold px-2.5 py-0.5 rounded border border-agri-gold/30 font-mono inline-block">
+            🌾 {lang === 'hi' ? 'सीधी सरकारी खरीद' : 'DIRECT MSP PROCUREMENT'}
+          </span>
+          <h2 className="font-heading text-lg sm:text-xl font-bold text-white">
+            {lang === 'hi' ? 'मंडी आगमन स्लॉट बुक करें' : 'Book a Mandi Arrival Slot'}
+          </h2>
+          <p className="text-xs text-agri-ivory/80">
+            {lang === 'hi'
+              ? 'लंबी कतारों से बचें और सीधे गेट एंट्री टोकन प्राप्त करें।'
+              : 'Skip long truck lines with an official 30-minute verified entry slot.'}
+          </p>
+        </div>
+
+        <button
+          onClick={() => {
+            setSelectedCentreForBooking(null);
+            setIsBookingModalOpen(true);
+          }}
+          className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all shadow-agri-sm flex items-center justify-center space-x-2 shrink-0 touch-target min-h-[48px] hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <Wheat className="w-4 h-4 stroke-[2.5]" />
+          <span>{lang === 'hi' ? 'मंडी स्लॉट बुक करें' : 'Book a Mandi Slot'}</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* 2. "WHAT DO I DO NOW?" — PRIMARY FARMER STATUS HERO CARD */}
       <div className="bg-[#17432A] text-white rounded-2xl p-5 sm:p-6 shadow-agri-md relative overflow-hidden space-y-4">
@@ -193,6 +290,35 @@ export const FarmerDashboard = () => {
             {lang === 'hi' ? 'वर्तमान बुकिंग:' : 'Booked:'} <strong className="text-agri-gold">{bookedCentre.name.split(' ')[0]} Yard</strong>
           </span>
         </div>
+
+        {/* MULTIPLE BOOKINGS TOKEN SWITCHER (IF FARMER HAS > 1 BOOKING) */}
+        {farmerBookings.length > 1 && (
+          <div className="bg-[#102e1c] p-2.5 rounded-xl border border-agri-gold/20 space-y-1.5">
+            <span className="text-[11px] text-agri-gold font-bold block">
+              {lang === 'hi' ? '📋 आपकी सक्रिय बुकिंग (टोकन बदलें):' : '📋 Your Active Bookings (Switch Token):'}
+            </span>
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+              {farmerBookings.map((b) => {
+                const isActive = b.token === activeBooking?.token;
+                return (
+                  <button
+                    key={b.token}
+                    onClick={() => selectActiveBooking(b.token)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
+                      isActive
+                        ? 'bg-agri-gold text-agri-green-dark shadow-sm ring-1 ring-white/40'
+                        : 'bg-[#17432A] text-agri-ivory hover:bg-white/10 border border-white/10'
+                    }`}
+                  >
+                    <span>{b.token}</span>
+                    <span className="text-[10px] opacity-80">({b.crop?.split(' ')[0] || 'Crop'} • {b.status})</span>
+                    {isActive && <CheckCircle2 className="w-3 h-3 text-agri-green-dark" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* PRIMARY TASK BOX */}
         <div className="p-4.5 rounded-xl bg-[#123621] border border-agri-gold/30 shadow-inner font-sans space-y-3">
@@ -321,6 +447,43 @@ export const FarmerDashboard = () => {
               >
                 <span>{lang === 'hi' ? 'भुगतान रसीद देखें' : 'View Payout Receipt'}</span>
                 <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* NO ACTIVE BOOKING State */}
+          {!activeBooking && (
+            <div className="space-y-3 text-center py-2 text-agri-ivory">
+              <p className="text-xs">
+                {lang === 'hi'
+                  ? 'आपके पास कोई सक्रिय टोकन नहीं है। आज ही अपना स्लॉट बुक करें।'
+                  : 'You have no active slot booking. Book your arrival slot now.'}
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedCentreForBooking(null);
+                  setIsBookingModalOpen(true);
+                }}
+                className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm"
+              >
+                <Wheat className="w-4 h-4" />
+                <span>{lang === 'hi' ? 'मंडी स्लॉट बुक करें' : 'Book a Mandi Slot'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* "+ BOOK ANOTHER SLOT" ACTION DIRECTLY BELOW CURRENT BOOKING SECTION */}
+          {activeBooking && (
+            <div className="pt-2 border-t border-white/10">
+              <button
+                onClick={() => {
+                  setSelectedCentreForBooking(null);
+                  setIsBookingModalOpen(true);
+                }}
+                className="w-full bg-[#102e1c] hover:bg-[#0b2114] text-agri-gold hover:text-white border-2 border-dashed border-agri-gold/40 hover:border-agri-gold font-extrabold text-xs sm:text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 touch-target min-h-[46px]"
+              >
+                <Calendar className="w-4 h-4 text-agri-gold" />
+                <span>{lang === 'hi' ? '+ दूसरा स्लॉट बुक करें' : '+ Book Another Slot'}</span>
               </button>
             </div>
           )}

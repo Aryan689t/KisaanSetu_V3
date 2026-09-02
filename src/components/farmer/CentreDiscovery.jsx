@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { MapPin, Clock, Users, Calendar, Search, Filter, ShieldCheck, CheckCircle2, Navigation, HelpCircle } from 'lucide-react';
+import { MapPin, Clock, Users, Calendar, Search, Filter, ShieldCheck, CheckCircle2, Navigation, HelpCircle, AlertTriangle } from 'lucide-react';
 import { StatusBadge } from '../ui/StatusBadge';
 import { SlotBookingModal } from './SlotBookingModal';
 
 export const CentreDiscovery = () => {
-  const { centres, getRecommendedCentre, activeBooking, setFarmerTab, lang } = useDemo();
+  const { centres, getRecommendedCentre, activeBooking, demoCondition, setFarmerTab, lang } = useDemo();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCentre, setSelectedCentre] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,6 +14,10 @@ export const CentreDiscovery = () => {
 
   const recommendedCentre = getRecommendedCentre(centres);
   const bookedCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
+  
+  // Single source of truth for demo congestion
+  const isCongestionActive = demoCondition === 'CONGESTED_SONIPAT';
+  const congestedCentre = isCongestionActive ? (centres.find(c => c.id === 'cnt-sonipat') || centres[0]) : null;
 
   const handleOpenBooking = (centre) => {
     setSelectedCentre(centre);
@@ -36,6 +40,48 @@ export const CentreDiscovery = () => {
             : 'Find nearby mandis with shorter waiting times and open arrival slots.'}
         </p>
       </div>
+
+      {/* CONGESTION ADVISORY BANNER (WHEN CONGESTION IS ACTIVE) */}
+      {isCongestionActive && congestedCentre && (
+        <div className="bg-amber-950/90 text-amber-50 rounded-2xl p-4 sm:p-5 border-2 border-amber-500 shadow-md space-y-3 animate-in slide-in-from-top duration-300">
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-amber-900 text-amber-300 rounded-xl shrink-0 border border-amber-600">
+              <AlertTriangle className="w-5 h-5 text-amber-300 animate-pulse" />
+            </div>
+            <div className="space-y-1.5 flex-1">
+              <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                <span className="text-[10px] font-extrabold uppercase bg-amber-400 text-amber-950 px-2 py-0.5 rounded font-mono">
+                  {lang === 'hi' ? '⚠️ राज्य मंडी यातायात सूचना' : '⚠️ STATE MANDI CONGESTION ADVISORY'}
+                </span>
+                <span className="text-[10px] bg-rose-900 text-rose-200 px-2 py-0.5 rounded font-bold border border-rose-700">
+                  {lang === 'hi' ? '🔴 भारी भीड़' : '🔴 Very Busy / Heavy Traffic'}
+                </span>
+              </div>
+
+              <h3 className="font-heading text-base sm:text-lg font-bold text-white">
+                {congestedCentre.name}: {lang === 'hi' ? `इंतजार समय ~${congestedCentre.estWaitMinutes} मिनट` : `Estimated Wait Time ~${congestedCentre.estWaitMinutes} min`}
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                <div className="p-2.5 rounded-xl bg-black/20 border border-amber-500/30">
+                  <span className="text-rose-300 font-bold block">{congestedCentre.name}</span>
+                  <span className="text-amber-100 text-[11px]">🔴 ~{congestedCentre.estWaitMinutes} min wait • {congestedCentre.capacityPercent}% yard capacity</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-black/20 border border-emerald-500/40">
+                  <span className="text-emerald-300 font-bold block">✓ Recommended: {recommendedCentre.name}</span>
+                  <span className="text-emerald-100 text-[11px]">🟢 ~{recommendedCentre.estWaitMinutes} min wait • {recommendedCentre.availableSlots} slots open</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-amber-100 leading-relaxed pt-1">
+                {lang === 'hi'
+                  ? `सोनीपत मंडी में ट्रकों की भारी आमद के कारण कतार लंबी है। आप नीचे किसी भी मंडी का चयन कर सामान्य रूप से स्लॉट बुक कर सकते हैं।`
+                  : `Farmers are advised to choose ${recommendedCentre.name.split(' ')[0]} Yard or nearby alternative yards with open windows to avoid queue bottlenecks. Select any yard below to book.`}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 1. TOP: BEST OPTION FOR YOU (RECOMMENDED MANDI) */}
       <div className="bg-[#17432A] text-white rounded-2xl p-5 sm:p-6 shadow-agri-md relative space-y-4 border-2 border-agri-gold">

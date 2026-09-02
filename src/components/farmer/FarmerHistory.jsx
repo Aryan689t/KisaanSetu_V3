@@ -2,6 +2,7 @@ import React from 'react';
 import { useDemo } from '../../context/DemoContext';
 import { Download, Calculator, Building } from 'lucide-react';
 import { StatusBadge } from '../ui/StatusBadge';
+import { MandiCongestionBanner } from '../ui/MandiCongestionBanner';
 
 export const FarmerHistory = () => {
   const { pastHistory, lang } = useDemo();
@@ -17,6 +18,9 @@ export const FarmerHistory = () => {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300 font-sans">
+
+      {/* COMPACT CONGESTION ADVISORY BANNER */}
+      <MandiCongestionBanner />
 
       {/* 1. TOP SUMMARY CARD: YOUR PAYMENTS */}
       <div className="bg-[#17432A] text-white rounded-2xl p-5 sm:p-6 shadow-agri-md space-y-4 border-2 border-agri-gold">
