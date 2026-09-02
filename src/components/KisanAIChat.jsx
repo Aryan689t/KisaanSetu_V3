@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDemo } from '../context/DemoContext';
-import { Bot, X, Send, Sparkles, Volume2, Wheat, RefreshCw, MessageSquare } from 'lucide-react';
+import { Bot, X, Send, Sparkles, Wheat, RefreshCw, MessageSquare } from 'lucide-react';
 
 export const KisanAIChat = () => {
-  const { lang, speakText, t } = useDemo();
+  const { lang, t } = useDemo();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState([
@@ -66,9 +66,6 @@ export const KisanAIChat = () => {
       };
 
       setMessages(prev => [...prev, botMsg]);
-
-      // Speak response if speech synthesizer is supported
-      speakText(botReplyText.replace(/[*#]/g, ''), botReplyText.replace(/[*#]/g, ''));
 
     } catch (err) {
       console.error('Chat API Error:', err);
@@ -181,15 +178,6 @@ export const KisanAIChat = () => {
                   </p>
                   <div className="flex items-center justify-between text-[9px] opacity-70 pt-1">
                     <span>{msg.time}</span>
-                    {msg.sender === 'bot' && (
-                      <button
-                        onClick={() => speakText(msg.text.replace(/[*#]/g, ''), msg.text.replace(/[*#]/g, ''))}
-                        className="hover:text-agri-gold transition-colors ml-2"
-                        title="Listen to response"
-                      >
-                        <Volume2 className="w-3 h-3" />
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>

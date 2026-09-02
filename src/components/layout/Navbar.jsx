@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { Bell, Wheat, LayoutDashboard, MapPin, Clock, ReceiptText, Volume2, Settings, User } from 'lucide-react';
+import { Bell, Wheat, LayoutDashboard, MapPin, Clock, ReceiptText, Settings, User } from 'lucide-react';
 import { NotificationDrawer } from '../ui/NotificationDrawer';
 import { FarmerMobileNav } from './FarmerMobileNav';
 import { OnboardingModal } from '../farmer/OnboardingModal';
@@ -14,9 +14,6 @@ export const Navbar = () => {
     notifications,
     lang,
     setLang,
-    isAudioActive,
-    setIsAudioActive,
-    speakText,
     setIsOnboardingOpen,
     setIsLoginOpen,
     user,
@@ -120,10 +117,7 @@ export const Navbar = () => {
               {/* English / Hindi Pill Switcher */}
               <div className="flex items-center bg-agri-green-dark/70 p-0.5 rounded-lg border border-agri-gold/30">
                 <button
-                  onClick={() => {
-                    setLang('en');
-                    speakText('English language selected', 'English language selected');
-                  }}
+                  onClick={() => setLang('en')}
                   className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
                     lang === 'en' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/80 hover:text-white'
                   }`}
@@ -132,10 +126,7 @@ export const Navbar = () => {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setLang('hi');
-                    speakText('हिंदी भाषा चुनी गई है', 'Hindi language selected');
-                  }}
+                  onClick={() => setLang('hi')}
                   className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
                     lang === 'hi' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/80 hover:text-white'
                   }`}
@@ -143,24 +134,6 @@ export const Navbar = () => {
                   हिंदी
                 </button>
               </div>
-
-              {/* Audio Assistance Button */}
-              <button
-                onClick={() => {
-                  const nextState = !isAudioActive;
-                  setIsAudioActive(nextState);
-                  if (nextState) speakText('आवाज सहायता चालू है', 'Audio assistance enabled');
-                }}
-                className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg text-xs font-bold flex items-center space-x-1 border transition-all ${
-                  isAudioActive
-                    ? 'bg-agri-gold text-agri-green-dark border-agri-gold shadow-sm'
-                    : 'bg-agri-green-dark/60 text-agri-ivory border-white/10 hover:border-white/30'
-                }`}
-                title="Toggle Voice Assistance"
-              >
-                <Volume2 className={`w-3.5 h-3.5 ${isAudioActive ? 'animate-pulse' : ''}`} />
-                <span className="hidden sm:inline">{isAudioActive ? (lang === 'hi' ? 'आवाज चालू' : 'Audio On') : (lang === 'hi' ? 'आवाज' : 'Audio')}</span>
-              </button>
 
               {/* Settings / Onboarding Trigger */}
               <button

@@ -113,34 +113,40 @@ export const SubtleDemoBar = () => {
           <div className="flex items-center space-x-1.5 shrink-0 justify-end">
             {activeBooking?.status === 'WAITING' && (
               <button
-                onClick={() => callNextFarmer('SNP-014')}
+                onClick={() => callNextFarmer(activeBooking?.token || 'SNP-014')}
                 className="bg-amber-400 hover:bg-amber-300 text-agri-green-dark px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold flex items-center space-x-1 transition-all shadow-sm touch-target min-h-[38px]"
-                title="Simulate operator calling token SNP-014 to Counter 2"
+                title={`Simulate operator calling token ${activeBooking?.token || 'SNP-014'} to Counter 2`}
               >
                 <Play className="w-3 h-3 fill-agri-green-dark" />
-                <span>Call SNP-014</span>
+                <span>Call {activeBooking?.token || 'SNP-014'}</span>
               </button>
             )}
 
             {activeBooking?.status === 'PROCESSING' && (
               <button
-                onClick={() => completeProcurement({ tokenStr: 'SNP-014', actualQty: 38.5, moisturePercent: 12.4, qualityGrade: 'Grade A' })}
+                onClick={() => completeProcurement({ 
+                  tokenStr: activeBooking?.token || 'SNP-014', 
+                  actualQty: activeBooking?.actualQty || 38.5, 
+                  moisturePercent: 12.4, 
+                  qualityGrade: 'Grade A',
+                  ratePerQuintal: activeBooking?.ratePerQuintal || 2200
+                })}
                 className="bg-amber-400 hover:bg-amber-300 text-agri-green-dark px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold flex items-center space-x-1 transition-all shadow-sm touch-target min-h-[38px]"
                 title="Simulate operator weighing & completing procurement"
               >
                 <Play className="w-3 h-3 fill-agri-green-dark" />
-                <span>Complete (38.5 Qtl)</span>
+                <span>Complete ({activeBooking?.actualQty || 38.5} Qtl)</span>
               </button>
             )}
 
             {activeBooking?.paymentStatus === 'PENDING_DISBURSAL' && (
               <button
-                onClick={() => disbursePayment('SNP-014')}
+                onClick={() => disbursePayment(activeBooking?.token || 'SNP-014')}
                 className="bg-emerald-500 hover:bg-emerald-400 text-agri-green-dark px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold flex items-center space-x-1 transition-all shadow-sm touch-target min-h-[38px]"
                 title="Simulate Admin disbursing MSP payment"
               >
                 <Play className="w-3 h-3 fill-agri-green-dark" />
-                <span>Disburse ₹84,700</span>
+                <span>Disburse ₹{(activeBooking?.totalAmount || 84700).toLocaleString()}</span>
               </button>
             )}
 

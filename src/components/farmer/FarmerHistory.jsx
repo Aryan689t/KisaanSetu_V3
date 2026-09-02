@@ -2,10 +2,9 @@ import React from 'react';
 import { useDemo } from '../../context/DemoContext';
 import { Download, Calculator, Building } from 'lucide-react';
 import { StatusBadge } from '../ui/StatusBadge';
-import { supabase } from '../../lib/supabaseClient';
 
 export const FarmerHistory = () => {
-  const { pastHistory, lang, speakText } = useDemo();
+  const { pastHistory, lang } = useDemo();
   const [expandedId, setExpandedId] = React.useState(null);
   const [showFormulaHelp, setShowFormulaHelp] = React.useState(false);
 
@@ -131,7 +130,6 @@ export const FarmerHistory = () => {
                   <button
                     onClick={() => {
                       setExpandedId(isExpanded ? null : item.id);
-                      if (!isExpanded) speakText('भुगतान विवरण खोला जा रहा है', 'Opening payment details');
                     }}
                     className="text-xs font-bold text-agri-green hover:underline touch-target min-h-[32px] inline-flex items-center"
                   >

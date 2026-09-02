@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { Volume2, CheckCircle2, UserCheck, Cpu, ShieldCheck, ArrowRight, X } from 'lucide-react';
+import { CheckCircle2, UserCheck, Cpu, ShieldCheck, ArrowRight, X } from 'lucide-react';
 
 export const OnboardingModal = () => {
-  const { lang, setLang, isAudioActive, setIsAudioActive, setActiveRole, isOnboardingOpen, setIsOnboardingOpen, speakText } = useDemo();
+  const { lang, setLang, setActiveRole, isOnboardingOpen, setIsOnboardingOpen } = useDemo();
   const [step, setStep] = useState(1);
 
   if (!isOnboardingOpen) return null;
@@ -42,10 +42,7 @@ export const OnboardingModal = () => {
 
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
-                onClick={() => {
-                  setLang('hi');
-                  speakText('हिंदी भाषा चुनी गई है।', 'Hindi language selected.');
-                }}
+                onClick={() => setLang('hi')}
                 className={`p-4 rounded-xl border-2 text-center transition-all ${
                   lang === 'hi'
                     ? 'border-agri-green bg-agri-green-soft text-agri-green-dark font-extrabold shadow-sm'
@@ -58,10 +55,7 @@ export const OnboardingModal = () => {
               </button>
 
               <button
-                onClick={() => {
-                  setLang('en');
-                  speakText('English language selected.', 'English language selected.');
-                }}
+                onClick={() => setLang('en')}
                 className={`p-4 rounded-xl border-2 text-center transition-all ${
                   lang === 'en'
                     ? 'border-agri-green bg-agri-green-soft text-agri-green-dark font-extrabold shadow-sm'
@@ -72,31 +66,6 @@ export const OnboardingModal = () => {
                 <span className="text-base font-bold">English</span>
                 <span className="text-[11px] block text-agri-text-muted mt-0.5">अंग्रेज़ी</span>
               </button>
-            </div>
-
-            {/* Audio Assistance Toggle */}
-            <div className="p-3.5 rounded-xl bg-agri-ivory border border-agri-gold/40 flex items-center justify-between gap-3">
-              <div className="flex items-center space-x-2.5">
-                <Volume2 className="w-5 h-5 text-agri-gold-dark shrink-0" />
-                <div className="text-xs">
-                  <strong className="font-bold block text-agri-text">
-                    {lang === 'hi' ? 'बोलकर सहायता (Audio Assistance)' : 'Voice Audio Assistance'}
-                  </strong>
-                  <span className="text-agri-text-muted text-[11px]">
-                    {lang === 'hi' ? 'ज़रूरी निर्देश बोलकर सुनाए जाएंगे' : 'Read important prompts out loud'}
-                  </span>
-                </div>
-              </div>
-
-              <input
-                type="checkbox"
-                checked={isAudioActive}
-                onChange={(e) => {
-                  setIsAudioActive(e.target.checked);
-                  if (e.target.checked) speakText('आवाज से सहायता चालू की गई है', 'Voice audio guidance activated');
-                }}
-                className="w-5 h-5 accent-agri-green rounded"
-              />
             </div>
 
             <button

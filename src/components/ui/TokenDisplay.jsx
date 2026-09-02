@@ -4,13 +4,16 @@ import { StatusBadge } from './StatusBadge';
 import { useDemo } from '../../context/DemoContext';
 
 export const TokenDisplay = ({ booking, onLiveQueueClick }) => {
-  const { centres, lang, speakText } = useDemo();
+  const { centres, lang, queueItems } = useDemo();
   const [showDetails, setShowDetails] = React.useState(false);
 
   if (!booking) return null;
 
   const currentCentre = centres.find(c => c.id === booking.centreId) || centres.find(c => c.name === booking.centreName) || centres[0];
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${currentCentre.lat || 28.9931},${currentCentre.lng || 77.0151}`;
+
+  const youTokenIndex = queueItems ? queueItems.findIndex(q => q.token === booking.token) : -1;
+  const farmersAhead = youTokenIndex >= 0 ? Math.max(0, youTokenIndex) : 3;
 
   return (
     <div className="bg-white rounded-2xl border-2 border-agri-green/40 p-4 sm:p-5 shadow-sm space-y-4 font-sans">
@@ -26,7 +29,7 @@ export const TokenDisplay = ({ booking, onLiveQueueClick }) => {
               🎫 {lang === 'hi' ? 'डिजिटल मंडी पास' : 'Digital Mandi Pass'}
             </h4>
             <p className="text-[11px] text-agri-text-muted font-sans">
-              {booking.farmerName?.replace(' (YOU)', '') || 'Ramesh Singh'}
+              {booking.farmerName?.replace(' (YOU)', '') || 'Farmer'}
             </p>
           </div>
         </div>
@@ -51,7 +54,7 @@ export const TokenDisplay = ({ booking, onLiveQueueClick }) => {
         <div className="bg-agri-ivory/60 p-2.5 rounded-xl border border-agri-ivory-muted">
           <span className="text-[11px] text-agri-text-muted block">{lang === 'hi' ? 'आगे किसान' : 'Farmers ahead'}</span>
           <p className="font-heading text-lg font-extrabold text-agri-text font-mono mt-0.5">
-            {booking.status === 'COMPLETED' ? '0' : (lang === 'hi' ? '3 किसान' : '3 farmers')}
+            {booking.status === 'COMPLETED' ? '0' : (lang === 'hi' ? `${farmersAhead} किसान` : `${farmersAhead} farmers`)}
           </p>
         </div>
         <div className="bg-agri-ivory/60 p-2.5 rounded-xl border border-agri-ivory-muted">
@@ -68,7 +71,6 @@ export const TokenDisplay = ({ booking, onLiveQueueClick }) => {
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => speakText('दिशा-निर्देश खोले जा रहे हैं', 'Opening directions')}
           className="bg-agri-ivory hover:bg-agri-ivory-muted text-agri-green-dark border border-agri-ivory-muted px-4 py-2.5 rounded-xl text-xs font-bold inline-flex items-center justify-center space-x-1.5 transition-colors touch-target min-h-[44px]"
         >
           <Navigation className="w-4 h-4 text-agri-green" />

@@ -5,7 +5,7 @@ import { StatusBadge } from '../ui/StatusBadge';
 import { SlotBookingModal } from './SlotBookingModal';
 
 export const CentreDiscovery = () => {
-  const { centres, getRecommendedCentre, activeBooking, setFarmerTab, lang, speakText } = useDemo();
+  const { centres, getRecommendedCentre, activeBooking, setFarmerTab, lang } = useDemo();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCentre, setSelectedCentre] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,7 +111,6 @@ export const CentreDiscovery = () => {
             href={`https://www.google.com/maps/dir/?api=1&destination=${recommendedCentre.lat},${recommendedCentre.lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => speakText('मानचित्र दिशा-निर्देश खोले जा रहे हैं', 'Opening directions')}
             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-3 rounded-xl text-xs font-bold inline-flex items-center justify-center space-x-2 transition-all touch-target min-h-[48px]"
           >
             <Navigation className="w-4 h-4 text-agri-gold" />
