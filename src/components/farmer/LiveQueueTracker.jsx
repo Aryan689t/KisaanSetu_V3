@@ -3,7 +3,7 @@ import { useDemo } from '../../context/DemoContext';
 import { CheckCircle2 } from 'lucide-react';
 
 export const LiveQueueTracker = () => {
-  const { queueItems, activeBooking, lang, speakText, centres } = useDemo();
+  const { queueItems, activeBooking, lang, centres } = useDemo();
   const [expandedItemId, setExpandedItemId] = React.useState(null);
 
   const currentCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
@@ -139,7 +139,6 @@ export const LiveQueueTracker = () => {
             href={`https://www.google.com/maps/dir/?api=1&destination=${currentCentre.lat},${currentCentre.lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => speakText('मानचित्र खोला जा रहा है', 'Opening map directions')}
             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3.5 py-2 rounded-xl text-xs font-bold inline-flex items-center space-x-1.5 transition-all touch-target min-h-[40px]"
           >
             <span>📍 {lang === 'hi' ? 'रास्ता देखें' : 'Get Directions'}</span>

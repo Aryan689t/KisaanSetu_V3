@@ -161,9 +161,8 @@ export const DemoProvider = ({ children }) => {
   const [activeRole, setActiveRole] = useState('farmer'); // 'farmer' | 'operator' | 'admin'
   const [farmerTab, setFarmerTab] = useState('dashboard'); // 'dashboard' | 'centres' | 'queue' | 'history'
 
-  // Language & Audio Assistance Accessibility State
+  // Language & Accessibility State
   const [lang, setLang] = useState('en'); // 'en' | 'hi'
-  const [isAudioActive, setIsAudioActive] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
@@ -198,19 +197,6 @@ export const DemoProvider = ({ children }) => {
       return translations.en[key];
     }
     return fallbackText || key;
-  };
-
-  // Web Speech Synthesis Helper
-  const speakText = (textHi, textEn) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel(); // stop prior speech
-    const textToSpeak = lang === 'hi' ? textHi || textEn : textEn || textHi;
-    if (!textToSpeak) return;
-
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
   };
 
   // Application Data State
@@ -620,9 +606,6 @@ export const DemoProvider = ({ children }) => {
         markNotificationsRead,
         lang,
         setLang,
-        isAudioActive,
-        setIsAudioActive,
-        speakText,
         isOnboardingOpen,
         setIsOnboardingOpen,
         isLoginOpen,

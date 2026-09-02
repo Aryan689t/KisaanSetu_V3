@@ -16,7 +16,6 @@ export const FarmerDashboard = () => {
     dismissedRerouteAlert,
     setDismissedRerouteAlert,
     lang,
-    speakText,
     t
   } = useDemo();
 
@@ -159,7 +158,6 @@ export const FarmerDashboard = () => {
               <button
                 onClick={() => {
                   switchBookingCentre(recommendedCentre.id);
-                  speakText('पानीपत मंडी में बुकिंग बदल दी गई है', 'Booking switched to Panipat Mandi');
                 }}
                 className="bg-amber-400 hover:bg-amber-300 text-rose-950 font-extrabold text-xs px-4 py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5 touch-target min-h-[44px]"
               >
@@ -240,7 +238,6 @@ export const FarmerDashboard = () => {
               <button
                 onClick={() => {
                   setFarmerTab('queue');
-                  speakText('अपनी कतार स्थिति देखें', 'Tracking live queue position');
                 }}
                 className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-sm px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
               >
@@ -353,7 +350,6 @@ export const FarmerDashboard = () => {
             href={`https://www.google.com/maps/dir/?api=1&destination=${bookedCentre.lat},${bookedCentre.lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => speakText('मानचित्र दिशा-निर्देश खोले जा रहे हैं', 'Opening Google Maps directions')}
             className="bg-agri-green hover:bg-agri-green-dark text-white px-4 py-2.5 rounded-xl text-xs font-bold inline-flex items-center space-x-1.5 shrink-0 transition-all touch-target min-h-[44px]"
           >
             <Navigation className="w-4 h-4 text-agri-gold" />

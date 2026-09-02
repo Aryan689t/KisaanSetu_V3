@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
 import { X, Calendar, Clock, Wheat, CheckCircle2, ShieldCheck } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
-
 export const SlotBookingModal = ({ centre, onClose }) => {
   const { crops, timeSlots, bookSlot, user } = useDemo();
 
@@ -17,41 +15,18 @@ export const SlotBookingModal = ({ centre, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // Perform insert into Supabase 'bookings' table
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            farmer_name: user?.user_metadata?.full_name || 'Farmer (Demo)',
-            phone: user?.email || '9999999999',
-            mandi_id: centre?.id || 'centre-01',
-            crop_type: selectedCrop,
-            quantity_quintals: Number(expectedQty),
-            slot_time: selectedSlot,
-            status: 'booked'
-          }
-        ]);
-
-      if (error) {
-        console.error('Supabase booking insertion error:', error);
-        alert(`Supabase Insertion Alert: ${error.message || 'Could not insert row into database.'}`);
-      }
+      await bookSlot({
+        centreId: centre?.id,
+        cropName: selectedCrop,
+        slotTime: selectedSlot,
+        expectedQty
+      });
+      onClose();
     } catch (err) {
-      console.error('Unexpected error inserting booking into Supabase:', err);
-      alert('Network or Database Connection Error while saving booking.');
+      console.error('Error creating slot booking:', err);
     } finally {
       setIsSubmitting(false);
     }
-
-    // Always invoke context reactive store update
-    bookSlot({
-      centreId: centre?.id,
-      cropName: selectedCrop,
-      slotTime: selectedSlot,
-      expectedQty
-    });
-
-    onClose();
   };
 
   return (

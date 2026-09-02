@@ -4,7 +4,7 @@ import { StatusBadge } from './StatusBadge';
 import { useDemo } from '../../context/DemoContext';
 
 export const TokenDisplay = ({ booking, onLiveQueueClick }) => {
-  const { centres, lang, speakText } = useDemo();
+  const { centres, lang } = useDemo();
   const [showDetails, setShowDetails] = React.useState(false);
 
   if (!booking) return null;
@@ -68,7 +68,6 @@ export const TokenDisplay = ({ booking, onLiveQueueClick }) => {
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => speakText('दिशा-निर्देश खोले जा रहे हैं', 'Opening directions')}
           className="bg-agri-ivory hover:bg-agri-ivory-muted text-agri-green-dark border border-agri-ivory-muted px-4 py-2.5 rounded-xl text-xs font-bold inline-flex items-center justify-center space-x-1.5 transition-colors touch-target min-h-[44px]"
         >
           <Navigation className="w-4 h-4 text-agri-green" />
