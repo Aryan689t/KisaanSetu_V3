@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
-const rawAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const rawAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const supabaseUrl = (rawUrl && typeof rawUrl === 'string') ? rawUrl.trim() : 'https://placeholder.supabase.co';
 const supabaseAnonKey = (rawAnonKey && typeof rawAnonKey === 'string') ? rawAnonKey.trim() : 'placeholder-anon-key';

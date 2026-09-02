@@ -14,11 +14,16 @@ export function mapBookingRow(row) {
     ? Number(row.total_payout) 
     : (actualQtyNum != null ? Math.round(actualQtyNum * rateNum) : null);
 
+  const formulaStr = actualQtyNum != null 
+    ? `${actualQtyNum} quintals × ₹${rateNum.toLocaleString()}/quintal = ₹${totalPayoutNum.toLocaleString()}`
+    : `${expectedQtyNum} quintals × ₹${rateNum.toLocaleString()}/quintal (Est.)`;
+
   return {
     id: row.id,
     token: row.token,
     centreId: row.centre_id,
     centre_id: row.centre_id,
+    centreName: row.centre_name || (row.centre_id === 'cnt-sonipat' ? 'Sonipat Main Procurement Centre' : row.centre_id),
     farmerName: row.farmer_name,
     farmer_name: row.farmer_name,
     mobile: row.mobile || '+91 98765 43210',
@@ -42,11 +47,13 @@ export function mapBookingRow(row) {
     rate_per_quintal: rateNum,
     totalPayout: totalPayoutNum,
     totalAmount: totalPayoutNum,
+    formula: formulaStr,
     paymentStatus: row.payment_status || 'PENDING',
     payment_status: row.payment_status || 'PENDING',
     dbtReference: row.dbt_reference,
     dbt_reference: row.dbt_reference,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    created_at: row.created_at
   };
 }
 
@@ -78,6 +85,19 @@ export function mapCentreRow(row) {
 }
 
 /**
+ * Helper to generate a unique, non-colliding token string (e.g. SNP-016).
+ */
+export function generateNextToken(existingQueue = [], centreCode = 'SNP') {
+  let counter = existingQueue.length + 11;
+  let candidate = `${centreCode}-0${counter < 10 ? '0' + counter : counter}`;
+  while (existingQueue.some(item => item.token === candidate)) {
+    counter++;
+    candidate = `${centreCode}-0${counter < 10 ? '0' + counter : counter}`;
+  }
+  return candidate;
+}
+
+/**
  * Creates a slot booking in Supabase 'bookings' table.
  * Standardizes incoming payload to match table columns.
  */
@@ -93,6 +113,7 @@ export async function createSlotBooking(bookingData) {
   const ratePerQuintal = Number(bookingData.ratePerQuintal || bookingData.rate_per_quintal || 2200);
 
   if (!isSupabaseConfigured) {
+    console.warn('[Supabase Service] Supabase not configured. Returning local mock booking.');
     return {
       success: true,
       mode: 'mock',
@@ -138,6 +159,7 @@ export async function createSlotBooking(bookingData) {
 
     if (error) throw error;
 
+    console.info(`[Supabase Service] Successfully created booking token ${token} in database.`);
     return {
       success: true,
       mode: 'supabase',
@@ -148,7 +170,7 @@ export async function createSlotBooking(bookingData) {
     return {
       success: false,
       error: err.message,
-      mode: 'fallback',
+      mode: 'supabase_error',
       data: mapBookingRow({
         id: `bk-${Date.now()}`,
         token,
@@ -199,6 +221,7 @@ export async function fetchBookings(centreId = null) {
     if (error) throw error;
 
     if (!data || data.length === 0) {
+      console.warn('[Supabase Service] No bookings returned from database. Using initial seeds as fallback.');
       return {
         success: true,
         mode: 'supabase_empty',
@@ -206,6 +229,7 @@ export async function fetchBookings(centreId = null) {
       };
     }
 
+    console.info(`[Supabase Service] Retrieved ${data.length} bookings from Supabase.`);
     return {
       success: true,
       mode: 'supabase',
@@ -216,8 +240,54 @@ export async function fetchBookings(centreId = null) {
     return {
       success: false,
       error: err.message,
-      mode: 'fallback',
+      mode: 'supabase_error',
       data: initialQueueItems.map(mapBookingRow)
+    };
+  }
+}
+
+/**
+ * Fetches active bookings (WAITING, CHECKED_IN, PROCESSING).
+ */
+export async function fetchActiveBookings(centreId = null) {
+  if (!isSupabaseConfigured) {
+    const active = initialQueueItems.filter(item => 
+      ['WAITING', 'CHECKED_IN', 'PROCESSING'].includes(item.status) &&
+      (!centreId || (item.centreId || 'cnt-sonipat') === centreId)
+    );
+    return {
+      success: true,
+      mode: 'mock',
+      data: active.map(mapBookingRow)
+    };
+  }
+
+  try {
+    let query = supabase
+      .from('bookings')
+      .select('*')
+      .in('status', ['WAITING', 'CHECKED_IN', 'PROCESSING'])
+      .order('created_at', { ascending: true });
+
+    if (centreId) {
+      query = query.eq('centre_id', centreId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return {
+      success: true,
+      mode: 'supabase',
+      data: (data || []).map(mapBookingRow)
+    };
+  } catch (err) {
+    console.error('[Supabase Error] fetchActiveBookings failed:', err.message);
+    return {
+      success: false,
+      error: err.message,
+      mode: 'supabase_error',
+      data: []
     };
   }
 }
@@ -243,6 +313,7 @@ export async function fetchCentres() {
     if (error) throw error;
 
     if (!data || data.length === 0) {
+      console.warn('[Supabase Service] No centres returned from database. Using initial seeds as fallback.');
       return {
         success: true,
         mode: 'supabase_empty',
@@ -269,7 +340,7 @@ export async function fetchCentres() {
     return {
       success: false,
       error: err.message,
-      mode: 'fallback',
+      mode: 'supabase_error',
       data: initialCentres
     };
   }
@@ -302,7 +373,7 @@ export async function fetchActiveQueueMetrics(centreId = 'cnt-sonipat') {
     };
   } catch (err) {
     console.error('[Supabase Error] fetchActiveQueueMetrics failed:', err.message);
-    return { count: 34, currentToken: 'SNP-014', mode: 'fallback' };
+    return { count: 34, currentToken: 'SNP-014', mode: 'supabase_error' };
   }
 }
 
@@ -326,15 +397,17 @@ export async function updateBookingStatus(tokenOrId, newStatus, extraFields = {}
 
     let query = supabase.from('bookings').update(payload);
 
-    if (typeof tokenOrId === 'string' && tokenOrId.startsWith('SNP-')) {
-      query = query.eq('token', tokenOrId);
-    } else {
+    const isUuid = typeof tokenOrId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tokenOrId);
+    if (isUuid) {
       query = query.eq('id', tokenOrId);
+    } else {
+      query = query.eq('token', tokenOrId);
     }
 
     const { data, error } = await query.select();
     if (error) throw error;
 
+    console.info(`[Supabase Service] Updated status of ${tokenOrId} to ${newStatus}.`);
     return {
       success: true,
       mode: 'supabase',
@@ -345,7 +418,7 @@ export async function updateBookingStatus(tokenOrId, newStatus, extraFields = {}
     return {
       success: false,
       error: err.message,
-      mode: 'fallback'
+      mode: 'supabase_error'
     };
   }
 }
@@ -380,15 +453,17 @@ export async function updateBookingProcurement(tokenOrId, { actualQty, moistureP
   try {
     let query = supabase.from('bookings').update(payload);
 
-    if (typeof tokenOrId === 'string' && tokenOrId.startsWith('SNP-')) {
-      query = query.eq('token', tokenOrId);
-    } else {
+    const isUuid = typeof tokenOrId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tokenOrId);
+    if (isUuid) {
       query = query.eq('id', tokenOrId);
+    } else {
+      query = query.eq('token', tokenOrId);
     }
 
     const { data, error } = await query.select();
     if (error) throw error;
 
+    console.info(`[Supabase Service] Completed procurement inspection for ${tokenOrId}. Total payout: ₹${totalPayout}`);
     return {
       success: true,
       mode: 'supabase',
@@ -399,7 +474,7 @@ export async function updateBookingProcurement(tokenOrId, { actualQty, moistureP
     return {
       success: false,
       error: err.message,
-      mode: 'fallback'
+      mode: 'supabase_error'
     };
   }
 }
@@ -427,15 +502,17 @@ export async function disburseBookingPayment(tokenOrId, dbtReference = null) {
   try {
     let query = supabase.from('bookings').update(payload);
 
-    if (typeof tokenOrId === 'string' && tokenOrId.startsWith('SNP-')) {
-      query = query.eq('token', tokenOrId);
-    } else {
+    const isUuid = typeof tokenOrId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tokenOrId);
+    if (isUuid) {
       query = query.eq('id', tokenOrId);
+    } else {
+      query = query.eq('token', tokenOrId);
     }
 
     const { data, error } = await query.select();
     if (error) throw error;
 
+    console.info(`[Supabase Service] Disbursed payment for ${tokenOrId} with ref ${ref}.`);
     return {
       success: true,
       mode: 'supabase',
@@ -447,7 +524,7 @@ export async function disburseBookingPayment(tokenOrId, dbtReference = null) {
     return {
       success: false,
       error: err.message,
-      mode: 'fallback',
+      mode: 'supabase_error',
       dbtReference: ref
     };
   }
@@ -482,3 +559,8 @@ export function subscribeToTokenUpdates(centreId, onUpdate) {
     supabase.removeChannel(channel);
   };
 }
+
+// Aliases matching prompt requirements
+export const createBooking = createSlotBooking;
+export const completeProcurement = updateBookingProcurement;
+export const disbursePayment = disburseBookingPayment;

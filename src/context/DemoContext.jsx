@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { createSlotBooking, subscribeToTokenUpdates } from '../lib/supabaseService';
+import { 
+  createSlotBooking, 
+  fetchBookings, 
+  fetchCentres, 
+  updateBookingStatus, 
+  updateBookingProcurement, 
+  disburseBookingPayment, 
+  generateNextToken, 
+  subscribeToTokenUpdates 
+} from '../lib/supabaseService';
 import {
   initialCentres,
   initialCrops,
@@ -206,6 +215,7 @@ export const DemoProvider = ({ children }) => {
   const [queueItems, setQueueItems] = useState(initialQueueItems);
   const [pastHistory, setPastHistory] = useState(initialPastHistory);
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
 
   // Dynamic Congestion Demo Condition
   const [demoCondition, setDemoConditionState] = useState('NORMAL');
@@ -213,8 +223,87 @@ export const DemoProvider = ({ children }) => {
   // Alert Dismissal State
   const [dismissedRerouteAlert, setDismissedRerouteAlert] = useState(false);
 
-  // Active Selected Booking
-  const activeBooking = queueItems.find(q => q.token === 'SNP-014') || queueItems[3];
+  // Active Selected Booking Token (persisted in localStorage across refreshes)
+  const [activeBookingToken, setActiveBookingTokenState] = useState(() => {
+    try {
+      return localStorage.getItem('kisansetu_active_token') || 'SNP-014';
+    } catch {
+      return 'SNP-014';
+    }
+  });
+
+  const setActiveBookingToken = (token) => {
+    setActiveBookingTokenState(token);
+    try {
+      if (token) localStorage.setItem('kisansetu_active_token', token);
+    } catch (e) {
+      console.warn('Could not save active token to localStorage:', e);
+    }
+  };
+
+  // Dynamic activeBooking resolution
+  const activeBooking = 
+    queueItems.find(q => q.token === activeBookingToken) ||
+    queueItems.find(q => q.token === 'SNP-014') ||
+    queueItems.find(q => q.farmerName?.includes('YOU') || q.farmerName?.includes('Ramesh')) ||
+    queueItems[0] ||
+    null;
+
+  // Fetch initial data from Supabase on mount & provide manual refresh
+  const refreshBookings = async () => {
+    setIsLoadingBookings(true);
+    try {
+      // 1. Fetch Centres from Supabase
+      const centresRes = await fetchCentres();
+      if (centresRes.success && centresRes.data && centresRes.data.length > 0) {
+        setCentres(centresRes.data);
+      }
+
+      // 2. Fetch Bookings from Supabase
+      const bookingsRes = await fetchBookings();
+      if (bookingsRes.success && bookingsRes.data && bookingsRes.data.length > 0) {
+        setQueueItems(bookingsRes.data);
+
+        // Populate completed / disbursed history from real database records
+        const completedFromDb = bookingsRes.data
+          .filter(b => b.status === 'COMPLETED' || b.paymentStatus === 'DISBURSED')
+          .map(b => ({
+            id: `HIST-${b.token}`,
+            season: 'Kharif 2026',
+            date: b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '29 Aug 2026',
+            centre: b.centreName || 'Sonipat Main Procurement Centre',
+            crop: b.crop || b.cropName || 'Paddy (Grade A)',
+            expectedQty: b.expectedQty || 40.0,
+            actualQty: b.actualQty || 38.5,
+            ratePerQuintal: b.ratePerQuintal || 2200,
+            totalAmount: b.totalAmount || b.totalPayout || Math.round((b.actualQty || 38.5) * (b.ratePerQuintal || 2200)),
+            formula: b.formula || `${b.actualQty || 38.5} quintals × ₹${(b.ratePerQuintal || 2200).toLocaleString()}/quintal`,
+            qualityGrade: b.qualityGrade || 'Grade A',
+            moisturePercent: b.moisturePercent || 12.4,
+            procurementStatus: 'COMPLETED',
+            paymentStatus: b.paymentStatus || 'DISBURSED',
+            dbtReference: b.dbtReference || 'DBT-UTIB000984210',
+            bankAccount: 'State Bank of India (****4092)'
+          }));
+
+        if (completedFromDb.length > 0) {
+          setPastHistory(prev => {
+            const existingIds = new Set(completedFromDb.map(c => c.id));
+            const remaining = prev.filter(p => !existingIds.has(p.id));
+            return [...completedFromDb, ...remaining];
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[DemoContext] Failed to sync data with Supabase:', err);
+    } finally {
+      setIsLoadingBookings(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshBookings();
+  }, []);
 
   // Helper to add notification
   const addNotification = (title, message, type = 'info', forRole = 'farmer') => {
@@ -299,12 +388,14 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Switch Booking Centre
-  const switchBookingCentre = (newCentreId) => {
+  const switchBookingCentre = async (newCentreId) => {
     const targetCentre = centres.find(c => c.id === newCentreId);
     if (!targetCentre) return;
 
+    const currentToken = activeBooking?.token || 'SNP-014';
+
     setQueueItems(prev => prev.map(item => {
-      if (item.token === 'SNP-014') {
+      if (item.token === currentToken) {
         return {
           ...item,
           centreId: targetCentre.id,
@@ -318,9 +409,12 @@ export const DemoProvider = ({ children }) => {
 
     setDismissedRerouteAlert(true);
 
+    // Persist to Supabase
+    await updateBookingStatus(currentToken, activeBooking?.status || 'WAITING', { centre_id: targetCentre.id });
+
     addNotification(
       'Mandi Rerouted Successfully!',
-      `Token SNP-014 switched to ${targetCentre.name}. Estimated wait time reduced to ~${targetCentre.estWaitMinutes} mins.`,
+      `Token ${currentToken} switched to ${targetCentre.name}. Estimated wait time reduced to ~${targetCentre.estWaitMinutes} mins.`,
       'success',
       'farmer'
     );
@@ -329,25 +423,29 @@ export const DemoProvider = ({ children }) => {
   // Book New Slot
   const bookSlot = async ({ centreId, cropName, slotTime, expectedQty }) => {
     const centre = centres.find(c => c.id === centreId) || centres[0];
-    const newTokenNum = `SNP-0${queueItems.length + 11}`;
+    const newTokenNum = generateNextToken(queueItems, 'SNP');
+    const farmerFullName = user?.user_metadata?.full_name || 'Ramesh Singh (YOU)';
+    const farmerMobile = user?.email || '+91 98765 43210';
     
-    // Write to Supabase Realtime Service
-    await createSlotBooking({
+    // Write to Supabase bookings table
+    const result = await createSlotBooking({
       centreId: centre.id,
       cropName: cropName || 'Paddy (Grade A)',
       slotTime: slotTime || '11:30 AM - 12:00 PM',
       expectedQty: Number(expectedQty) || 40,
       token: newTokenNum,
-      farmerName: user?.user_metadata?.full_name || 'Ramesh Singh (YOU)',
-      mobile: user?.email || '+91 98765 43210'
+      farmerName: farmerFullName,
+      mobile: farmerMobile
     });
 
-    const newBooking = {
+    const bookingRecord = result.data || {
+      id: `bk-${Date.now()}`,
       token: newTokenNum,
-      farmerName: user?.user_metadata?.full_name || 'Ramesh Singh (YOU)',
-      mobile: user?.email || '+91 98765 43210',
+      farmerName: farmerFullName,
+      mobile: farmerMobile,
       aadhaarLast4: '4821',
       crop: cropName || 'Paddy (Grade A)',
+      cropName: cropName || 'Paddy (Grade A)',
       expectedQty: Number(expectedQty) || 40,
       actualQty: null,
       moisturePercent: null,
@@ -358,19 +456,24 @@ export const DemoProvider = ({ children }) => {
       centreName: centre.name,
       status: 'WAITING',
       arrivalTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      bookingId: `BK-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       ratePerQuintal: 2200,
-      paymentStatus: 'PENDING'
+      paymentStatus: 'PENDING',
+      createdAt: new Date().toISOString()
     };
 
-    setQueueItems(prev => [...prev, newBooking]);
+    // Update queue items
+    setQueueItems(prev => [...prev, bookingRecord]);
 
+    // Set newly created booking as active for the farmer and persist in localStorage
+    setActiveBookingToken(bookingRecord.token);
+
+    // Update centre available slot count
     setCentres(prev => prev.map(c => {
       if (c.id === centreId) {
         return {
           ...c,
-          queueCount: c.queueCount + 1,
-          availableSlots: Math.max(0, c.availableSlots - 1)
+          queueCount: (c.queueCount || 0) + 1,
+          availableSlots: Math.max(0, (c.availableSlots || 1) - 1)
         };
       }
       return c;
@@ -378,22 +481,27 @@ export const DemoProvider = ({ children }) => {
 
     addNotification(
       'Slot Booked Successfully!',
-      `Token ${newTokenNum} generated for ${centre.name} (${slotTime}).`,
+      `Token ${bookingRecord.token} generated for ${centre.name} (${slotTime}).`,
       'success',
       'farmer'
     );
 
     setFarmerTab('queue');
+    return bookingRecord;
   };
 
   // Check-In Farmer
-  const checkInFarmer = (tokenStr) => {
+  const checkInFarmer = async (tokenStr) => {
+    // 1. Optimistic UI update
     setQueueItems(prev => prev.map(item => {
       if (item.token === tokenStr) {
         return { ...item, status: 'CHECKED_IN' };
       }
       return item;
     }));
+
+    // 2. Persist to Supabase
+    await updateBookingStatus(tokenStr, 'CHECKED_IN');
 
     addNotification(
       'Farmer Checked-In',
@@ -402,24 +510,26 @@ export const DemoProvider = ({ children }) => {
       'operator'
     );
 
-    if (tokenStr === 'SNP-014') {
-      addNotification(
-        'Check-in Confirmed',
-        'You have successfully checked in at Sonipat Main Procurement Centre gate.',
-        'success',
-        'farmer'
-      );
-    }
+    addNotification(
+      'Check-in Confirmed',
+      `Token ${tokenStr} has successfully checked in at Mandi gate.`,
+      'success',
+      'farmer'
+    );
   };
 
   // Call Next Farmer
-  const callNextFarmer = (tokenStr = 'SNP-014', counterName = 'Counter 2') => {
+  const callNextFarmer = async (tokenStr = 'SNP-014', counterName = 'Counter 2') => {
+    // 1. Optimistic UI update
     setQueueItems(prev => prev.map(item => {
       if (item.token === tokenStr) {
         return { ...item, status: 'PROCESSING', counter: counterName };
       }
       return item;
     }));
+
+    // 2. Persist to Supabase
+    await updateBookingStatus(tokenStr, 'PROCESSING', { counter: counterName });
 
     addNotification(
       'Your Turn Has Arrived!',
@@ -437,12 +547,13 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Complete Procurement
-  const completeProcurement = ({ tokenStr = 'SNP-014', actualQty = 38.5, moisturePercent = 12.4, qualityGrade = 'Grade A' }) => {
+  const completeProcurement = async ({ tokenStr = 'SNP-014', actualQty = 38.5, moisturePercent = 12.4, qualityGrade = 'Grade A', ratePerQuintal = 2200 }) => {
     const qty = Number(actualQty);
-    const rate = 2200;
+    const rate = Number(ratePerQuintal) || 2200;
     const totalPayout = Math.round(qty * rate);
     const formulaStr = `${qty} quintals × ₹${rate.toLocaleString()}/quintal = ₹${totalPayout.toLocaleString()}`;
 
+    // 1. Optimistic UI update
     setQueueItems(prev => prev.map(item => {
       if (item.token === tokenStr) {
         return {
@@ -451,22 +562,34 @@ export const DemoProvider = ({ children }) => {
           actualQty: qty,
           moisturePercent: Number(moisturePercent),
           qualityGrade,
+          ratePerQuintal: rate,
           completedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           paymentStatus: 'PENDING_DISBURSAL',
           totalAmount: totalPayout,
+          totalPayout,
           formula: formulaStr
         };
       }
       return item;
     }));
 
+    // 2. Persist to Supabase
+    await updateBookingProcurement(tokenStr, {
+      actualQty: qty,
+      moisturePercent: Number(moisturePercent),
+      qualityGrade,
+      ratePerQuintal: rate
+    });
+
+    const targetItem = queueItems.find(q => q.token === tokenStr);
+
     const newHistoryItem = {
-      id: `HIST-2026-${Math.floor(10 + Math.random() * 90)}`,
+      id: `HIST-${tokenStr}`,
       season: 'Kharif 2026',
       date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      centre: 'Sonipat Main Procurement Centre',
-      crop: 'Paddy (Grade A)',
-      expectedQty: 40.0,
+      centre: targetItem?.centreName || 'Sonipat Main Procurement Centre',
+      crop: targetItem?.crop || targetItem?.cropName || 'Paddy (Grade A)',
+      expectedQty: targetItem?.expectedQty || 40.0,
       actualQty: qty,
       ratePerQuintal: rate,
       totalAmount: totalPayout,
@@ -475,11 +598,11 @@ export const DemoProvider = ({ children }) => {
       moisturePercent: Number(moisturePercent),
       procurementStatus: 'COMPLETED',
       paymentStatus: 'PENDING_DISBURSAL',
-      dbtReference: 'DBT-UTIB000984210 (Pending)',
+      dbtReference: 'Pending Admin Settlement',
       bankAccount: 'State Bank of India (****4092)'
     };
 
-    setPastHistory(prev => [newHistoryItem, ...prev]);
+    setPastHistory(prev => [newHistoryItem, ...prev.filter(h => h.id !== newHistoryItem.id)]);
 
     addNotification(
       'Procurement Completed!',
@@ -497,40 +620,51 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Admin Disburse Payment
-  const disbursePayment = (tokenStr = 'SNP-014') => {
+  const disbursePayment = async (tokenStr = 'SNP-014') => {
     let disbursedAmount = 84700;
-    let farmerName = 'Ramesh Singh';
+    let targetBooking = queueItems.find(item => item.token === tokenStr);
+    if (targetBooking) {
+      disbursedAmount = targetBooking.totalAmount || targetBooking.totalPayout || Math.round((targetBooking.actualQty || 38.5) * (targetBooking.ratePerQuintal || 2200));
+    }
 
+    const dbtRef = `DBT-UTIB000${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // 1. Optimistic UI update
     setQueueItems(prev => prev.map(item => {
       if (item.token === tokenStr) {
-        disbursedAmount = item.totalAmount || 84700;
-        farmerName = item.farmerName.replace(' (YOU)', '');
-        return { ...item, paymentStatus: 'DISBURSED' };
+        return { 
+          ...item, 
+          paymentStatus: 'DISBURSED',
+          dbtReference: dbtRef
+        };
       }
       return item;
     }));
 
     setPastHistory(prev => prev.map(h => {
-      if (h.paymentStatus === 'PENDING_DISBURSAL') {
+      if (h.id === `HIST-${tokenStr}` || (h.paymentStatus === 'PENDING_DISBURSAL' && tokenStr === 'SNP-014')) {
         return {
           ...h,
           paymentStatus: 'DISBURSED',
-          dbtReference: 'DBT-UTIB000984210'
+          dbtReference: dbtRef
         };
       }
       return h;
     }));
 
+    // 2. Persist to Supabase
+    await disburseBookingPayment(tokenStr, dbtRef);
+
     addNotification(
       '₹ MSP Payment Disbursed!',
-      `Direct Benefit Transfer of ₹${disbursedAmount.toLocaleString()} credited to SBI A/C ****4092. Ref: DBT-UTIB000984210.`,
+      `Direct Benefit Transfer of ₹${disbursedAmount.toLocaleString()} credited to SBI A/C ****4092. Ref: ${dbtRef}.`,
       'success',
       'farmer'
     );
 
     addNotification(
-      'DBT Payment Released',
-      `Released payment of ₹${disbursedAmount.toLocaleString()} for ${farmerName} (${tokenStr}).`,
+      'DBT Disbursed Authorized',
+      `Payment of ₹${disbursedAmount.toLocaleString()} authorized for token ${tokenStr}. Audit record logged.`,
       'info',
       'admin'
     );
@@ -565,16 +699,22 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Reset demo state
-  const resetDemoState = () => {
+  const resetDemoState = async () => {
     setCentres(initialCentres);
     setTimeSlots(initialTimeSlots);
-    setQueueItems(initialQueueItems);
     setPastHistory(initialPastHistory);
     setNotifications(initialNotifications);
     setFarmerTab('dashboard');
     setDemoConditionState('NORMAL');
     setDismissedRerouteAlert(false);
-    addNotification('Demo State Reset', 'Restored initial mock dataset & normal load conditions.', 'info', activeRole);
+    setActiveBookingToken('SNP-014');
+    try {
+      localStorage.setItem('kisansetu_active_token', 'SNP-014');
+    } catch {}
+    
+    // Re-fetch clean state from Supabase
+    await refreshBookings();
+    addNotification('Demo State Reset', 'Restored initial dataset & normal load conditions.', 'info', activeRole);
   };
 
   return (
@@ -591,6 +731,10 @@ export const DemoProvider = ({ children }) => {
         pastHistory,
         notifications,
         activeBooking,
+        activeBookingToken,
+        setActiveBookingToken,
+        refreshBookings,
+        isLoadingBookings,
         demoCondition,
         setDemoCondition,
         dismissedRerouteAlert,

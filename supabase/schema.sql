@@ -50,8 +50,13 @@ CREATE INDEX IF NOT EXISTS idx_bookings_centre_id ON public.bookings(centre_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON public.bookings(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_token ON public.bookings(token);
 
--- 5. ROW LEVEL SECURITY (RLS) FOR HACKATHON MVP DEMO
+-- 5. ROW LEVEL SECURITY (RLS) & PRIVILEGES FOR HACKATHON MVP DEMO
 -- Enable RLS and grant public access so the frontend anon key can perform queries & updates without blocking demo flows.
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON TABLE public.centres TO anon, authenticated;
+GRANT ALL ON TABLE public.bookings TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+
 ALTER TABLE public.centres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
