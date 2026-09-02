@@ -129,7 +129,19 @@ export const FarmerDashboard = () => {
       subtitle: t('congestedAlertTitle', 'Smart Congestion Rerouting'),
       icon: Navigation,
       badgeText: '1-Click Reroute',
-      content: t('faq4A', 'Yes! When KisanSetu detects heavy queue congestion (>85% yard capacity), you will receive a 1-click option on your dashboard to seamlessly transfer your slot to a nearby low-wait Mandi.')
+      content: (
+        <div className="space-y-2">
+          <p className="text-xs sm:text-sm text-agri-text leading-relaxed">
+            {t('faq4A', 'Yes! When KisanSetu detects heavy queue congestion (>85% yard capacity), you will receive a 1-click option on your dashboard to seamlessly transfer your slot to a nearby low-wait Mandi.')}
+          </p>
+          <button
+            onClick={() => setFarmerTab('centres')}
+            className="inline-flex items-center space-x-1 text-xs font-bold text-agri-green hover:text-agri-green-dark hover:underline pt-0.5"
+          >
+            <span>{lang === 'hi' ? 'मंडी विकल्प देखें →' : 'View Mandi Options →'}</span>
+          </button>
+        </div>
+      )
     }
   ];
 
@@ -521,16 +533,7 @@ export const FarmerDashboard = () => {
         </div>
       </div>
 
-      {/* 5. ACCORDION 2: MANDI FAQ & PROCUREMENT GUIDELINES */}
-      <div className="space-y-2">
-        <h3 className="font-heading text-base font-bold text-agri-text flex items-center space-x-2 px-1">
-          <Info className="w-4 h-4 text-agri-green" />
-          <span>{t('mandiFaqTitle', 'Mandi Guidelines & Frequently Asked Questions (FAQ)')}</span>
-        </h3>
-        <Accordion items={faqItems} allowMultiple={true} />
-      </div>
-
-      {/* 6. RECOMMENDATION CARD */}
+      {/* 5. MANDI RECOMMENDATION CARD */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 border-2 border-agri-green/30 relative shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-agri-ivory-muted">
           <div>
@@ -578,6 +581,22 @@ export const FarmerDashboard = () => {
             <p className="font-heading text-base font-bold text-agri-text font-mono mt-0.5">{recommendedCentre.availableSlots} free</p>
           </div>
         </div>
+      </div>
+
+      {/* 6. BEFORE YOU VISIT THE MANDI (QUICK FAQS) */}
+      <div className="space-y-2.5 pt-1">
+        <div className="px-1">
+          <h3 className="font-heading text-base font-bold text-agri-text flex items-center space-x-1.5">
+            <span>🌾</span>
+            <span>{lang === 'hi' ? 'मंडी जाने से पहले ज़रूरी बातें' : 'Before You Visit the Mandi'}</span>
+          </h3>
+          <p className="text-xs text-agri-text-muted mt-0.5">
+            {lang === 'hi'
+              ? 'दस्तावेज़, गुणवत्ता, भुगतान और मंडी स्थिति से जुड़े त्वरित उत्तर।'
+              : 'Quick answers about documents, quality, payment and Mandi congestion.'}
+          </p>
+        </div>
+        <Accordion items={faqItems} allowMultiple={true} defaultOpenIds={[]} compact={true} />
       </div>
 
       {/* Slot Booking Modal */}

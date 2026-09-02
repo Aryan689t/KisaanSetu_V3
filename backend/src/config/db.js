@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
@@ -10,6 +9,7 @@ const hasDatabaseUrl = Boolean(process.env.DATABASE_URL && process.env.DATABASE_
 
 if (hasDatabaseUrl) {
   try {
+    const { PrismaClient } = await import('@prisma/client');
     prisma = new PrismaClient();
   } catch (err) {
     console.warn('[DB Config] Prisma initialization deferred:', err.message);
