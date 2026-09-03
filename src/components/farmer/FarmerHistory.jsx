@@ -19,7 +19,7 @@ export const FarmerHistory = () => {
       {/* PAGE HEADER */}
       <div className="pb-2 border-b border-agri-ivory-muted">
         <h1 className="font-heading text-xl sm:text-2xl font-bold text-agri-text">
-          💰 {lang === 'hi' ? 'भुगतान और इतिहास' : 'Payments & History'}
+          {lang === 'hi' ? 'भुगतान और इतिहास' : 'Payments & History'}
         </h1>
         <p className="text-xs text-agri-text-muted mt-0.5">
           {lang === 'hi'
@@ -62,7 +62,6 @@ export const FarmerHistory = () => {
           className="text-xs font-bold text-agri-green hover:text-agri-green-dark flex items-center justify-between w-full touch-target min-h-[36px]"
         >
           <span className="flex items-center space-x-1.5">
-            <span>❓</span>
             <span>{lang === 'hi' ? 'भुगतान कैसे तय हुआ?' : 'How was your payment calculated?'}</span>
           </span>
           <span>{showFormulaHelp ? '▲' : '▾'}</span>
@@ -82,7 +81,7 @@ export const FarmerHistory = () => {
       {/* PAYMENT HISTORY RECORDS */}
       <div className="space-y-3">
         <h2 className="font-heading text-base font-bold text-agri-text">
-          📜 {lang === 'hi' ? 'भुगतान इतिहास' : 'Payment History'}
+          {lang === 'hi' ? 'भुगतान इतिहास' : 'Payment History'}
         </h2>
 
         {pastHistory.map((item) => {
@@ -98,15 +97,15 @@ export const FarmerHistory = () => {
                 <div>
                   <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                     <h3 className="font-heading text-base font-bold text-agri-text">
-                      🌾 {item.crop}
+                      {item.crop}
                     </h3>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      🟢 {lang === 'hi' ? 'भुगतान मिल गया' : 'Payment received'}
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      {lang === 'hi' ? 'भुगतान मिल गया' : 'Payment received'}
                     </span>
                   </div>
 
                   <p className="text-xs text-agri-text-muted mt-0.5">
-                    📍 {item.centre} • 📅 {item.date}
+                    {item.centre} • {item.date}
                   </p>
                 </div>
 
@@ -120,7 +119,7 @@ export const FarmerHistory = () => {
                     }}
                     className="text-xs font-bold text-agri-green hover:underline touch-target min-h-[32px] inline-flex items-center"
                   >
-                    <span>{isExpanded ? (lang === 'hi' ? 'छिपाएं ▲' : 'Hide details ▲') : (lang === 'hi' ? 'विवरण देखें ▾' : 'View details ▾')}</span>
+                    <span>{isExpanded ? (lang === 'hi' ? 'छिपाएं' : 'Hide details') : (lang === 'hi' ? 'विवरण देखें' : 'View details')}</span>
                   </button>
                 </div>
               </div>
@@ -129,7 +128,7 @@ export const FarmerHistory = () => {
               {isExpanded && (
                 <div className="pt-3 border-t border-agri-ivory-muted space-y-2 text-xs text-agri-text animate-in fade-in duration-200">
                   <h4 className="font-heading font-bold text-xs text-agri-green-dark">
-                    📋 {lang === 'hi' ? 'भुगतान की जानकारी' : 'Payment Details'}
+                    {lang === 'hi' ? 'भुगतान की जानकारी' : 'Payment Details'}
                   </h4>
 
                   <div className="grid grid-cols-2 gap-2 bg-agri-ivory/60 p-3 rounded-xl border border-agri-ivory-muted">
@@ -164,7 +163,7 @@ export const FarmerHistory = () => {
                     className="w-full mt-2 bg-agri-ivory hover:bg-agri-ivory-muted text-agri-green-dark font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 border border-agri-ivory-muted touch-target min-h-[40px]"
                   >
                     <Download className="w-3.5 h-3.5 text-agri-green" />
-                    <span>📥 {lang === 'hi' ? 'रसीद डाउनलोड करें (PDF)' : 'Download Receipt (PDF)'}</span>
+                    <span>{lang === 'hi' ? 'रसीद डाउनलोड करें (PDF)' : 'Download Receipt (PDF)'}</span>
                   </button>
                 </div>
               )}
