@@ -60,53 +60,53 @@ export const Navbar = () => {
 
             {/* Desktop Farmer Navigation Tabs */}
             {activeRole === 'farmer' && (
-              <nav className="hidden md:flex items-center space-x-1 bg-agri-green-dark/50 p-1.5 rounded-xl border border-agri-green-light/20">
+              <nav className="hidden md:flex items-center space-x-1 sm:space-x-1.5 bg-agri-green-dark/50 p-1.5 rounded-xl border border-agri-green-light/20 shrink-0">
                 <button
                   onClick={() => setFarmerTab('dashboard')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
                     farmerTab === 'dashboard'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
                   }`}
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>{t('home', 'Home')}</span>
+                  <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
+                  <span className="whitespace-nowrap leading-none">{t('home', 'Home')}</span>
                 </button>
 
                 <button
                   onClick={() => setFarmerTab('centres')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
                     farmerTab === 'centres'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
                   }`}
                 >
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{t('mandi', 'Mandi')}</span>
+                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <span className="whitespace-nowrap leading-none">{t('mandi', 'Mandi')}</span>
                 </button>
 
                 <button
                   onClick={() => setFarmerTab('queue')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
                     farmerTab === 'queue'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
                   }`}
                 >
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{t('token', 'Token')}</span>
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <span className="whitespace-nowrap leading-none">{t('token', 'Token')}</span>
                 </button>
 
                 <button
                   onClick={() => setFarmerTab('history')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
                     farmerTab === 'history'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
                   }`}
                 >
-                  <ReceiptText className="w-3.5 h-3.5" />
-                  <span>{t('payment', 'Payment')}</span>
+                  <ReceiptText className="w-3.5 h-3.5 shrink-0" />
+                  <span className="whitespace-nowrap leading-none">{t('payment', 'Payments')}</span>
                 </button>
               </nav>
             )}

@@ -22,6 +22,71 @@ import {
 
 const DemoContext = createContext();
 
+/**
+ * Parses any booking's date, slot time, and status into a standardized
+ * scheduled timestamp for accurate chronological sorting.
+ */
+export function parseBookingSchedule(booking) {
+  if (!booking) return { timestamp: 0, isUpcoming: false, formattedDate: '29 Aug 2026', formattedTime: '11:00 AM' };
+
+  const rawStr = `${booking.slotDate || ''} ${booking.slot_date || ''} ${booking.slotTime || ''} ${booking.slot_time || ''}`;
+  
+  // 1. Determine Date (default to Aug 29, 2026)
+  let year = 2026;
+  let month = 7; // August (0-indexed)
+  let day = 29;
+
+  const monthNames = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+  const dateMatch = rawStr.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})(?:[,\s]+(\d{4}))?/i);
+  
+  if (dateMatch) {
+    const mStr = dateMatch[1].toLowerCase().slice(0, 3);
+    if (monthNames[mStr] !== undefined) month = monthNames[mStr];
+    day = parseInt(dateMatch[2], 10);
+    if (dateMatch[3]) year = parseInt(dateMatch[3], 10);
+  } else if (/tomorrow/i.test(rawStr)) {
+    day = 30;
+  } else if (/today/i.test(rawStr)) {
+    day = 29;
+  } else if (booking.createdAt || booking.created_at) {
+    const d = new Date(booking.createdAt || booking.created_at);
+    if (!isNaN(d.getTime())) {
+      year = d.getFullYear();
+      month = d.getMonth();
+      day = d.getDate();
+    }
+  }
+
+  // 2. Determine Time (start of slot window)
+  let hours = 11;
+  let minutes = 0;
+  const timeMatch = rawStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (timeMatch) {
+    let h = parseInt(timeMatch[1], 10);
+    const m = parseInt(timeMatch[2], 10);
+    const meridiem = timeMatch[3].toUpperCase();
+    if (meridiem === 'PM' && h < 12) h += 12;
+    if (meridiem === 'AM' && h === 12) h = 0;
+    hours = h;
+    minutes = m;
+  }
+
+  const scheduleDate = new Date(year, month, day, hours, minutes, 0, 0);
+  const timestamp = scheduleDate.getTime();
+  const isUpcoming = booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED';
+
+  const formattedDate = scheduleDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const formattedTime = timeMatch ? `${timeMatch[1]}:${timeMatch[2]} ${timeMatch[3]}` : (booking.slotTime || '11:00 AM');
+
+  return {
+    timestamp,
+    isUpcoming,
+    scheduleDate,
+    formattedDate,
+    formattedTime
+  };
+}
+
 // Comprehensive Bilingual Translation Dictionary
 export const translations = {
   en: {
@@ -29,9 +94,9 @@ export const translations = {
     navBrand: 'KisanSetu',
     navTagline: 'Department of Consumer Affairs • Direct Crop Procurement',
     home: 'Home',
-    mandi: 'Mandi Discovery',
-    token: 'Token Pass',
-    payment: 'Payments & History',
+    mandi: 'Mandi',
+    token: 'Token',
+    payment: 'Payments',
     farmerRole: 'Farmer View',
     operatorRole: 'Mandi Operator View',
     adminRole: 'DoCA Admin View',
@@ -98,10 +163,10 @@ export const translations = {
     // Brand & Header
     navBrand: 'किसानसेतु',
     navTagline: 'उपभोक्ता मामले विभाग • प्रत्यक्ष फसल खरीद',
-    home: 'मुख्य पृष्ठ',
-    mandi: 'मंडी खोजें',
-    token: 'टोकन पास',
-    payment: 'भुगतान व इतिहास',
+    home: 'होम',
+    mandi: 'मंडी',
+    token: 'टोकन',
+    payment: 'भुगतान',
     farmerRole: 'किसान दृश्य',
     operatorRole: 'मंडी ऑपरेटर दृश्य',
     adminRole: 'विभाग प्रशासक दृश्य',
@@ -312,7 +377,7 @@ export const DemoProvider = ({ children }) => {
   });
 
   // Farmer's own bookings (only bookings belonging to currently logged-in farmer)
-  const farmerBookings = queueItems.filter(q => {
+  const rawFarmerBookings = queueItems.filter(q => {
     if (!q || !q.token) return false;
 
     // 1. If an authenticated Supabase user is logged in with a real UUID
@@ -322,12 +387,30 @@ export const DemoProvider = ({ children }) => {
       return sessionFarmerTokens.includes(q.token);
     }
 
-    // 2. For demo farmer (Ramesh Singh):
-    // Only include SNP-014 (the canonical demo booking) or tokens created in this session
+    // 2. For registered or demo farmer session:
+    if (user?.mobile && (q.mobile === user.mobile || q.phone === user.mobile)) return true;
+    if (user?.email && q.mobile === user.email) return true;
     if (q.token === 'SNP-014' || q.bookingId === 'BK-2026-8812') return true;
     if (sessionFarmerTokens.includes(q.token)) return true;
 
     return false;
+  });
+
+  // Sort chronologically:
+  // 1. Upcoming/Active bookings come first (sorted by earliest scheduled date & time ascending)
+  // 2. Completed/Cancelled bookings come after (sorted descending by completion date)
+  const farmerBookings = [...rawFarmerBookings].sort((a, b) => {
+    const parsedA = parseBookingSchedule(a);
+    const parsedB = parseBookingSchedule(b);
+
+    if (parsedA.isUpcoming && !parsedB.isUpcoming) return -1;
+    if (!parsedA.isUpcoming && parsedB.isUpcoming) return 1;
+
+    if (parsedA.isUpcoming && parsedB.isUpcoming) {
+      return parsedA.timestamp - parsedB.timestamp;
+    }
+
+    return parsedB.timestamp - parsedA.timestamp;
   });
 
   // Dynamic activeBooking resolution
@@ -512,10 +595,11 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Book New Slot via Backend REST API (POST /api/bookings)
-  const bookSlot = async ({ centreId, cropName, slotTime, expectedQty }) => {
+  const bookSlot = async ({ centreId, cropName, slotTime, slotDate, expectedQty }) => {
     const centre = centres.find(c => c.id === centreId) || centres[0];
     const farmerFullName = user?.user_metadata?.full_name || 'Ramesh Singh (YOU)';
-    const farmerMobile = user?.email || '+91 98765 43210';
+    const farmerMobile = user?.mobile || user?.email || '+91 98765 43210';
+    const userId = user?.id || (user?.user_metadata?.role === 'farmer' ? user.id : 'usr-farmer-ramesh');
     
     // Call backend API (Token is generated by backend and persisted to database)
     const result = await apiCreateBooking({
@@ -527,7 +611,12 @@ export const DemoProvider = ({ children }) => {
       mobile: farmerMobile
     });
 
-    const bookingRecord = result.data;
+    const bookingRecord = {
+      ...result.data,
+      slotDate: slotDate || 'Today (Aug 29, 2026)',
+      user_id: userId,
+      farmerId: userId
+    };
 
     // Register this newly created token under current farmer session
     if (bookingRecord?.token) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDemo } from '../../context/DemoContext';
+import { useDemo, parseBookingSchedule } from '../../context/DemoContext';
 import { 
   CheckCircle2, 
   RefreshCw, 
@@ -8,15 +8,22 @@ import {
   ShieldCheck, 
   Scale, 
   CreditCard,
-  Building2
+  Building2,
+  Calendar,
+  Sparkles,
+  Wheat,
+  PlusCircle,
+  ArrowRight
 } from 'lucide-react';
 import { fetchQueuePosition } from '../../lib/apiService';
 import { MandiCongestionBanner } from '../ui/MandiCongestionBanner';
+import { SlotBookingModal } from './SlotBookingModal';
 
 export const LiveQueueTracker = () => {
   const { queueItems, activeBooking, farmerBookings = [], selectActiveBooking, lang, centres } = useDemo();
   const [livePosition, setLivePosition] = useState(null);
   const [isRefreshingQueue, setIsRefreshingQueue] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const currentCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
   const youTokenIndex = queueItems.findIndex(q => q.token === activeBooking?.token);
@@ -40,6 +47,9 @@ export const LiveQueueTracker = () => {
   useEffect(() => {
     loadQueuePosition();
   }, [activeBooking?.token, currentCentre?.id, queueItems]);
+
+  const activeSchedule = activeBooking ? parseBookingSchedule(activeBooking) : null;
+  const isEarliestUpcoming = farmerBookings.length > 0 && farmerBookings[0]?.token === activeBooking?.token && activeSchedule?.isUpcoming;
 
   const farmersAheadCount = livePosition?.farmersAhead != null
     ? livePosition.farmersAhead
@@ -91,28 +101,49 @@ export const LiveQueueTracker = () => {
       {/* COMPACT CONGESTION ADVISORY BANNER */}
       <MandiCongestionBanner />
 
-      {/* MULTIPLE BOOKINGS SELECTOR (IF THIS FARMER HAS > 1 BOOKING) */}
+      {/* MULTIPLE BOOKINGS CHRONOLOGICAL SELECTOR */}
       {farmerBookings.length > 1 && (
-        <div className="bg-white p-3.5 rounded-2xl border border-agri-ivory-muted shadow-sm flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-bold text-agri-text">
-            {lang === 'hi' ? 'आपके टोकन पास:' : 'Your Active Token Passes:'}
-          </span>
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1">
-            {farmerBookings.map((b) => {
+        <div className="bg-white p-3.5 rounded-2xl border border-agri-ivory-muted shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-agri-text flex items-center space-x-1.5">
+              <Calendar className="w-4 h-4 text-agri-green" />
+              <span>{lang === 'hi' ? 'आपकी निर्धारित मंडी यात्राएं (दिनांक क्रम अनुसार):' : 'Your Scheduled Mandi Visits (Chronological):'}</span>
+            </span>
+            <span className="text-[10px] font-bold text-agri-text-muted bg-agri-ivory px-2 py-0.5 rounded-full border">
+              {farmerBookings.length} {lang === 'hi' ? 'बुकिंग्स' : 'Bookings'}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
+            {farmerBookings.map((b, idx) => {
               const isActive = b.token === activeBooking?.token;
+              const schedule = parseBookingSchedule(b);
+              const isNext = idx === 0 && schedule.isUpcoming;
+
               return (
                 <button
                   key={b.token}
                   onClick={() => selectActiveBooking(b.token)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap flex items-center space-x-2 shrink-0 ${
                     isActive
                       ? 'bg-agri-green text-white shadow-sm ring-2 ring-agri-gold'
                       : 'bg-agri-ivory text-agri-text hover:bg-agri-ivory-muted border border-agri-ivory-muted'
                   }`}
                 >
-                  <span>{b.token}</span>
-                  <span className="text-[10px] opacity-90">({b.crop?.split(' ')[0] || 'Crop'} • {b.status})</span>
-                  {isActive && <CheckCircle2 className="w-3 h-3 text-agri-gold" />}
+                  <div className="text-left">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="font-mono font-bold">{b.token}</span>
+                      {isNext && (
+                        <span className="bg-agri-gold text-agri-green-dark text-[9px] font-extrabold px-1.5 py-0.2 rounded font-sans uppercase">
+                          {lang === 'hi' ? 'अगली यात्रा' : 'NEXT'}
+                        </span>
+                      )}
+                      {isActive && <CheckCircle2 className="w-3 h-3 text-agri-gold" />}
+                    </div>
+                    <span className="text-[10px] opacity-80 block">
+                      {schedule.formattedDate} • {schedule.formattedTime}
+                    </span>
+                  </div>
                 </button>
               );
             })}
@@ -126,10 +157,16 @@ export const LiveQueueTracker = () => {
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-wrap gap-y-1">
               <span className="text-[10px] font-extrabold text-agri-gold bg-agri-gold/20 px-2.5 py-0.5 rounded-full border border-agri-gold/30 font-mono tracking-wider uppercase">
                 {lang === 'hi' ? 'आधिकारिक टोकन पास' : 'OFFICIAL TOKEN PASS'}
               </span>
+              {isEarliestUpcoming && (
+                <span className="text-[10px] font-extrabold text-amber-950 bg-agri-gold px-2.5 py-0.5 rounded-full border border-amber-400 font-mono tracking-wider uppercase inline-flex items-center space-x-1 shadow-sm">
+                  <Sparkles className="w-3 h-3" />
+                  <span>{lang === 'hi' ? 'अगली मंडी यात्रा' : 'NEXT MANDI VISIT'}</span>
+                </span>
+              )}
               {livePosition && (
                 <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
                   Live Sync
@@ -392,6 +429,118 @@ export const LiveQueueTracker = () => {
         </div>
 
       </div>
+
+      {/* 3. ALL SCHEDULED TOKENS & ARRIVAL SLOTS (CHRONOLOGICAL CARDS LIST) */}
+      {farmerBookings.length > 1 && (
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-agri-ivory-muted shadow-sm space-y-4 font-sans">
+          <div className="flex items-center justify-between pb-3 border-b border-agri-ivory-muted">
+            <div>
+              <h2 className="font-heading text-base sm:text-lg font-bold text-agri-text">
+                {lang === 'hi' ? 'आपकी सभी निर्धारित टोकन बुकिंग्स' : 'All Your Scheduled Mandi Bookings'}
+              </h2>
+              <p className="text-xs text-agri-text-muted mt-0.5">
+                {lang === 'hi'
+                  ? 'आगमन तिथि व समय के अनुसार क्रमबद्ध (सबसे पहले आगामी यात्रा)'
+                  : 'Sorted chronologically by scheduled mandi arrival date & time (Earliest visit first)'}
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold text-agri-green bg-agri-green-soft px-3 py-1 rounded-full border border-agri-green-border">
+              {farmerBookings.length} {lang === 'hi' ? 'पास' : 'Passes'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {farmerBookings.map((booking, idx) => {
+              const schedule = parseBookingSchedule(booking);
+              const isActive = booking.token === activeBooking?.token;
+              const isNext = idx === 0 && schedule.isUpcoming;
+              const isBookingCompleted = booking.status === 'COMPLETED';
+
+              return (
+                <div
+                  key={booking.token}
+                  onClick={() => selectActiveBooking(booking.token)}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer space-y-3 ${
+                    isActive
+                      ? 'border-agri-green bg-agri-green-soft/40 shadow-sm ring-1 ring-agri-green'
+                      : 'border-agri-ivory-muted bg-[#FFFDF7] hover:border-agri-gold/60 hover:bg-agri-ivory/50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                        <span className="font-heading font-extrabold text-base sm:text-lg text-agri-green-dark font-mono">
+                          {booking.token}
+                        </span>
+                        {isNext && (
+                          <span className="text-[10px] font-extrabold text-amber-950 bg-agri-gold px-2 py-0.5 rounded-full font-mono uppercase inline-flex items-center space-x-1">
+                            <Sparkles className="w-3 h-3" />
+                            <span>{lang === 'hi' ? 'अगली यात्रा' : 'NEXT VISIT'}</span>
+                          </span>
+                        )}
+                        {isActive && (
+                          <span className="text-[10px] font-bold text-agri-green bg-emerald-100 px-2 py-0.5 rounded-full font-mono">
+                            {lang === 'hi' ? 'सक्रिय दृश्य' : 'Viewing Now'}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-xs sm:text-sm text-agri-text">
+                        {booking.centreName || 'Sonipat Main Procurement Centre'}
+                      </h4>
+                    </div>
+
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase font-mono shrink-0 ${
+                      isBookingCompleted
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : booking.status === 'PROCESSING'
+                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                        : 'bg-blue-50 text-blue-800 border border-blue-200'
+                    }`}>
+                      {booking.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-white p-2.5 rounded-xl border border-agri-ivory-muted">
+                    <div>
+                      <span className="text-[10px] text-agri-text-muted block font-medium">
+                        {lang === 'hi' ? 'निर्धारित तिथि व समय:' : 'Scheduled Date & Time:'}
+                      </span>
+                      <strong className="text-agri-green font-mono text-xs block mt-0.5">
+                        {schedule.formattedDate} • {schedule.formattedTime}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-agri-text-muted block font-medium">
+                        {lang === 'hi' ? 'फसल व मात्रा:' : 'Crop & Weight:'}
+                      </span>
+                      <strong className="text-agri-text font-mono text-xs block mt-0.5">
+                        {booking.crop || 'Paddy'} ({booking.expectedQty || 40} Qtl)
+                      </strong>
+                    </div>
+                  </div>
+
+                  {!isActive && (
+                    <div className="pt-1 flex justify-end">
+                      <span className="text-xs font-bold text-agri-green inline-flex items-center space-x-1">
+                        <span>{lang === 'hi' ? 'इस टोकन का लाइव ट्रैकर देखें' : 'View Live Tracker for this Token'}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal */}
+      {isBookingModalOpen && (
+        <SlotBookingModal
+          onClose={() => setIsBookingModalOpen(false)}
+        />
+      )}
 
     </div>
   );

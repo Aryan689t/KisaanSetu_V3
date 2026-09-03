@@ -38,10 +38,13 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
     setErrorMessage(null);
 
     try {
+      const combinedSlotTime = `${selectedDate} • ${selectedSlot}`;
+
       const created = await bookSlot({
         centreId: selectedCentre.id,
         cropName: selectedCrop,
-        slotTime: selectedSlot,
+        slotTime: combinedSlotTime,
+        slotDate: selectedDate,
         expectedQty: Number(expectedQty)
       });
 
