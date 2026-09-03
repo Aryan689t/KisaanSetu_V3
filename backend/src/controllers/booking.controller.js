@@ -163,6 +163,7 @@ export const createBooking = async (req, res) => {
               slot_time: slotTime,
               expected_qty: Number(expectedQty),
               status: initialStatus,
+              booking_type: bookingType,
               counter: req.body.counter || 'Counter 2',
               rate_per_quintal: 2200,
               payment_status: 'PENDING'
@@ -253,6 +254,7 @@ export const createBooking = async (req, res) => {
         slot_time: slotTime,
         expected_qty: Number(expectedQty),
         status: initialStatus,
+        booking_type: bookingType,
         counter: req.body.counter || 'Counter 2',
         rate_per_quintal: 2200,
         payment_status: 'PENDING'
