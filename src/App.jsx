@@ -13,7 +13,6 @@ import { LiveQueueTracker } from './components/farmer/LiveQueueTracker';
 import { FarmerHistory } from './components/farmer/FarmerHistory';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
-import { KisanAIChat } from './components/KisanAIChat';
 
 const MainContent = () => {
   const { activeRole, farmerTab } = useDemo();
@@ -74,7 +73,6 @@ const AppRoutes = () => {
       <Navbar />
       <MainContent />
       <Footer />
-      <KisanAIChat />
     </div>
   );
 };

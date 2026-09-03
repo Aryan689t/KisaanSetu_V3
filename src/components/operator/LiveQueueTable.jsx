@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { UserCheck, PhoneCall, Scale, CheckCircle2 } from 'lucide-react';
+import { UserCheck, PhoneCall, Scale, CheckCircle2, UserX, AlertCircle } from 'lucide-react';
 import { StatusBadge } from '../ui/StatusBadge';
 import { ActiveProcurementModal } from './ActiveProcurementModal';
 
 export const LiveQueueTable = () => {
-  const { queueItems, checkInFarmer, callNextFarmer } = useDemo();
+  const { queueItems, checkInFarmer, callNextFarmer, markFarmerNoShow } = useDemo();
   const [selectedTokenForInspection, setSelectedTokenForInspection] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
 
@@ -14,6 +14,7 @@ export const LiveQueueTable = () => {
   const checkedInCount = queueItems.filter(q => q.status === 'CHECKED_IN').length;
   const processingCount = queueItems.filter(q => q.status === 'PROCESSING').length;
   const completedCount = queueItems.filter(q => q.status === 'COMPLETED').length;
+  const noShowCount = queueItems.filter(q => q.status === 'NO_SHOW' || q.status === 'EXPIRED').length;
 
   // Operational priority sorting: Active farmers first, completed records after
   const statusPriority = {
@@ -21,12 +22,14 @@ export const LiveQueueTable = () => {
     CHECKED_IN: 2,
     WAITING: 3,
     COMPLETED: 4,
-    CANCELLED: 5
+    NO_SHOW: 5,
+    CANCELLED: 6
   };
 
   const filteredItems = queueItems
     .filter(item => {
       if (filterStatus === 'ALL') return true;
+      if (filterStatus === 'NO_SHOW') return item.status === 'NO_SHOW' || item.status === 'EXPIRED';
       return item.status === filterStatus;
     })
     .sort((a, b) => {
@@ -126,11 +129,29 @@ export const LiveQueueTable = () => {
                 {completedCount}
               </span>
             </button>
+
+            {noShowCount > 0 && (
+              <button
+                onClick={() => setFilterStatus('NO_SHOW')}
+                className={`px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5 ${
+                  filterStatus === 'NO_SHOW' 
+                    ? 'bg-rose-800 text-white font-bold shadow-sm' 
+                    : 'text-rose-900 bg-rose-50 hover:bg-rose-100 border border-rose-200'
+                }`}
+              >
+                <span>No-Show</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  filterStatus === 'NO_SHOW' ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-950 font-bold'
+                }`}>
+                  {noShowCount}
+                </span>
+              </button>
+            )}
           </div>
 
           <div className="text-agri-text-muted text-[11px] flex items-center gap-1.5 font-mono">
             <span className="w-2 h-2 rounded-full bg-agri-green animate-pulse"></span>
-            <span>Sonipat Yard • <strong className="text-agri-green">Counter 2 Active</strong></span>
+            <span>Sonipat Yard • <strong className="text-agri-green">4 Weighbridges Online</strong></span>
           </div>
         </div>
 
@@ -141,6 +162,8 @@ export const LiveQueueTable = () => {
             const isProcessing = item.status === 'PROCESSING';
             const isCheckedIn = item.status === 'CHECKED_IN';
             const isCompleted = item.status === 'COMPLETED';
+            const isNoShow = item.status === 'NO_SHOW' || item.status === 'EXPIRED';
+            const isWalkIn = item.bookingType === 'WALK_IN' || item.bookingType === 'ASSISTED';
 
             return (
               <div
@@ -149,73 +172,88 @@ export const LiveQueueTable = () => {
                   isProcessing
                     ? 'bg-amber-50/70 border-amber-300 shadow-sm'
                     : isCheckedIn
-                    ? 'bg-blue-50/50 border-blue-200'
+                    ? 'bg-blue-50/40 border-blue-200'
                     : isTargetDemo
-                    ? 'bg-agri-gold-light/20 border-agri-gold'
-                    : isCompleted
-                    ? 'bg-white/80 border-gray-200 opacity-90'
-                    : 'bg-[#FFFDF7] border-agri-ivory-muted'
+                    ? 'bg-agri-gold-light/20 border-agri-gold/40'
+                    : isNoShow
+                    ? 'bg-gray-50 border-gray-200 opacity-60'
+                    : 'bg-white border-agri-ivory-muted'
                 }`}
               >
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-agri-ivory-muted">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-heading font-extrabold text-lg text-agri-green font-mono">
-                      {item.token}
-                    </span>
-                    {isTargetDemo && (
-                      <span className="text-[9px] bg-agri-gold text-agri-green-dark font-extrabold px-1.5 py-0.5 rounded font-mono">
-                        DEMO TARGET
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                      <span className="font-mono font-extrabold text-sm text-agri-green">
+                        {item.token}
                       </span>
-                    )}
+                      {isTargetDemo && (
+                        <span className="text-[9px] bg-agri-gold text-agri-green-dark font-extrabold px-1.5 py-0.2 rounded font-mono">
+                          DEMO
+                        </span>
+                      )}
+                      {isWalkIn && (
+                        <span className="text-[9px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded font-mono">
+                          WALK-IN
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-xs text-agri-text mt-1">
+                      {item.farmerName}
+                    </h3>
                   </div>
                   <StatusBadge status={item.status} type="queue" />
                 </div>
 
-                <div className="py-2.5 space-y-1.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-agri-text-muted">Farmer:</span>
-                    <span className="font-bold text-agri-text">{item.farmerName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-agri-text-muted">Crop & Qty:</span>
-                    <span className="font-bold text-agri-text">{item.crop} ({item.expectedQty} Qtl)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-agri-text-muted">Slot Window:</span>
-                    <span className="font-mono text-agri-text">{item.slotTime || '11:00 AM - 11:30 AM'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-agri-text-muted">Assigned Counter:</span>
-                    <span className="font-mono text-agri-green font-bold">{item.counter || 'Counter 2'}</span>
-                  </div>
+                <div className="mt-2 text-xs space-y-1 text-agri-text-muted">
+                  <p>Crop: <strong className="text-agri-text">{item.crop}</strong> ({item.expectedQty} Qtl)</p>
+                  <p>Slot: <span className="font-mono">{item.slotTime || '11:00 AM - 11:30 AM'}</span></p>
+                  <p>Station: <span className="font-mono text-agri-green font-bold">{item.counter || 'Counter 2'}</span></p>
                 </div>
 
-                {/* Mobile Operational Action Buttons */}
-                <div className="pt-2.5 border-t border-agri-ivory-muted flex items-center justify-end">
+                {/* Mobile Actions */}
+                <div className="mt-3 pt-2 border-t border-agri-ivory-muted space-y-2">
                   {item.status === 'WAITING' && (
-                    <button
-                      onClick={() => checkInFarmer(item.token)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition-colors shadow-sm touch-target"
-                    >
-                      <UserCheck className="w-4 h-4" />
-                      <span>Gate Check-In ({item.token})</span>
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => checkInFarmer(item.token)}
+                        className="bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm"
+                      >
+                        <UserCheck className="w-4 h-4" />
+                        <span>Check-In</span>
+                      </button>
+                      <button
+                        onClick={() => markFarmerNoShow(item.token)}
+                        className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                      >
+                        <UserX className="w-3.5 h-3.5 text-rose-500" />
+                        <span>No-Show</span>
+                      </button>
+                    </div>
                   )}
 
                   {item.status === 'CHECKED_IN' && (
-                    <button
-                      onClick={() => callNextFarmer(item.token, 'Counter 2')}
-                      className="w-full bg-agri-gold text-agri-green-dark hover:bg-agri-gold-dark font-extrabold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all shadow-sm animate-pulse touch-target"
-                    >
-                      <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
-                      <span>Call to Counter 2 ({item.token})</span>
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => callNextFarmer(item.token, item.counter || 'Counter 2')}
+                        className="bg-agri-gold text-agri-green-dark font-extrabold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm animate-pulse"
+                      >
+                        <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
+                        <span>Call ({item.counter || 'Counter 2'})</span>
+                      </button>
+                      <button
+                        onClick={() => markFarmerNoShow(item.token)}
+                        className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                      >
+                        <UserX className="w-3.5 h-3.5 text-rose-500" />
+                        <span>No-Show</span>
+                      </button>
+                    </div>
                   )}
 
                   {item.status === 'PROCESSING' && (
                     <button
                       onClick={() => setSelectedTokenForInspection(item)}
-                      className="w-full bg-agri-green text-white hover:bg-agri-green-dark font-extrabold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all shadow-sm touch-target"
+                      className="w-full bg-agri-green text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-sm"
                     >
                       <Scale className="w-4 h-4 text-agri-gold" />
                       <span>Enter Quality & Weighment</span>
@@ -225,7 +263,13 @@ export const LiveQueueTable = () => {
                   {item.status === 'COMPLETED' && (
                     <span className="w-full text-emerald-800 font-bold text-xs flex items-center justify-center space-x-1 bg-emerald-50 py-2 rounded-xl border border-emerald-200">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Procured ({item.actualQty || 38.5} Qtl) • Weighed</span>
+                      <span>Procured ({item.actualQty || 38.5} Qtl)</span>
+                    </span>
+                  )}
+
+                  {isNoShow && (
+                    <span className="w-full text-gray-500 font-medium text-xs flex items-center justify-center space-x-1 bg-gray-100 py-2 rounded-xl">
+                      <span>Missed Slot / Capacity Released</span>
                     </span>
                   )}
                 </div>
@@ -255,6 +299,8 @@ export const LiveQueueTable = () => {
                 const isProcessing = item.status === 'PROCESSING';
                 const isCheckedIn = item.status === 'CHECKED_IN';
                 const isCompleted = item.status === 'COMPLETED';
+                const isNoShow = item.status === 'NO_SHOW' || item.status === 'EXPIRED';
+                const isWalkIn = item.bookingType === 'WALK_IN' || item.bookingType === 'ASSISTED';
 
                 return (
                   <tr
@@ -266,6 +312,8 @@ export const LiveQueueTable = () => {
                         ? 'bg-blue-50/40 font-medium'
                         : isTargetDemo
                         ? 'bg-agri-gold-light/20 font-medium'
+                        : isNoShow
+                        ? 'bg-gray-50/80 opacity-60'
                         : isCompleted
                         ? 'bg-white/60 opacity-90 hover:opacity-100 hover:bg-agri-ivory/50'
                         : 'hover:bg-agri-ivory/60'
@@ -279,6 +327,11 @@ export const LiveQueueTable = () => {
                         {isTargetDemo && (
                           <span className="text-[9px] bg-agri-gold text-agri-green-dark font-extrabold px-1.5 py-0.2 rounded font-mono">
                             DEMO
+                          </span>
+                        )}
+                        {isWalkIn && (
+                          <span className="text-[9px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded font-mono">
+                            WALK-IN
                           </span>
                         )}
                       </div>
@@ -325,24 +378,44 @@ export const LiveQueueTable = () => {
                         
                         {/* Step 1: Gate Check-In (For WAITING) */}
                         {item.status === 'WAITING' && (
-                          <button
-                            onClick={() => checkInFarmer(item.token)}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] flex items-center space-x-1.5 transition-colors shadow-sm touch-target"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span>Gate Check-In</span>
-                          </button>
+                          <>
+                            <button
+                              onClick={() => checkInFarmer(item.token)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] flex items-center space-x-1.5 transition-colors shadow-sm touch-target"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" />
+                              <span>Gate Check-In</span>
+                            </button>
+                            <button
+                              onClick={() => markFarmerNoShow(item.token)}
+                              className="text-gray-500 hover:text-rose-700 bg-white hover:bg-rose-50 border border-gray-200 px-2 py-1.5 rounded-lg text-[11px] font-medium flex items-center space-x-1"
+                              title="Mark Farmer No-Show to release queue capacity"
+                            >
+                              <UserX className="w-3 h-3 text-rose-500" />
+                              <span>No-Show</span>
+                            </button>
+                          </>
                         )}
 
                         {/* Step 2: Call to Counter (For CHECKED_IN) */}
                         {item.status === 'CHECKED_IN' && (
-                          <button
-                            onClick={() => callNextFarmer(item.token, 'Counter 2')}
-                            className="bg-agri-gold text-agri-green-dark hover:bg-agri-gold-dark font-extrabold px-3 py-1.5 rounded-lg text-[11px] flex items-center space-x-1.5 transition-all shadow-sm animate-pulse touch-target"
-                          >
-                            <PhoneCall className="w-3.5 h-3.5 fill-agri-green-dark" />
-                            <span>Call to Counter 2</span>
-                          </button>
+                          <>
+                            <button
+                              onClick={() => callNextFarmer(item.token, item.counter || 'Counter 2')}
+                              className="bg-agri-gold text-agri-green-dark hover:bg-agri-gold-dark font-extrabold px-3 py-1.5 rounded-lg text-[11px] flex items-center space-x-1.5 transition-all shadow-sm animate-pulse touch-target"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5 fill-agri-green-dark" />
+                              <span>Call ({item.counter || 'Counter 2'})</span>
+                            </button>
+                            <button
+                              onClick={() => markFarmerNoShow(item.token)}
+                              className="text-gray-500 hover:text-rose-700 bg-white hover:bg-rose-50 border border-gray-200 px-2 py-1.5 rounded-lg text-[11px] font-medium flex items-center space-x-1"
+                              title="Mark Farmer No-Show"
+                            >
+                              <UserX className="w-3 h-3 text-rose-500" />
+                              <span>No-Show</span>
+                            </button>
+                          </>
                         )}
 
                         {/* Step 3: Enter Quality & Weighment (For PROCESSING) */}
@@ -361,6 +434,13 @@ export const LiveQueueTable = () => {
                           <span className="text-emerald-700 font-bold text-[11px] inline-flex items-center space-x-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             <span>Procured ({item.actualQty || 38.5} Qtl)</span>
+                          </span>
+                        )}
+
+                        {/* Step 5: No-Show Record */}
+                        {isNoShow && (
+                          <span className="text-gray-500 font-mono text-[11px] bg-gray-100 px-2 py-1 rounded">
+                            No-Show • Released
                           </span>
                         )}
 
@@ -386,4 +466,3 @@ export const LiveQueueTable = () => {
     </>
   );
 };
-
