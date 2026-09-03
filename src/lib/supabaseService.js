@@ -43,6 +43,8 @@ export function mapBookingRow(row) {
     quality_grade: row.quality_grade,
     counter: row.counter || 'Counter 2',
     status: row.status || 'WAITING',
+    bookingType: row.booking_type || row.bookingType || 'ONLINE',
+    booking_type: row.booking_type || row.bookingType || 'ONLINE',
     ratePerQuintal: rateNum,
     rate_per_quintal: rateNum,
     totalPayout: totalPayoutNum,
@@ -112,6 +114,10 @@ export async function createSlotBooking(bookingData) {
   const aadhaarLast4 = bookingData.aadhaarLast4 || bookingData.aadhaar_last4 || '4821';
   const ratePerQuintal = Number(bookingData.ratePerQuintal || bookingData.rate_per_quintal || 2200);
 
+  const bookingType = bookingData.bookingType || bookingData.booking_type || 'ONLINE';
+  const status = bookingData.status || (bookingType === 'WALK_IN' ? 'CHECKED_IN' : 'WAITING');
+  const counter = bookingData.counter || 'Counter 2';
+
   if (!isSupabaseConfigured) {
     console.warn('[Supabase Service] Supabase not configured. Returning local mock booking.');
     return {
@@ -127,8 +133,9 @@ export async function createSlotBooking(bookingData) {
         crop_name: cropName,
         slot_time: slotTime,
         expected_qty: expectedQty,
-        status: 'WAITING',
-        counter: 'Counter 2',
+        status,
+        booking_type: bookingType,
+        counter,
         rate_per_quintal: ratePerQuintal,
         payment_status: 'PENDING',
         created_at: new Date().toISOString()
@@ -149,8 +156,9 @@ export async function createSlotBooking(bookingData) {
           crop_name: cropName,
           slot_time: slotTime,
           expected_qty: expectedQty,
-          status: 'WAITING',
-          counter: 'Counter 2',
+          status,
+          booking_type: bookingType,
+          counter,
           rate_per_quintal: ratePerQuintal,
           payment_status: 'PENDING'
         }
@@ -181,8 +189,9 @@ export async function createSlotBooking(bookingData) {
         crop_name: cropName,
         slot_time: slotTime,
         expected_qty: expectedQty,
-        status: 'WAITING',
-        counter: 'Counter 2',
+        status,
+        booking_type: bookingType,
+        counter,
         rate_per_quintal: ratePerQuintal,
         payment_status: 'PENDING',
         created_at: new Date().toISOString()
@@ -528,36 +537,6 @@ export async function disburseBookingPayment(tokenOrId, dbtReference = null) {
       dbtReference: ref
     };
   }
-}
-
-/**
- * Subscribes to Realtime token status transitions for a given procurement centre.
- */
-export function subscribeToTokenUpdates(centreId, onUpdate) {
-  if (!isSupabaseConfigured) {
-    return () => {};
-  }
-
-  const channel = supabase
-    .channel(`mandi-queue-${centreId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'bookings'
-      },
-      (payload) => {
-        if (onUpdate) {
-          onUpdate(payload);
-        }
-      }
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
 }
 
 // Aliases matching prompt requirements

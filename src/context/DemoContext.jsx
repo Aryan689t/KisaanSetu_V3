@@ -7,8 +7,7 @@ import {
   updateBookingStatus, 
   updateBookingProcurement, 
   disburseBookingPayment, 
-  generateNextToken, 
-  subscribeToTokenUpdates 
+  generateNextToken 
 } from '../lib/supabaseService';
 import { createBooking as apiCreateBooking } from '../lib/apiService';
 import { calculateEstimatedWaitMinutes, evaluateMandiCongestionState, rankAndRecommendCentres } from '../lib/mandiEngine';

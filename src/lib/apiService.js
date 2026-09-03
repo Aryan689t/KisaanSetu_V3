@@ -53,6 +53,8 @@ export function normalizeBooking(booking) {
     quality_grade: booking.quality_grade || booking.qualityGrade || null,
     counter: booking.counter || 'Counter 2',
     status: (booking.status || 'WAITING').toUpperCase(),
+    bookingType: booking.booking_type || booking.bookingType || 'ONLINE',
+    booking_type: booking.booking_type || booking.bookingType || 'ONLINE',
     ratePerQuintal: rateNum,
     rate_per_quintal: rateNum,
     totalPayout: totalPayoutNum,
@@ -123,7 +125,10 @@ export async function createBooking({
   expectedQty,
   farmerName,
   mobile,
-  aadhaarLast4
+  aadhaarLast4,
+  bookingType = 'ONLINE',
+  status,
+  counter
 }) {
   if (!centreId) throw new Error('Procurement Centre is required');
   if (!cropName) throw new Error('Crop Name is required');
@@ -137,7 +142,10 @@ export async function createBooking({
     expectedQty: Number(expectedQty),
     farmerName: farmerName || 'Ramesh Singh (YOU)',
     mobile: mobile || '+91 98765 43210',
-    aadhaarLast4: aadhaarLast4 || '4821'
+    aadhaarLast4: aadhaarLast4 || '4821',
+    bookingType: bookingType || 'ONLINE',
+    status: status || (bookingType === 'WALK_IN' ? 'CHECKED_IN' : 'WAITING'),
+    counter: counter || 'Counter 2'
   };
 
   try {
