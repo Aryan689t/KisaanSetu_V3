@@ -46,6 +46,13 @@ const AppRoutes = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  useEffect(() => {
+    if (user && window.location.pathname !== '/') {
+      window.history.replaceState({}, '', '/');
+      setCurrentPath('/');
+    }
+  }, [user]);
+
   // Protected Auth Gate: Force Dedicated Auth Portals or Selector Screen for unauthenticated visitors
   if (!user) {
     if (currentPath.includes('farmer-auth')) {

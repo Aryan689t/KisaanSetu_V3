@@ -15,8 +15,18 @@ export const FarmerAuth = ({ onBack }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const userEmail = `${mobile || 'farmer'}@kisansetu.gov.in`;
-    loginWithRole('farmer', userEmail);
+    const userEmail = mobile ? `${mobile}@kisansetu.gov.in` : 'farmer@kisansetu.gov.in';
+    const data = isRegisterMode ? {
+      fullName: fullName.trim() || 'Farmer',
+      mobile: mobile.trim(),
+      aadhaarLast4: aadhaarLast4.trim(),
+      district: district.trim()
+    } : {
+      mobile: mobile.trim(),
+      aadhaarLast4: aadhaarLast4.trim(),
+      district: district.trim()
+    };
+    loginWithRole('farmer', userEmail, data);
   };
 
   return (
