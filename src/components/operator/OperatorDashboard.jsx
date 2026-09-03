@@ -83,7 +83,7 @@ export const OperatorDashboard = () => {
       </div>
 
       {/* Yard Queue Summary Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
         <MetricCard
           title="Total Bookings"
           value={totalBookings}
@@ -91,15 +91,16 @@ export const OperatorDashboard = () => {
           icon={Users}
         />
         <MetricCard
-          title="Waiting Gate"
+          title="Waiting"
           value={waitingCount}
-          subtitle="In yard queue"
+          subtitle="In yard arrival queue"
           icon={Clock}
+          highlight={waitingCount > 0}
         />
         <MetricCard
           title="Checked-In"
           value={checkedInCount}
-          subtitle="Verified at entry"
+          subtitle="Verified at entry gate"
           icon={ShieldCheck}
           highlight={checkedInCount > 0}
         />
@@ -119,101 +120,79 @@ export const OperatorDashboard = () => {
         />
       </div>
 
-      {/* DYNAMIC CURRENTLY PROCESSING SECTION */}
-      {currentProcessingItem ? (
-        <div className="paper-surface rounded-2xl p-6 border-2 border-agri-gold shadow-agri-md animate-in fade-in duration-200">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-agri-ivory-muted">
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-agri-gold animate-ping"></span>
-                <span className="text-[10px] font-extrabold uppercase bg-agri-gold text-agri-green-dark px-3 py-1 rounded-full">
-                  CURRENTLY ACTIVE AT INSPECTION COUNTER 2
-                </span>
-              </div>
-              
-              <h2 className="font-heading text-xl font-bold text-agri-green mt-2.5 flex items-center space-x-3">
-                <span>Token #{currentProcessingItem.token}</span>
-                <span className="text-sm font-semibold text-agri-text font-sans">
-                  ({currentProcessingItem.farmerName})
-                </span>
-              </h2>
-              <p className="text-xs text-agri-text-muted mt-1">
-                Crop Offered: <strong>{currentProcessingItem.crop}</strong> • Expected Target: <strong>{currentProcessingItem.expectedQty} Quintals</strong> • Slot: <strong>{currentProcessingItem.slotTime || '11:00 AM'}</strong>
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setSelectedInspectionToken(currentProcessingItem)}
-                className="bg-agri-green hover:bg-agri-green-dark text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-agri-sm transition-all flex items-center space-x-2 hover:scale-[1.02]"
-              >
-                <Scale className="w-4 h-4 text-agri-gold" />
-                <span>Log Moisture & Weighment</span>
-              </button>
-            </div>
+      {/* COMPACT COUNTER 2 STATUS BAR (SECONDARY TO QUEUE TABLE) */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-agri-ivory-muted shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center space-x-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+            currentProcessingItem 
+              ? 'bg-amber-100 text-amber-900 border border-amber-300' 
+              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+          }`}>
+            <Scale className="w-5 h-5" />
           </div>
 
-          {/* Calculation Formula Preview */}
-          <div className="mt-4 p-3 bg-agri-gold-light/20 rounded-xl text-xs font-mono text-agri-text flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-agri-gold/30">
-            <span className="text-agri-text-muted">Target Rate: <strong>₹2,200/Quintal (MSP Grade A)</strong></span>
-            <span className="text-agri-green-dark font-bold text-sm">
-              Formula: {currentProcessingItem.actualQty || 38.5} Quintals × ₹2,200 = ₹{((currentProcessingItem.actualQty || 38.5) * 2200).toLocaleString()}
-            </span>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="font-heading font-bold text-sm text-agri-text">
+                Inspection Counter 2
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono uppercase ${
+                currentProcessingItem 
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300' 
+                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              }`}>
+                {currentProcessingItem ? 'Active' : 'Available'}
+              </span>
+            </div>
+
+            <p className="text-xs text-agri-text-muted mt-0.5">
+              {currentProcessingItem ? (
+                <span>
+                  Processing Token <strong>#{currentProcessingItem.token}</strong> ({currentProcessingItem.farmerName}) • {currentProcessingItem.crop} ({currentProcessingItem.expectedQty} Qtl)
+                </span>
+              ) : nextCheckedInItem ? (
+                <span>
+                  Ready for next farmer — Token <strong>#{nextCheckedInItem.token}</strong> ({nextCheckedInItem.farmerName}) is checked in
+                </span>
+              ) : (
+                <span>No farmer currently being processed • Yard queue clear</span>
+              )}
+            </p>
           </div>
         </div>
-      ) : nextCheckedInItem ? (
-        /* IDLE COUNTER WITH READY FARMER PROMPT */
-        <div className="paper-surface rounded-2xl p-6 border border-agri-gold/60 shadow-agri-sm bg-gradient-to-r from-agri-gold-light/10 via-[#FFFDF7] to-agri-ivory/40">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start space-x-3">
-              <div className="p-2.5 bg-agri-gold/20 text-agri-green-dark rounded-xl border border-agri-gold/40 shrink-0">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded">
-                    GATE CHECK-IN VERIFIED
-                  </span>
-                  <span className="text-xs text-agri-text-muted">Counter 2 Available</span>
-                </div>
-                <h3 className="font-heading text-lg font-bold text-agri-text mt-1">
-                  Token #{nextCheckedInItem.token} ({nextCheckedInItem.farmerName}) is waiting at gate
-                </h3>
-                <p className="text-xs text-agri-text-muted mt-0.5">
-                  Crop: {nextCheckedInItem.crop} • Expected: {nextCheckedInItem.expectedQty} Qtl
-                </p>
-              </div>
-            </div>
 
+        {/* Quick Action Button for Counter */}
+        <div className="shrink-0 flex items-center space-x-2">
+          {currentProcessingItem ? (
+            <button
+              onClick={() => setSelectedInspectionToken(currentProcessingItem)}
+              className="bg-agri-green hover:bg-agri-green-dark text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow-sm transition-all flex items-center space-x-1.5"
+            >
+              <Scale className="w-3.5 h-3.5 text-agri-gold" />
+              <span>Log Weighment</span>
+            </button>
+          ) : nextCheckedInItem ? (
             <button
               onClick={() => callNextFarmer(nextCheckedInItem.token, 'Counter 2')}
-              className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-agri-sm shrink-0 animate-bounce"
+              className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs px-4 py-2 rounded-xl shadow-sm transition-all flex items-center space-x-1.5 animate-pulse"
             >
-              <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
-              <span>Call Token {nextCheckedInItem.token} to Counter 2</span>
+              <PhoneCall className="w-3.5 h-3.5 fill-agri-green-dark" />
+              <span>Call Next ({nextCheckedInItem.token})</span>
             </button>
-          </div>
+          ) : null}
         </div>
-      ) : (
-        /* ALL CLEAR IDLE CARD */
-        <div className="paper-surface rounded-2xl p-6 border border-agri-ivory-muted shadow-agri-sm bg-agri-ivory/30 text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-agri-green-soft text-agri-green mx-auto flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <h3 className="font-heading font-bold text-sm text-agri-text">
-            Inspection Counter 2 Ready & Available
-          </h3>
-          <p className="text-xs text-agri-text-muted">
-            No active farmer at counter. Check in arriving farmers from the queue table below to proceed.
-          </p>
-        </div>
-      )}
+      </div>
 
       {/* Live Queue Management Table */}
       <div className="space-y-3">
-        <h2 className="font-heading text-lg font-bold text-agri-text">
-          Live Mandi Queue Operational Management
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-bold text-agri-text">
+            Live Mandi Queue Operational Management
+          </h2>
+          <span className="text-xs text-agri-text-muted">
+            {waitingCount + checkedInCount + processingCount} active farmers in yard
+          </span>
+        </div>
         <LiveQueueTable />
       </div>
 

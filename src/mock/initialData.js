@@ -104,38 +104,53 @@ export const initialQueueItems = [
   {
     token: 'SNP-011',
     farmerName: 'Harpreet Singh',
+    mobile: '+91 98120 11452',
+    aadhaarLast4: '3819',
     crop: 'Paddy (Grade A)',
     expectedQty: 45,
     actualQty: 44.2,
     counter: 'Counter 1',
     status: 'COMPLETED',
+    slotTime: '09:00 AM - 09:30 AM',
     arrivalTime: '09:12 AM',
     completedTime: '10:15 AM',
-    paymentStatus: 'DISBURSED'
+    paymentStatus: 'DISBURSED',
+    centreId: 'cnt-sonipat',
+    centreName: 'Sonipat Main Procurement Centre'
   },
   {
     token: 'SNP-012',
     farmerName: 'Jaipal Yadav',
+    mobile: '+91 98450 78219',
+    aadhaarLast4: '7104',
     crop: 'Paddy (Grade A)',
     expectedQty: 30,
     actualQty: 29.8,
     counter: 'Counter 1',
     status: 'COMPLETED',
+    slotTime: '09:30 AM - 10:00 AM',
     arrivalTime: '09:40 AM',
     completedTime: '10:45 AM',
-    paymentStatus: 'DISBURSED'
+    paymentStatus: 'DISBURSED',
+    centreId: 'cnt-sonipat',
+    centreName: 'Sonipat Main Procurement Centre'
   },
   {
     token: 'SNP-013',
     farmerName: 'Baldev Ram',
+    mobile: '+91 97280 44102',
+    aadhaarLast4: '9215',
     crop: 'Paddy (Grade A)',
     expectedQty: 50,
     actualQty: null,
     counter: 'Counter 2',
     status: 'CHECKED_IN',
+    slotTime: '10:30 AM - 11:00 AM',
     arrivalTime: '10:05 AM',
     completedTime: null,
-    paymentStatus: 'PENDING'
+    paymentStatus: 'PENDING',
+    centreId: 'cnt-sonipat',
+    centreName: 'Sonipat Main Procurement Centre'
   },
   {
     token: 'SNP-014',
@@ -160,13 +175,50 @@ export const initialQueueItems = [
   {
     token: 'SNP-015',
     farmerName: 'Vikramjit Sharma',
+    mobile: '+91 94160 33890',
+    aadhaarLast4: '6320',
     crop: 'Paddy (Grade A)',
     expectedQty: 35,
     actualQty: null,
-    counter: 'Unassigned',
+    counter: 'Counter 2',
+    slotTime: '11:30 AM - 12:00 PM',
     status: 'WAITING',
     arrivalTime: '10:45 AM',
-    paymentStatus: 'PENDING'
+    paymentStatus: 'PENDING',
+    centreId: 'cnt-sonipat',
+    centreName: 'Sonipat Main Procurement Centre'
+  },
+  {
+    token: 'SNP-016',
+    farmerName: 'Kuldeep Malik',
+    mobile: '+91 98132 99014',
+    aadhaarLast4: '5512',
+    crop: 'Paddy (Grade A)',
+    expectedQty: 55,
+    actualQty: null,
+    counter: 'Counter 2',
+    slotTime: '01:00 PM - 01:30 PM',
+    status: 'WAITING',
+    arrivalTime: '11:15 AM',
+    paymentStatus: 'PENDING',
+    centreId: 'cnt-sonipat',
+    centreName: 'Sonipat Main Procurement Centre'
+  },
+  {
+    token: 'SNP-017',
+    farmerName: 'Sube Singh Dahiya',
+    mobile: '+91 94668 12450',
+    aadhaarLast4: '8834',
+    crop: 'Paddy (Grade A)',
+    expectedQty: 42,
+    actualQty: null,
+    counter: 'Counter 2',
+    slotTime: '01:30 PM - 02:00 PM',
+    status: 'WAITING',
+    arrivalTime: '11:30 AM',
+    paymentStatus: 'PENDING',
+    centreId: 'cnt-sonipat',
+    centreName: 'Sonipat Main Procurement Centre'
   }
 ];
 
