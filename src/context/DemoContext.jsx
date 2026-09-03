@@ -168,7 +168,23 @@ export const translations = {
 
 export const DemoProvider = ({ children }) => {
   // Navigation & Role State
-  const [activeRole, setActiveRole] = useState('farmer'); // 'farmer' | 'operator' | 'admin'
+  const [activeRole, setActiveRole] = useState(() => {
+    try {
+      const savedRole = localStorage.getItem('kisansetu_role');
+      if (savedRole && ['farmer', 'operator', 'admin'].includes(savedRole)) {
+        return savedRole;
+      }
+      const savedUser = localStorage.getItem('kisansetu_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.user_metadata?.role) return parsed.user_metadata.role;
+      }
+      return 'farmer';
+    } catch {
+      return 'farmer';
+    }
+  });
+
   const [farmerTab, setFarmerTab] = useState('dashboard'); // 'dashboard' | 'centres' | 'queue' | 'history'
 
   // Language & Accessibility State
@@ -176,8 +192,27 @@ export const DemoProvider = ({ children }) => {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  // Supabase Auth State
-  const [user, setUser] = useState(null);
+  // User & Authentication State (persisted across page reloads / browser reopen)
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('kisansetu_user');
+      if (!savedUser) return null;
+      const parsed = JSON.parse(savedUser);
+      // Validate that the stored user session is structurally valid
+      if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
+        // Check expiration if session has expires_at timestamp
+        if (parsed.expires_at && Date.now() > parsed.expires_at) {
+          localStorage.removeItem('kisansetu_user');
+          localStorage.removeItem('kisansetu_role');
+          return null;
+        }
+        return parsed;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -186,13 +221,37 @@ export const DemoProvider = ({ children }) => {
     // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+        try {
+          localStorage.setItem('kisansetu_user', JSON.stringify(session.user));
+          if (session.user.user_metadata?.role) {
+            setActiveRole(session.user.user_metadata.role);
+            localStorage.setItem('kisansetu_role', session.user.user_metadata.role);
+          }
+        } catch {}
+      }
     });
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+        try {
+          localStorage.setItem('kisansetu_user', JSON.stringify(session.user));
+          if (session.user.user_metadata?.role) {
+            setActiveRole(session.user.user_metadata.role);
+            localStorage.setItem('kisansetu_role', session.user.user_metadata.role);
+          }
+        } catch {}
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        try {
+          localStorage.removeItem('kisansetu_user');
+          localStorage.removeItem('kisansetu_role');
+        } catch {}
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -690,31 +749,66 @@ export const DemoProvider = ({ children }) => {
     );
   };
 
-  // Demo Login Quick Role Switcher & Authentication
-  const loginWithRole = (role, email = '') => {
+  // Role Switcher & Farmer Authentication Login/Register handler
+  const loginWithRole = (role, email = '', userData = {}) => {
     setActiveRole(role);
-    const mockUser = {
-      id: `usr-${role}-${Date.now()}`,
+    try {
+      localStorage.setItem('kisansetu_role', role);
+    } catch {}
+
+    const defaultName = role === 'farmer' ? 'Ramesh Singh' : role === 'operator' ? 'Rajesh Kumar (Yard Incharge)' : 'S. K. Sharma (DoCA Admin)';
+    const fullName = userData.fullName || userData.full_name || (email && !email.includes('@kisansetu.gov.in') ? email.split('@')[0] : defaultName);
+
+    const authenticatedUser = {
+      id: userData.id || (userData.fullName ? `usr-${role}-${Date.now()}` : (role === 'farmer' ? 'usr-farmer-ramesh' : `usr-${role}-${Date.now()}`)),
       email: email || `${role}@kisansetu.gov.in`,
+      phone: userData.mobile || userData.phone || '',
+      mobile: userData.mobile || userData.phone || '',
+      aadhaarLast4: userData.aadhaarLast4 || userData.aadhaar_last4 || '',
+      district: userData.district || 'Sonipat, Haryana',
       user_metadata: {
-        full_name: role === 'farmer' ? 'Ramesh Singh' : role === 'operator' ? 'Rajesh Kumar (Yard Incharge)' : 'S. K. Sharma (DoCA Admin)',
-        role: role
-      }
+        full_name: fullName,
+        role: role,
+        mobile: userData.mobile || '',
+        aadhaarLast4: userData.aadhaarLast4 || '',
+        district: userData.district || 'Sonipat, Haryana'
+      },
+      created_at: new Date().toISOString()
     };
-    setUser(mockUser);
+
+    setUser(authenticatedUser);
+    try {
+      localStorage.setItem('kisansetu_user', JSON.stringify(authenticatedUser));
+    } catch (e) {
+      console.warn('Could not persist user session:', e);
+    }
     setIsLoginOpen(false);
 
     const roleName = role === 'farmer' ? 'Farmer' : role === 'operator' ? 'Mandi Operator' : 'DoCA Admin';
-    addNotification('Authentication Successful', `Signed in as ${mockUser.user_metadata.full_name} (${roleName}).`, 'success', role);
+    addNotification('Authentication Successful', `Signed in as ${fullName} (${roleName}).`, 'success', role);
   };
 
   // Logout
   const logout = async () => {
     if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('Supabase sign out error:', err);
+      }
     }
     setUser(null);
     setSession(null);
+    try {
+      localStorage.removeItem('kisansetu_user');
+      localStorage.removeItem('kisansetu_role');
+      sessionStorage.removeItem('kisansetu_farmer_tokens');
+    } catch {}
+    
+    // Reset browser address path to home if on a sub-route
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/');
+    }
     addNotification('Signed Out', 'You have been safely signed out.', 'info', activeRole);
   };
 
@@ -733,6 +827,8 @@ export const DemoProvider = ({ children }) => {
       localStorage.setItem('kisansetu_active_token', 'SNP-014');
       localStorage.removeItem('kisansetu_farmer_tokens');
       sessionStorage.removeItem('kisansetu_farmer_tokens');
+      localStorage.removeItem('kisansetu_user');
+      localStorage.removeItem('kisansetu_role');
     } catch {}
     
     // Re-fetch clean state from Supabase
