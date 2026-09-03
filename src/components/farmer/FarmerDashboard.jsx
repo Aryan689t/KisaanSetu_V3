@@ -5,6 +5,7 @@ import { TokenDisplay } from '../ui/TokenDisplay';
 import { MetricCard } from '../ui/MetricCard';
 import { SlotBookingModal } from './SlotBookingModal';
 import { Accordion } from '../ui/Accordion';
+import BookingActions from './BookingActions';
 
 export const FarmerDashboard = () => {
   const {
@@ -31,14 +32,14 @@ export const FarmerDashboard = () => {
   // Derived booked centre vs recommended centre
   const bookedCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
   const recommendedCentre = getRecommendedCentre(centres);
-  
+
   // Single source of truth for demo congestion
   const isCongestionActive = demoCondition === 'CONGESTED_SONIPAT';
   const congestedCentre = isCongestionActive ? (centres.find(c => c.id === 'cnt-sonipat') || centres[0]) : null;
 
   const isBookedCentreCongested = isCongestionActive && (bookedCentre.id === 'cnt-sonipat');
   const isAlternativeBetter = recommendedCentre.id !== bookedCentre.id;
-  
+
   const isCompleted = activeBooking?.status === 'COMPLETED';
   const isDisbursed = activeBooking?.paymentStatus === 'DISBURSED';
   const isProcessing = activeBooking?.status === 'PROCESSING';
@@ -150,9 +151,9 @@ export const FarmerDashboard = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      
+
       {/* 1. DYNAMIC CONGESTION ALERTS */}
-      
+
       {/* 1A. BOOKING-SPECIFIC REROUTING ALERT (Only when active booking is at the congested mandi and still active) */}
       {shouldShowBookingReroute && (
         <div className="bg-[#4A1510] text-white rounded-2xl p-4 sm:p-5 shadow-lg border-2 border-rose-500 relative overflow-hidden animate-in slide-in-from-top duration-300">
@@ -204,7 +205,7 @@ export const FarmerDashboard = () => {
         </div>
       )}
 
-      {/* 1B. GENERAL MANDI CONGESTION ADVISORY (When active booking is NOT at congested mandi or farmer has no active booking) */}
+      {/* 1B. GENERAL MANDI CONGESTION ADVISORY */}
       {shouldShowGeneralAdvisory && congestedCentre && (
         <div className="bg-amber-950/90 text-amber-50 rounded-2xl p-4 sm:p-5 shadow-md border-2 border-amber-500 relative overflow-hidden animate-in slide-in-from-top duration-300">
           <div className="space-y-3">
@@ -260,7 +261,7 @@ export const FarmerDashboard = () => {
         </div>
       )}
 
-      {/* PROMINENT MANDI SLOT BOOKING ACTION HEADER (Clean, Subtitle Removed) */}
+      {/* PROMINENT MANDI SLOT BOOKING ACTION HEADER */}
       <div className="bg-gradient-to-r from-agri-green-dark to-agri-green rounded-2xl p-4 sm:p-5 text-white shadow-agri-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-agri-gold/30">
         <div className="space-y-1">
           <span className="text-[10px] font-extrabold uppercase bg-agri-gold/20 text-agri-gold px-2.5 py-0.5 rounded border border-agri-gold/30 font-mono inline-block">
@@ -284,9 +285,9 @@ export const FarmerDashboard = () => {
         </button>
       </div>
 
-      {/* 2. PRIMARY FARMER STATUS HERO CARD (Refined Spacing, No Green Dot, No Emoji, No Duplicate CTA) */}
+      {/* 2. PRIMARY FARMER STATUS HERO CARD */}
       <div className="bg-[#17432A] text-white rounded-2xl p-6 sm:p-7 shadow-agri-md relative overflow-hidden space-y-6 border border-agri-gold/30">
-        
+
         {/* Top Greeting & Center Meta */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/10">
           <div>
@@ -303,7 +304,7 @@ export const FarmerDashboard = () => {
           </span>
         </div>
 
-        {/* MULTIPLE BOOKINGS TOKEN SWITCHER (ONLY SHOWN IF THIS FARMER HAS > 1 BOOKING) */}
+        {/* MULTIPLE BOOKINGS TOKEN SWITCHER */}
         {farmerBookings.length > 1 && (
           <div className="bg-[#102e1c] p-3 rounded-xl border border-agri-gold/20 space-y-2">
             <span className="text-[11px] text-agri-gold font-bold block font-mono">
@@ -316,11 +317,10 @@ export const FarmerDashboard = () => {
                   <button
                     key={b.token}
                     onClick={() => selectActiveBooking(b.token)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
-                      isActive
-                        ? 'bg-agri-gold text-agri-green-dark shadow-sm ring-1 ring-white/40'
-                        : 'bg-[#17432A] text-agri-ivory hover:bg-white/10 border border-white/10'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${isActive
+                      ? 'bg-agri-gold text-agri-green-dark shadow-sm ring-1 ring-white/40'
+                      : 'bg-[#17432A] text-agri-ivory hover:bg-white/10 border border-white/10'
+                      }`}
                   >
                     <span>{b.token}</span>
                     <span className="text-[10px] opacity-80">({b.crop?.split(' ')[0] || 'Crop'} • {b.status})</span>
@@ -334,7 +334,7 @@ export const FarmerDashboard = () => {
 
         {/* PRIMARY BOOKING STATUS BOX */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[#123621] border border-agri-gold/25 shadow-inner font-sans space-y-5">
-          
+
           {/* WAITING State */}
           {activeBooking?.status === 'WAITING' && (
             <div className="space-y-4 text-amber-100">
@@ -484,6 +484,16 @@ export const FarmerDashboard = () => {
             </div>
           )}
 
+          {/* THE NEW BOOKING ACTIONS ADDED HERE */}
+          {activeBooking && (
+            <div className="pt-2 mt-4 border-t border-white/10">
+              <BookingActions
+                bookingId={activeBooking.token}
+                currentStatus={activeBooking.status}
+              />
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -530,7 +540,7 @@ export const FarmerDashboard = () => {
                 {lang === 'hi' ? 'आपकी वर्तमान बुकिंग:' : 'Your current booking:'} <strong>{bookedCentre.name.split(' ')[0]}</strong>
               </span>
             </div>
-            
+
             <h3 className="font-heading text-base sm:text-lg font-bold text-agri-green flex items-center gap-2 flex-wrap">
               <span>{lang === 'hi' ? 'सुझाई गई मंडी:' : 'Recommended:'}</span>
               <span className="text-agri-text font-extrabold">{recommendedCentre.name}</span>
