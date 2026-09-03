@@ -14,6 +14,7 @@ import { FarmerHistory } from './components/farmer/FarmerHistory';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { KisanAIChat } from './components/KisanAIChat';
+import TokenNotification from './components/TokenNotification';
 
 const MainContent = () => {
   const { activeRole, farmerTab } = useDemo();
@@ -22,6 +23,9 @@ const MainContent = () => {
     <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 w-full ${activeRole === 'farmer' ? 'pb-24 md:pb-8' : ''}`}>
       {activeRole === 'farmer' && (
         <>
+          {/* Added TokenNotification here with a mock position of 2 for testing */}
+          <TokenNotification queuePosition={2} />
+
           {farmerTab === 'dashboard' && <FarmerDashboard />}
           {farmerTab === 'centres' && <CentreDiscovery />}
           {farmerTab === 'queue' && <LiveQueueTracker />}
