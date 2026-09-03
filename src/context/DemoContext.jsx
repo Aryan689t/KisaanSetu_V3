@@ -715,11 +715,29 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Complete Procurement
-  const completeProcurement = async ({ tokenStr = 'SNP-014', actualQty = 38.5, moisturePercent = 12.4, qualityGrade = 'Grade A', ratePerQuintal = 2200 }) => {
+  const completeProcurement = async ({ 
+    tokenStr = 'SNP-014', 
+    actualQty = 38.5, 
+    moisturePercent = 14.2, 
+    qualityGrade = 'Grade A', 
+    ratePerQuintal = 2200,
+    qualityParameters = null 
+  }) => {
     const qty = Number(actualQty);
     const rate = Number(ratePerQuintal) || 2200;
     const totalPayout = Math.round(qty * rate);
     const formulaStr = `${qty} quintals × ₹${rate.toLocaleString()}/quintal = ₹${totalPayout.toLocaleString()}`;
+
+    const effectiveQualityParams = qualityParameters || {
+      moisturePercent: Number(moisturePercent),
+      foreignMatter: 1.2,
+      damagedGrains: 2.4,
+      chalkyGrains: 3.0,
+      admixture: 4.0,
+      immatureGrains: 1.5,
+      allPassed: true,
+      inspectedAt: new Date().toISOString()
+    };
 
     // 1. Optimistic UI update
     setQueueItems(prev => prev.map(item => {
@@ -730,6 +748,7 @@ export const DemoProvider = ({ children }) => {
           actualQty: qty,
           moisturePercent: Number(moisturePercent),
           qualityGrade,
+          qualityParameters: effectiveQualityParams,
           ratePerQuintal: rate,
           completedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           paymentStatus: 'PENDING_DISBURSAL',
@@ -741,12 +760,13 @@ export const DemoProvider = ({ children }) => {
       return item;
     }));
 
-    // 2. Persist to Supabase
+    // 2. Persist to Supabase / Backend
     await updateBookingProcurement(tokenStr, {
       actualQty: qty,
       moisturePercent: Number(moisturePercent),
       qualityGrade,
-      ratePerQuintal: rate
+      ratePerQuintal: rate,
+      qualityParameters: effectiveQualityParams
     });
 
     const targetItem = queueItems.find(q => q.token === tokenStr);
@@ -764,6 +784,7 @@ export const DemoProvider = ({ children }) => {
       formula: formulaStr,
       qualityGrade,
       moisturePercent: Number(moisturePercent),
+      qualityParameters: effectiveQualityParams,
       procurementStatus: 'COMPLETED',
       paymentStatus: 'PENDING_DISBURSAL',
       dbtReference: 'Pending Admin Settlement',
