@@ -353,13 +353,6 @@ export const LandingPage = ({ onSelectPortal }) => {
             {/* Left Column: Hero Content */}
             <div className="lg:col-span-7 space-y-6 text-white text-center lg:text-left">
               
-              {/* National Initiative Badge */}
-              <div className="inline-flex items-center bg-agri-gold/20 border border-agri-gold/50 rounded-full px-4 py-1.5 backdrop-blur-md shadow-sm">
-                <span className="text-xs font-bold text-agri-gold tracking-wide font-mono">
-                  {isHindi ? '🏛️ उपभोक्ता मामले विभाग • स्मार्ट इंडिया हैकथॉन PS 26032' : '🏛️ Dept. of Consumer Affairs (DoCA) • Smart India Hackathon PS 26032'}
-                </span>
-              </div>
-
               {/* Main Headline */}
               <h1 className="font-heading text-3xl sm:text-5xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-sm">
                 {isHindi ? (
