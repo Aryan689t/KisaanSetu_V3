@@ -242,17 +242,33 @@ export const DemoProvider = ({ children }) => {
     }
   };
 
+  // Set of tokens created by the current farmer in this browser session
+  const [sessionFarmerTokens, setSessionFarmerTokens] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('kisansetu_farmer_tokens');
+      return saved ? JSON.parse(saved) : ['SNP-014'];
+    } catch {
+      return ['SNP-014'];
+    }
+  });
+
   // Farmer's own bookings (only bookings belonging to currently logged-in farmer)
   const farmerBookings = queueItems.filter(q => {
-    if (user?.id && (q.user_id === user.id || q.farmerId === user.id)) return true;
-    if (user?.email && (q.farmerPhone === user.email || q.mobile === user.email)) return true;
-    if (user?.user_metadata?.name) {
-      const uName = user.user_metadata.name.toLowerCase();
-      const qName = (q.farmerName || q.farmer_name || '').toLowerCase();
-      if (qName && (qName.includes(uName) || uName.includes(qName.replace('(you)', '').trim()))) return true;
+    if (!q || !q.token) return false;
+
+    // 1. If an authenticated Supabase user is logged in with a real UUID
+    if (user?.id && !user.id.startsWith('usr-')) {
+      if (q.user_id === user.id || q.farmerId === user.id) return true;
+      if (user.email && (q.farmerPhone === user.email || q.mobile === user.email)) return true;
+      return sessionFarmerTokens.includes(q.token);
     }
-    const name = (q.farmerName || q.farmer_name || '').toLowerCase();
-    return name.includes('(you)') || name.includes('ramesh');
+
+    // 2. For demo farmer (Ramesh Singh):
+    // Only include SNP-014 (the canonical demo booking) or tokens created in this session
+    if (q.token === 'SNP-014' || q.bookingId === 'BK-2026-8812') return true;
+    if (sessionFarmerTokens.includes(q.token)) return true;
+
+    return false;
   });
 
   // Dynamic activeBooking resolution
@@ -453,6 +469,15 @@ export const DemoProvider = ({ children }) => {
     });
 
     const bookingRecord = result.data;
+
+    // Register this newly created token under current farmer session
+    if (bookingRecord?.token) {
+      setSessionFarmerTokens(prev => {
+        const updated = Array.from(new Set([...prev, bookingRecord.token]));
+        try { sessionStorage.setItem('kisansetu_farmer_tokens', JSON.stringify(updated)); } catch (e) {}
+        return updated;
+      });
+    }
 
     // Append newly created booking to state without overwriting existing bookings
     setQueueItems(prev => {
@@ -703,8 +728,11 @@ export const DemoProvider = ({ children }) => {
     setDemoConditionState('NORMAL');
     setDismissedRerouteAlert(false);
     setActiveBookingToken('SNP-014');
+    setSessionFarmerTokens(['SNP-014']);
     try {
       localStorage.setItem('kisansetu_active_token', 'SNP-014');
+      localStorage.removeItem('kisansetu_farmer_tokens');
+      sessionStorage.removeItem('kisansetu_farmer_tokens');
     } catch {}
     
     // Re-fetch clean state from Supabase
