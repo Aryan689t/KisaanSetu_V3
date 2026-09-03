@@ -22,7 +22,7 @@ export const MandiCongestionBanner = () => {
         </div>
         <div className="text-xs">
           <span className="font-extrabold mr-1">
-            {lang === 'hi' ? '⚠️ मंडी में भारी भीड़ की चेतावनी:' : '⚠️ Mandi Congestion Detected:'}
+            {lang === 'hi' ? 'मंडी में भारी भीड़ की चेतावनी:' : 'Mandi Congestion Detected:'}
           </span>
           <span className="text-amber-900">
             {lang === 'hi'

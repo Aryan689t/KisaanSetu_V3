@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { CheckCircle2, RefreshCw } from 'lucide-react';
+import { CheckCircle2, RefreshCw, Navigation } from 'lucide-react';
 import { fetchQueuePosition } from '../../lib/apiService';
 import { MandiCongestionBanner } from '../ui/MandiCongestionBanner';
 
@@ -56,7 +56,7 @@ export const LiveQueueTracker = () => {
       {farmerBookings.length > 1 && (
         <div className="bg-white p-3 rounded-2xl border border-agri-ivory-muted shadow-sm flex items-center justify-between flex-wrap gap-2">
           <span className="text-xs font-bold text-agri-text">
-            {lang === 'hi' ? '📋 आपके टोकन पास:' : '📋 Your Active Token Passes:'}
+            {lang === 'hi' ? 'आपके टोकन पास:' : 'Your Active Token Passes:'}
           </span>
           <div className="flex items-center space-x-2 overflow-x-auto pb-1">
             {farmerBookings.map((b) => {
@@ -88,7 +88,7 @@ export const LiveQueueTracker = () => {
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-[11px] font-bold text-agri-gold bg-agri-gold/20 px-2.5 py-0.5 rounded-full border border-agri-gold/30 font-mono inline-block">
-                🎫 {lang === 'hi' ? 'आपकी बारी' : 'YOUR TURN'}
+                {lang === 'hi' ? 'आपकी बारी' : 'YOUR TURN'}
               </span>
               {livePosition && (
                 <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
@@ -126,9 +126,8 @@ export const LiveQueueTracker = () => {
           {activeBooking?.status === 'WAITING' && (
             <div className="space-y-3 text-amber-100">
               <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-agri-gold animate-ping"></span>
                 <strong className="font-bold text-base text-agri-gold">
-                  🟢 {lang === 'hi' ? 'अपनी बारी का इंतज़ार करें' : 'Waiting for your turn'}
+                  {lang === 'hi' ? 'अपनी बारी का इंतज़ार करें' : 'Waiting for your turn'}
                 </strong>
               </div>
 
@@ -159,9 +158,8 @@ export const LiveQueueTracker = () => {
           {isCheckedIn && (
             <div className="space-y-2 text-blue-100">
               <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-blue-400"></span>
                 <strong className="font-bold text-base text-white">
-                  🔵 {lang === 'hi' ? 'गेट चेक-इन पूरा हुआ' : 'Gate Check-in Verified'}
+                  {lang === 'hi' ? 'गेट चेक-इन पूरा हुआ' : 'Gate Check-in Verified'}
                 </strong>
               </div>
               <p className="text-xs text-blue-100/90">
@@ -176,9 +174,8 @@ export const LiveQueueTracker = () => {
           {isProcessing && (
             <div className="space-y-2 text-agri-green-dark bg-agri-gold p-3.5 rounded-xl">
               <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-agri-green-dark animate-bounce"></span>
                 <strong className="font-extrabold text-base">
-                  🔔 {lang === 'hi' ? 'आपकी बारी आ गई है!' : 'YOUR TURN HAS ARRIVED!'}
+                  {lang === 'hi' ? 'आपकी बारी आ गई है!' : 'YOUR TURN HAS ARRIVED!'}
                 </strong>
               </div>
               <p className="text-xs font-semibold text-agri-green-dark">
@@ -195,7 +192,7 @@ export const LiveQueueTracker = () => {
               <div className="flex items-center space-x-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 <strong className="font-bold text-base text-white">
-                  ✓ {lang === 'hi' ? 'फसल तौल दर्ज हो गया है' : 'Procurement Logged'}
+                  {lang === 'hi' ? 'फसल तौल दर्ज हो गया है' : 'Procurement Logged'}
                 </strong>
               </div>
               <p className="text-xs text-emerald-100/90">
@@ -221,7 +218,8 @@ export const LiveQueueTracker = () => {
             rel="noopener noreferrer"
             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3.5 py-2 rounded-xl text-xs font-bold inline-flex items-center space-x-1.5 transition-all touch-target min-h-[40px]"
           >
-            <span>📍 {lang === 'hi' ? 'रास्ता देखें' : 'Get Directions'}</span>
+            <Navigation className="w-3.5 h-3.5 text-agri-gold" />
+            <span>{lang === 'hi' ? 'रास्ता देखें' : 'Get Directions'}</span>
           </a>
         </div>
 
@@ -232,7 +230,7 @@ export const LiveQueueTracker = () => {
         <div className="flex items-center justify-between pb-3 border-b border-agri-ivory-muted">
           <div>
             <h3 className="font-heading text-base font-bold text-agri-text">
-              📊 {lang === 'hi' ? 'मंडी कतार स्थिति' : 'Mandi Queue Feed'}
+              {lang === 'hi' ? 'मंडी कतार स्थिति' : 'Mandi Queue Feed'}
             </h3>
             <p className="text-xs text-agri-text-muted">
               {currentCentre.name} • {lang === 'hi' ? 'लाइव काउंटर अपडेट' : 'Live clearance status'}
@@ -267,8 +265,16 @@ export const LiveQueueTracker = () => {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center space-x-2.5">
                     {/* Status Symbol */}
-                    <span className="text-base font-bold">
-                      {isDone ? '✓' : isAtCounter ? '→' : isYou ? '⭐' : '○'}
+                    <span className="text-base font-bold flex items-center">
+                      {isDone ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      ) : isAtCounter ? (
+                        <span className="text-xs font-bold text-amber-600 font-mono">→</span>
+                      ) : isYou ? (
+                        <span className="text-xs font-bold text-agri-green font-mono">★</span>
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+                      )}
                     </span>
 
                     <span className="font-heading font-extrabold text-base text-agri-green font-mono">
@@ -284,7 +290,7 @@ export const LiveQueueTracker = () => {
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isDone
                         ? 'bg-emerald-100 text-emerald-800'
                         : isAtCounter
-                          ? 'bg-amber-200 text-amber-900 font-extrabold animate-pulse'
+                          ? 'bg-amber-200 text-amber-900 font-extrabold'
                           : isYou
                             ? 'bg-agri-gold text-agri-green-dark font-extrabold'
                             : 'bg-gray-100 text-gray-700'
@@ -319,7 +325,7 @@ export const LiveQueueTracker = () => {
                     onClick={() => setExpandedItemId(isExpanded ? null : item.token)}
                     className="text-agri-green font-bold hover:underline touch-target min-h-[32px] flex items-center"
                   >
-                    <span>{isExpanded ? (lang === 'hi' ? 'विवरण छिपाएं ▲' : 'Hide details ▲') : (lang === 'hi' ? 'विवरण देखें ▾' : 'View details ▾')}</span>
+                    <span>{isExpanded ? (lang === 'hi' ? 'विवरण छिपाएं' : 'Hide details') : (lang === 'hi' ? 'विवरण देखें' : 'View details')}</span>
                   </button>
                 </div>
 

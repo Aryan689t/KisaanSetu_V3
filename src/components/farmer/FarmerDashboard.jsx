@@ -8,6 +8,7 @@ import { Accordion } from '../ui/Accordion';
 
 export const FarmerDashboard = () => {
   const {
+    user,
     activeBooking,
     farmerBookings = [],
     selectActiveBooking,
@@ -24,6 +25,8 @@ export const FarmerDashboard = () => {
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedCentreForBooking, setSelectedCentreForBooking] = useState(null);
+
+  const farmerDisplayName = user?.user_metadata?.name || user?.name || (lang === 'hi' ? 'रमेश सिंह' : 'Ramesh Singh');
 
   // Derived booked centre vs recommended centre
   const bookedCentre = centres.find(c => c.id === activeBooking?.centreId) || centres[0];
@@ -146,7 +149,7 @@ export const FarmerDashboard = () => {
   ];
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* 1. DYNAMIC CONGESTION ALERTS */}
       
@@ -185,7 +188,7 @@ export const FarmerDashboard = () => {
                 }}
                 className="bg-amber-400 hover:bg-amber-300 text-rose-950 font-extrabold text-xs px-4 py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5 touch-target min-h-[44px]"
               >
-                <span>👉 {lang === 'hi' ? `${recommendedCentre.name.split(' ')[0]} बदलें (~${recommendedCentre.estWaitMinutes}म)` : `Switch to ${recommendedCentre.name.split(' ')[0]} (~${recommendedCentre.estWaitMinutes}m)`}</span>
+                <span>{lang === 'hi' ? `${recommendedCentre.name.split(' ')[0]} बदलें (~${recommendedCentre.estWaitMinutes}म)` : `Switch to ${recommendedCentre.name.split(' ')[0]} (~${recommendedCentre.estWaitMinutes}m)`}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -207,11 +210,11 @@ export const FarmerDashboard = () => {
           <div className="space-y-3">
             <div className="flex items-start space-x-3">
               <div className="p-2 bg-amber-900 text-amber-300 rounded-xl shrink-0 border border-amber-600">
-                <AlertTriangle className="w-5 h-5 text-amber-300 animate-pulse" />
+                <AlertTriangle className="w-5 h-5 text-amber-300" />
               </div>
               <div className="space-y-1">
                 <span className="text-[10px] font-extrabold uppercase bg-amber-400 text-amber-950 px-2 py-0.5 rounded font-mono">
-                  {lang === 'hi' ? '⚠️ राज्य मंडी यातायात सूचना' : '⚠️ STATE MANDI TRAFFIC ADVISORY'}
+                  {lang === 'hi' ? 'राज्य मंडी यातायात सूचना' : 'STATE MANDI TRAFFIC ADVISORY'}
                 </span>
 
                 <h3 className="font-heading text-base font-bold text-white">
@@ -226,7 +229,7 @@ export const FarmerDashboard = () => {
                     : `High influx of harvest trucks reported at Sonipat Main Yard. Panipat Mandi (~${recommendedCentre.estWaitMinutes} min wait) is currently recommended for open slot arrivals.`}
                   {activeBooking && (
                     <span className="block mt-1 text-emerald-300 font-semibold">
-                      ✓ {lang === 'hi'
+                      {lang === 'hi'
                         ? `आपकी वर्तमान बुकिंग (${activeBooking.token}) ${bookedCentre.name} पर है और प्रभावित नहीं है।`
                         : `Your current token (${activeBooking.token}) is booked at ${bookedCentre.name} and is unaffected.`}
                     </span>
@@ -257,20 +260,15 @@ export const FarmerDashboard = () => {
         </div>
       )}
 
-      {/* PROMINENT MANDI SLOT BOOKING ACTION HEADER */}
+      {/* PROMINENT MANDI SLOT BOOKING ACTION HEADER (Clean, Subtitle Removed) */}
       <div className="bg-gradient-to-r from-agri-green-dark to-agri-green rounded-2xl p-4 sm:p-5 text-white shadow-agri-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-agri-gold/30">
         <div className="space-y-1">
           <span className="text-[10px] font-extrabold uppercase bg-agri-gold/20 text-agri-gold px-2.5 py-0.5 rounded border border-agri-gold/30 font-mono inline-block">
-            🌾 {lang === 'hi' ? 'सीधी सरकारी खरीद' : 'DIRECT MSP PROCUREMENT'}
+            {lang === 'hi' ? 'सीधी सरकारी खरीद' : 'DIRECT MSP PROCUREMENT'}
           </span>
           <h2 className="font-heading text-lg sm:text-xl font-bold text-white">
             {lang === 'hi' ? 'मंडी आगमन स्लॉट बुक करें' : 'Book a Mandi Arrival Slot'}
           </h2>
-          <p className="text-xs text-agri-ivory/80">
-            {lang === 'hi'
-              ? 'लंबी कतारों से बचें और सीधे गेट एंट्री टोकन प्राप्त करें।'
-              : 'Skip long truck lines with an official 30-minute verified entry slot.'}
-          </p>
         </div>
 
         <button
@@ -286,28 +284,30 @@ export const FarmerDashboard = () => {
         </button>
       </div>
 
-      {/* 2. "WHAT DO I DO NOW?" — PRIMARY FARMER STATUS HERO CARD */}
-      <div className="bg-[#17432A] text-white rounded-2xl p-5 sm:p-6 shadow-agri-md relative overflow-hidden space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* 2. PRIMARY FARMER STATUS HERO CARD (Refined Spacing, No Green Dot, No Emoji, No Duplicate CTA) */}
+      <div className="bg-[#17432A] text-white rounded-2xl p-6 sm:p-7 shadow-agri-md relative overflow-hidden space-y-6 border border-agri-gold/30">
+        
+        {/* Top Greeting & Center Meta */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/10">
           <div>
-            <span className="text-[11px] font-bold bg-agri-gold/20 text-agri-gold px-2.5 py-0.5 rounded-full border border-agri-gold/30 font-mono inline-block mb-1">
-              🟢 {t('liveMandiStatus', 'Live Mandi Status')}
+            <span className="text-[11px] font-bold bg-agri-gold/20 text-agri-gold px-3 py-1 rounded-full border border-agri-gold/30 font-mono inline-block mb-1.5">
+              {t('liveMandiStatus', 'Live Mandi Status')}
             </span>
             <h1 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-white">
-              {lang === 'hi' ? 'नमस्ते, रमेश सिंह जी 🙏' : 'Namaste, Ramesh Singh ji 🙏'}
+              {lang === 'hi' ? `नमस्ते, ${farmerDisplayName}` : `Namaste, ${farmerDisplayName}`}
             </h1>
           </div>
 
-          <span className="text-xs text-agri-ivory/80 bg-[#102e1c] px-3 py-1 rounded-xl border border-agri-gold/20 font-mono self-start sm:self-auto">
-            {lang === 'hi' ? 'वर्तमान बुकिंग:' : 'Booked:'} <strong className="text-agri-gold">{bookedCentre.name.split(' ')[0]} Yard</strong>
+          <span className="text-xs text-agri-ivory/90 bg-[#102e1c] px-3.5 py-1.5 rounded-xl border border-agri-gold/20 font-mono self-start sm:self-auto">
+            {lang === 'hi' ? 'वर्तमान केंद्र:' : 'Booked Yard:'} <strong className="text-agri-gold font-bold">{bookedCentre.name.split(' ')[0]}</strong>
           </span>
         </div>
 
-        {/* MULTIPLE BOOKINGS TOKEN SWITCHER (IF FARMER HAS > 1 BOOKING) */}
+        {/* MULTIPLE BOOKINGS TOKEN SWITCHER (ONLY SHOWN IF THIS FARMER HAS > 1 BOOKING) */}
         {farmerBookings.length > 1 && (
-          <div className="bg-[#102e1c] p-2.5 rounded-xl border border-agri-gold/20 space-y-1.5">
-            <span className="text-[11px] text-agri-gold font-bold block">
-              {lang === 'hi' ? '📋 आपकी सक्रिय बुकिंग (टोकन बदलें):' : '📋 Your Active Bookings (Switch Token):'}
+          <div className="bg-[#102e1c] p-3 rounded-xl border border-agri-gold/20 space-y-2">
+            <span className="text-[11px] text-agri-gold font-bold block font-mono">
+              {lang === 'hi' ? 'आपकी बुकिंग:' : 'Your Bookings:'}
             </span>
             <div className="flex items-center space-x-2 overflow-x-auto pb-1">
               {farmerBookings.map((b) => {
@@ -332,44 +332,44 @@ export const FarmerDashboard = () => {
           </div>
         )}
 
-        {/* PRIMARY TASK BOX */}
-        <div className="p-4.5 rounded-xl bg-[#123621] border border-agri-gold/30 shadow-inner font-sans space-y-3">
+        {/* PRIMARY BOOKING STATUS BOX */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#123621] border border-agri-gold/25 shadow-inner font-sans space-y-5">
           
           {/* WAITING State */}
           {activeBooking?.status === 'WAITING' && (
-            <div className="space-y-3.5 text-amber-100">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="space-y-4 text-amber-100">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
-                  <span className="text-[11px] text-agri-gold font-bold block">
+                  <span className="text-xs text-agri-gold font-bold block">
                     {t('yourToken', 'Your Token Number')}
                   </span>
-                  <span className="font-heading font-extrabold text-3xl sm:text-4xl text-agri-gold font-mono tracking-tight">
+                  <span className="font-heading font-extrabold text-3xl sm:text-4xl text-agri-gold font-mono tracking-tight mt-0.5 block">
                     {activeBooking?.token || 'SNP-014'}
                   </span>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[11px] text-agri-ivory/70 block">
+                  <span className="text-xs text-agri-ivory/70 block">
                     {t('assignedCounter', 'Assigned Counter')}
                   </span>
-                  <span className="text-xs font-bold text-white font-mono bg-[#17432A] px-2.5 py-1 rounded-lg border border-agri-gold/30 inline-block mt-0.5">
+                  <span className="text-xs font-bold text-white font-mono bg-[#17432A] px-3 py-1.5 rounded-lg border border-agri-gold/30 inline-block mt-1">
                     {activeBooking?.counter || 'Counter 2'}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="bg-[#17432A]/80 p-3 rounded-xl border border-white/10">
-                  <span className="text-[11px] text-agri-ivory/80 block">
+              <div className="grid grid-cols-2 gap-3.5 text-center">
+                <div className="bg-[#17432A]/90 p-3.5 rounded-xl border border-white/10">
+                  <span className="text-xs text-agri-ivory/80 block">
                     {lang === 'hi' ? 'आगे किसान' : 'Farmers ahead'}
                   </span>
-                  <p className="font-heading text-2xl font-extrabold text-white font-mono mt-0.5">3</p>
+                  <p className="font-heading text-2xl font-extrabold text-white font-mono mt-1">3</p>
                 </div>
-                <div className="bg-[#17432A]/80 p-3 rounded-xl border border-white/10">
-                  <span className="text-[11px] text-agri-ivory/80 block">
+                <div className="bg-[#17432A]/90 p-3.5 rounded-xl border border-white/10">
+                  <span className="text-xs text-agri-ivory/80 block">
                     {t('estimatedWait', 'Estimated Wait Time')}
                   </span>
-                  <p className="font-heading text-2xl font-extrabold text-agri-gold font-mono mt-0.5">~{bookedCentre.estWaitMinutes} min</p>
+                  <p className="font-heading text-2xl font-extrabold text-agri-gold font-mono mt-1">~{bookedCentre.estWaitMinutes} min</p>
                 </div>
               </div>
 
@@ -379,7 +379,7 @@ export const FarmerDashboard = () => {
                 }}
                 className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-sm px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
               >
-                <span>⏱ {lang === 'hi' ? 'अपनी बारी का ट्रैक करें' : 'Track My Turn'}</span>
+                <span>{lang === 'hi' ? 'अपनी बारी का ट्रैक करें' : 'Track My Turn'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -387,23 +387,23 @@ export const FarmerDashboard = () => {
 
           {/* CHECKED_IN State */}
           {isCheckedIn && (
-            <div className="space-y-3 text-blue-100">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="space-y-4 text-blue-100">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
-                  <span className="text-[11px] text-blue-300 font-bold block">
+                  <span className="text-xs text-blue-300 font-bold block">
                     {lang === 'hi' ? 'गेट चेक-इन सत्यापित' : 'Gate Check-in Verified'}
                   </span>
-                  <span className="font-heading font-extrabold text-3xl text-white font-mono">
+                  <span className="font-heading font-extrabold text-3xl text-white font-mono mt-0.5 block">
                     {activeBooking?.token}
                   </span>
                 </div>
-                <span className="bg-blue-500/30 text-blue-200 text-xs font-bold px-3 py-1 rounded-full border border-blue-400/40">
-                  ✓ {lang === 'hi' ? 'गेट एंट्री पास' : 'Gate Verified'}
+                <span className="bg-blue-500/30 text-blue-200 text-xs font-bold px-3.5 py-1.5 rounded-full border border-blue-400/40">
+                  {lang === 'hi' ? 'गेट एंट्री पास' : 'Gate Verified'}
                 </span>
               </div>
               <button
                 onClick={() => setFarmerTab('queue')}
-                className="w-full bg-blue-400 hover:bg-blue-300 text-agri-green-dark font-extrabold text-xs px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
+                className="w-full bg-blue-400 hover:bg-blue-300 text-agri-green-dark font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
               >
                 <span>{lang === 'hi' ? 'कतार स्थिति देखें' : 'View Queue Position'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -413,23 +413,23 @@ export const FarmerDashboard = () => {
 
           {/* PROCESSING State */}
           {isProcessing && (
-            <div className="space-y-3 text-agri-green-dark">
-              <div className="flex items-center justify-between border-b border-agri-green-dark/20 pb-3">
+            <div className="space-y-4 text-agri-green-dark">
+              <div className="flex items-center justify-between border-b border-agri-green-dark/20 pb-4">
                 <div>
-                  <span className="text-[11px] font-extrabold text-agri-green-dark block">
-                    🔔 {lang === 'hi' ? 'आपकी बारी आ गई है!' : 'Turn Arrived!'}
+                  <span className="text-xs font-extrabold text-agri-green-dark block">
+                    {lang === 'hi' ? 'आपकी बारी आ गई है!' : 'Turn Arrived!'}
                   </span>
-                  <span className="font-heading font-extrabold text-3xl text-agri-green-dark font-mono">
+                  <span className="font-heading font-extrabold text-3xl text-agri-green-dark font-mono mt-0.5 block">
                     #{activeBooking?.token}
                   </span>
                 </div>
-                <span className="bg-agri-green text-white text-xs font-extrabold px-3 py-1 rounded-full animate-bounce">
+                <span className="bg-agri-green text-white text-xs font-extrabold px-3.5 py-1.5 rounded-full">
                   Counter 2
                 </span>
               </div>
               <button
                 onClick={() => setFarmerTab('queue')}
-                className="w-full bg-agri-green-dark hover:bg-agri-green text-white font-extrabold text-xs px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
+                className="w-full bg-agri-green-dark hover:bg-agri-green text-white font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
               >
                 <span>{lang === 'hi' ? 'काउंटर 2 पर जाएं' : 'Proceed to Counter 2'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -439,23 +439,23 @@ export const FarmerDashboard = () => {
 
           {/* COMPLETED State */}
           {isCompleted && (
-            <div className="space-y-3 text-white">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="space-y-4 text-white">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
-                  <span className="text-[11px] text-agri-gold font-bold block">
+                  <span className="text-xs text-agri-gold font-bold block">
                     {lang === 'hi' ? 'फसल तौल दर्ज' : 'Procurement Logged'}
                   </span>
-                  <span className="font-heading font-extrabold text-2xl text-agri-gold font-mono">
+                  <span className="font-heading font-extrabold text-2xl sm:text-3xl text-agri-gold font-mono mt-0.5 block">
                     {activeBooking?.actualQty || 38.5} Quintals
                   </span>
                 </div>
-                <span className="bg-agri-gold/20 text-agri-gold text-xs font-bold px-3 py-1 rounded-full border border-agri-gold/30">
+                <span className="bg-agri-gold/20 text-agri-gold text-xs font-bold px-3.5 py-1.5 rounded-full border border-agri-gold/30">
                   DBT Pending
                 </span>
               </div>
               <button
                 onClick={() => setFarmerTab('history')}
-                className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
+                className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm touch-target min-h-[48px]"
               >
                 <span>{lang === 'hi' ? 'भुगतान रसीद देखें' : 'View Payout Receipt'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -465,8 +465,8 @@ export const FarmerDashboard = () => {
 
           {/* NO ACTIVE BOOKING State */}
           {!activeBooking && (
-            <div className="space-y-3 text-center py-2 text-agri-ivory">
-              <p className="text-xs">
+            <div className="space-y-3.5 text-center py-3 text-agri-ivory">
+              <p className="text-sm">
                 {lang === 'hi'
                   ? 'आपके पास कोई सक्रिय टोकन नहीं है। आज ही अपना स्लॉट बुक करें।'
                   : 'You have no active slot booking. Book your arrival slot now.'}
@@ -476,26 +476,10 @@ export const FarmerDashboard = () => {
                   setSelectedCentreForBooking(null);
                   setIsBookingModalOpen(true);
                 }}
-                className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm"
+                className="w-full bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-agri-sm"
               >
                 <Wheat className="w-4 h-4" />
                 <span>{lang === 'hi' ? 'मंडी स्लॉट बुक करें' : 'Book a Mandi Slot'}</span>
-              </button>
-            </div>
-          )}
-
-          {/* "+ BOOK ANOTHER SLOT" ACTION DIRECTLY BELOW CURRENT BOOKING SECTION */}
-          {activeBooking && (
-            <div className="pt-2 border-t border-white/10">
-              <button
-                onClick={() => {
-                  setSelectedCentreForBooking(null);
-                  setIsBookingModalOpen(true);
-                }}
-                className="w-full bg-[#102e1c] hover:bg-[#0b2114] text-agri-gold hover:text-white border-2 border-dashed border-agri-gold/40 hover:border-agri-gold font-extrabold text-xs sm:text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 touch-target min-h-[46px]"
-              >
-                <Calendar className="w-4 h-4 text-agri-gold" />
-                <span>{lang === 'hi' ? '+ दूसरा स्लॉट बुक करें' : '+ Book Another Slot'}</span>
               </button>
             </div>
           )}
@@ -511,7 +495,7 @@ export const FarmerDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <span className="text-[11px] text-agri-text-muted font-bold block">
-              📍 {t('mandi', 'Your Mandi')}
+              {t('mandi', 'Your Mandi')}
             </span>
             <h3 className="font-heading text-base sm:text-lg font-bold text-agri-text">
               {bookedCentre.name}
@@ -528,7 +512,7 @@ export const FarmerDashboard = () => {
             className="bg-agri-green hover:bg-agri-green-dark text-white px-4 py-2.5 rounded-xl text-xs font-bold inline-flex items-center space-x-1.5 shrink-0 transition-all touch-target min-h-[44px]"
           >
             <Navigation className="w-4 h-4 text-agri-gold" />
-            <span>📍 {lang === 'hi' ? 'रास्ता देखें' : 'Get Directions'}</span>
+            <span>{lang === 'hi' ? 'रास्ता देखें' : 'Get Directions'}</span>
           </a>
         </div>
       </div>
@@ -539,7 +523,7 @@ export const FarmerDashboard = () => {
           <div>
             <div className="flex items-center space-x-2 flex-wrap gap-y-1 mb-1">
               <span className="text-[10px] font-bold text-agri-gold bg-agri-gold/20 px-2.5 py-0.5 rounded-full border border-agri-gold/40 font-mono">
-                💡 {lang === 'hi' ? 'बेहतर विकल्प उपलब्ध' : 'BETTER OPTION AVAILABLE'}
+                {lang === 'hi' ? 'बेहतर विकल्प उपलब्ध' : 'BETTER OPTION AVAILABLE'}
               </span>
 
               <span className="text-[10px] text-agri-text bg-agri-ivory px-2.5 py-0.5 rounded-full border border-agri-ivory-muted font-sans font-medium">
@@ -587,7 +571,6 @@ export const FarmerDashboard = () => {
       <div className="space-y-2.5 pt-1">
         <div className="px-1">
           <h3 className="font-heading text-base font-bold text-agri-text flex items-center space-x-1.5">
-            <span>🌾</span>
             <span>{lang === 'hi' ? 'मंडी जाने से पहले ज़रूरी बातें' : 'Before You Visit the Mandi'}</span>
           </h3>
           <p className="text-xs text-agri-text-muted mt-0.5">

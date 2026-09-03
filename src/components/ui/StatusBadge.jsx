@@ -6,14 +6,14 @@ export const StatusBadge = ({ status, type = 'centre' }) => {
 
   if (type === 'centre') {
     if (status === 'NORMAL') {
-      label = '🟢 NORMAL LOAD';
-      classes = 'bg-agri-green-soft text-agri-green-dark border-agri-green-border';
+      label = 'NORMAL LOAD';
+      classes = 'bg-agri-green-soft text-agri-green-dark border-agri-green-border font-bold';
     } else if (status === 'MODERATE') {
-      label = '🟡 MODERATE QUEUE';
-      classes = 'bg-amber-50 text-amber-800 border-amber-200';
+      label = 'MODERATE QUEUE';
+      classes = 'bg-amber-50 text-amber-800 border-amber-200 font-bold';
     } else if (status === 'CONGESTED') {
-      label = '🔴 HIGH CONGESTION';
-      classes = 'bg-rose-50 text-rose-800 border-rose-200 animate-pulse';
+      label = 'HIGH CONGESTION';
+      classes = 'bg-rose-50 text-rose-800 border-rose-200 font-bold';
     }
   } else if (type === 'queue') {
     if (status === 'WAITING') {
@@ -24,7 +24,7 @@ export const StatusBadge = ({ status, type = 'centre' }) => {
       classes = 'bg-blue-50 text-blue-900 border-blue-200 font-semibold';
     } else if (status === 'PROCESSING') {
       label = 'At Inspection Counter';
-      classes = 'bg-agri-gold-light text-agri-gold-dark border-agri-gold font-bold animate-pulse';
+      classes = 'bg-agri-gold-light text-agri-gold-dark border-agri-gold font-bold';
     } else if (status === 'COMPLETED') {
       label = 'Procurement Completed';
       classes = 'bg-agri-green-soft text-agri-status-success border-agri-green-border font-bold';
@@ -37,7 +37,7 @@ export const StatusBadge = ({ status, type = 'centre' }) => {
       label = 'Approved / Payout Pending';
       classes = 'bg-amber-50 text-amber-800 border-amber-300 font-medium';
     } else if (status === 'DISBURSED') {
-      label = '✓ DBT Payment Disbursed';
+      label = 'DBT Payment Disbursed';
       classes = 'bg-agri-green-soft text-agri-status-success border-agri-green-border font-bold';
     }
   }

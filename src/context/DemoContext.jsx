@@ -242,21 +242,23 @@ export const DemoProvider = ({ children }) => {
     }
   };
 
-  // Farmer's multiple bookings (active user bookings)
-  const farmerBookings = queueItems.filter(q => 
-    q.farmerName?.includes('YOU') || 
-    q.farmerName?.includes('Ramesh') ||
-    q.farmer_name?.includes('YOU') ||
-    q.farmer_name?.includes('Ramesh') ||
-    q.token === activeBookingToken
-  );
+  // Farmer's own bookings (only bookings belonging to currently logged-in farmer)
+  const farmerBookings = queueItems.filter(q => {
+    if (user?.id && (q.user_id === user.id || q.farmerId === user.id)) return true;
+    if (user?.email && (q.farmerPhone === user.email || q.mobile === user.email)) return true;
+    if (user?.user_metadata?.name) {
+      const uName = user.user_metadata.name.toLowerCase();
+      const qName = (q.farmerName || q.farmer_name || '').toLowerCase();
+      if (qName && (qName.includes(uName) || uName.includes(qName.replace('(you)', '').trim()))) return true;
+    }
+    const name = (q.farmerName || q.farmer_name || '').toLowerCase();
+    return name.includes('(you)') || name.includes('ramesh');
+  });
 
   // Dynamic activeBooking resolution
   const activeBooking = 
-    queueItems.find(q => q.token === activeBookingToken) ||
+    farmerBookings.find(q => q.token === activeBookingToken) ||
     farmerBookings[0] ||
-    queueItems.find(q => q.token === 'SNP-014') ||
-    queueItems[0] ||
     null;
 
   const selectActiveBooking = (token) => {

@@ -82,7 +82,7 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
               {currentStep === 2 && (lang === 'hi' ? '2. आगमन समय स्लॉट चुनें' : '2. Select Arrival Time Slot')}
               {currentStep === 3 && (lang === 'hi' ? '3. फसल व अपेक्षित मात्रा दर्ज करें' : '3. Crop & Expected Quantity')}
               {currentStep === 4 && (lang === 'hi' ? '4. बुकिंग विवरण की समीक्षा करें' : '4. Review Booking Summary')}
-              {currentStep === 5 && (lang === 'hi' ? '🎉 स्लॉट बुकिंग सफल!' : '🎉 Booking Confirmed!')}
+              {currentStep === 5 && (lang === 'hi' ? 'स्लॉट बुकिंग सफल!' : 'Booking Confirmed!')}
             </h2>
             {selectedCentre && currentStep !== 1 && currentStep !== 5 && (
               <p className="text-xs text-agri-ivory/80 flex items-center space-x-1 mt-0.5">
@@ -167,7 +167,7 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
                             </h4>
                             {isRec && (
                               <span className="bg-agri-gold text-agri-green-dark text-[10px] font-extrabold px-2 py-0.5 rounded-full font-mono">
-                                ⭐ {lang === 'hi' ? 'सुझाया गया' : 'RECOMMENDED'}
+                                {lang === 'hi' ? 'सुझाया गया' : 'RECOMMENDED'}
                               </span>
                             )}
                           </div>
@@ -183,8 +183,8 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
                             : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         }`}>
                           {centre.capacityPercent > 80
-                            ? (lang === 'hi' ? '🔴 अधिक भीड़' : '🔴 Congested')
-                            : (lang === 'hi' ? '🟢 कम भीड़' : '🟢 Fast Line')}
+                            ? (lang === 'hi' ? 'अधिक भीड़' : 'Congested')
+                            : (lang === 'hi' ? 'कम भीड़' : 'Fast Line')}
                         </span>
                       </div>
 
@@ -242,7 +242,7 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
                           : 'border-agri-ivory-muted bg-white text-agri-text-muted hover:bg-agri-ivory'
                       }`}
                     >
-                      📅 {dateStr}
+                      {dateStr}
                     </button>
                   ))}
                 </div>
@@ -255,7 +255,7 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
                     {lang === 'hi' ? 'उपलब्ध समय स्लॉट' : 'Available 30-Min Arrival Windows'}
                   </label>
                   <span className="text-[10px] font-bold text-agri-green">
-                    ✓ {lang === 'hi' ? 'कतार गारंटी' : 'Guaranteed Yard Entry'}
+                    {lang === 'hi' ? 'कतार गारंटी' : 'Guaranteed Yard Entry'}
                   </span>
                 </div>
 
@@ -283,7 +283,7 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
                           {isSelected && <CheckCircle2 className="w-4 h-4 text-agri-green shrink-0" />}
                         </div>
                         <span className="text-[10px] block mt-1 font-semibold">
-                          {isFull ? '🔒 FULL' : `🟢 ${slot.remaining} ${lang === 'hi' ? 'स्लॉट शेष' : 'slots remaining'}`}
+                          {isFull ? 'FULL' : `${slot.remaining} ${lang === 'hi' ? 'स्लॉट शेष' : 'slots remaining'}`}
                         </span>
                       </button>
                     );
@@ -413,7 +413,7 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
 
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
                 <p className="leading-relaxed">
-                  ℹ️ {lang === 'hi'
+                  {lang === 'hi'
                     ? 'पुष्टि करने पर आपका अनुरोध केंद्रीय किसानसेतु बैकएंड को भेजा जाएगा और एक वास्तविक डिजिटल टोकन पास जारी किया जाएगा।'
                     : 'On confirmation, your booking will be submitted to the central KisanSetu backend and assigned an official token pass.'}
                 </p>
