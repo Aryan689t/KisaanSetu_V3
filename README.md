@@ -154,13 +154,13 @@ Farmer / Walk-in Desk Receives Updates
 ![KisanSetu Landing Page](./image.png)
 
 **👨‍🌾 Farmer Dashboard**
-![Farmer Portal Login](./farmer-login.png)
+![Farmer Portal Login](./Screenshot%202026-09-05%20012642.png)
 
 **🏢 Procurement Center (Mandi Operator)**
-![Mandi Operator Login](./operator-login.png)
+![Mandi Operator Login](./Screenshot%202026-09-05%20012748.png)
 
 **🧑‍💼 Walk-in Desk**
-![Walk-In Desk Login](./walk-in-login.png)
+![Walk-In Desk Login](./Screenshot%202026-09-05%20012842.png)
 
 🌐 **Live Demo:** [https://kisaan-setu-v3.vercel.app](https://kisaan-setu-v3.vercel.app)
 
