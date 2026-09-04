@@ -231,8 +231,11 @@ Offline and low-connectivity support
 Integration with additional procurement centers
 Automated farmer-flow recommendations
 Historical procurement and congestion analytics
+
 👥 Team
+
 CodeBusters
+
 Member	Role
 Aryan	Team Lead / Full Stack
 Sanchit Marwah
