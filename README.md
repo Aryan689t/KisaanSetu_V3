@@ -193,7 +193,7 @@ npm run dev
 
 ## 👥 Team CodeBusters
 
-- **Aryan** (Team Lead / Full Stack)
+- **Tathagat Aryan** (Team Lead)
 - **Sanchit Marwah**
 - **Aman Kumar Yadav**
 - **Sristi**
