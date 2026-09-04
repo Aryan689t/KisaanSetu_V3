@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { fetchQueuePosition } from '../../lib/apiService';
 import { MandiCongestionBanner } from '../ui/MandiCongestionBanner';
+import BookingActions from './BookingActions';
 import { SlotBookingModal } from './SlotBookingModal';
 
 export const LiveQueueTracker = () => {
@@ -153,7 +154,7 @@ export const LiveQueueTracker = () => {
 
       {/* 1. PRIMARY FARMER TOKEN PASS CARD */}
       <div className="bg-[#17432A] text-white rounded-3xl p-5 sm:p-7 shadow-agri-md relative space-y-5">
-        
+
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
@@ -201,7 +202,7 @@ export const LiveQueueTracker = () => {
 
         {/* Dynamic Queue Status & Waiting Telemetry */}
         <div className="bg-[#102e1c] p-4 sm:p-5 rounded-2xl border border-agri-gold/30 space-y-4 font-sans">
-          
+
           {/* WAITING State */}
           {isWaiting && (
             <div className="space-y-3">
@@ -296,6 +297,16 @@ export const LiveQueueTracker = () => {
             </div>
           )}
 
+          {/* THE NEW BOOKING ACTIONS ADDED HERE */}
+          {activeBooking && (
+            <div className="pt-4 mt-2 border-t border-white/10">
+              <BookingActions
+                bookingId={activeBooking.token}
+                currentStatus={activeBooking.status}
+              />
+            </div>
+          )}
+
         </div>
 
         {/* Mandi Yard & Directions Bar */}
@@ -327,14 +338,14 @@ export const LiveQueueTracker = () => {
 
       {/* 2. QUEUE PROGRESS & PROCUREMENT MILESTONES (FOCUSED ON CURRENT FARMER ONLY) */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-agri-ivory-muted shadow-sm space-y-5 font-sans">
-        
+
         <div className="flex items-center justify-between pb-3 border-b border-agri-ivory-muted">
           <div>
             <h2 className="font-heading text-base sm:text-lg font-bold text-agri-text">
               {lang === 'hi' ? 'प्रगति व सत्यापन स्थिति' : 'Procurement Milestone Progress'}
             </h2>
             <p className="text-xs text-agri-text-muted mt-0.5">
-              {lang === 'hi' 
+              {lang === 'hi'
                 ? 'आपके टोकन की चरणबद्ध सरकारी खरीद स्थिति'
                 : 'Step-by-step clearance tracker for your token pass'}
             </p>
@@ -355,20 +366,18 @@ export const LiveQueueTracker = () => {
             return (
               <div
                 key={step.id}
-                className={`p-3.5 rounded-2xl border transition-all ${
-                  isStepActive
-                    ? 'border-2 border-agri-gold bg-agri-green-soft/50 shadow-sm'
-                    : isStepDone
+                className={`p-3.5 rounded-2xl border transition-all ${isStepActive
+                  ? 'border-2 border-agri-gold bg-agri-green-soft/50 shadow-sm'
+                  : isStepDone
                     ? 'border-emerald-200 bg-emerald-50/40 text-agri-text'
                     : 'border-agri-ivory-muted bg-agri-ivory/30 text-agri-text-muted opacity-75'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    isStepDone
-                      ? 'bg-emerald-100 text-emerald-700 font-bold'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isStepDone
+                    ? 'bg-emerald-100 text-emerald-700 font-bold'
+                    : 'bg-gray-100 text-gray-500'
+                    }`}>
                     {isStepDone ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-3.5 h-3.5" />}
                   </div>
                   <span className="text-[10px] font-mono font-bold text-agri-text-muted">
@@ -545,4 +554,3 @@ export const LiveQueueTracker = () => {
     </div>
   );
 };
-

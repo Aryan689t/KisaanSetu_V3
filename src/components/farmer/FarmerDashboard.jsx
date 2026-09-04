@@ -25,6 +25,7 @@ import { TokenDisplay } from '../ui/TokenDisplay';
 import { StatusBadge } from '../ui/StatusBadge';
 import { SlotBookingModal } from './SlotBookingModal';
 import { Accordion } from '../ui/Accordion';
+import BookingActions from './BookingActions';
 
 export const FarmerDashboard = () => {
   const {
@@ -427,6 +428,14 @@ export const FarmerDashboard = () => {
               <span>{isHindi ? 'लाइव कतार ट्रैक करें →' : 'Track Live Queue →'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            {/* Cancel & Reschedule Actions */}
+            <div className="pt-2 border-t border-white/10">
+              <BookingActions
+                bookingId={activeBooking.token}
+                currentStatus={activeBooking.status}
+              />
+            </div>
           </div>
         )}
 
@@ -529,7 +538,6 @@ export const FarmerDashboard = () => {
             </button>
           </div>
         )}
-
       </div>
 
       {/* ========================================================================= */}
@@ -608,6 +616,12 @@ export const FarmerDashboard = () => {
               <span>{isHindi ? 'गूगल मैप्स पर रास्ता देखें' : 'Get Directions'}</span>
             </a>
           </div>
+
+          {/* Booking Actions (Cancel / Reschedule) */}
+          <BookingActions
+            bookingId={activeBooking.token}
+            currentStatus={activeBooking.status}
+          />
         </div>
       )}
 
@@ -689,4 +703,3 @@ export const FarmerDashboard = () => {
     </div>
   );
 };
-
