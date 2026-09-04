@@ -1,4 +1,5 @@
 import { prisma, supabase, hasDatabaseUrl } from '../config/db.js';
+import { isValidMobile, isValidPersonName, sanitizeMobile, sanitizePersonName } from '../utils/validation.js';
 
 // Helper to normalize UUID vs Token
 const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
@@ -101,8 +102,22 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: 'expectedQty must be greater than 0' });
     }
 
-    const effectiveFarmerName = farmerName || req.user?.name || 'Ramesh Singh (YOU)';
-    const effectiveMobile = mobile || req.user?.phone || '+91 98765 43210';
+    if (farmerName && !isValidPersonName(farmerName)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid farmer name. Must contain only alphabetic characters and spaces (2-60 characters).'
+      });
+    }
+
+    if (mobile && !isValidMobile(mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid mobile number. Must be a valid 10-digit Indian mobile number.'
+      });
+    }
+
+    const effectiveFarmerName = farmerName ? sanitizePersonName(farmerName) : (req.user?.name || 'Ramesh Singh (YOU)');
+    const effectiveMobile = mobile ? sanitizeMobile(mobile) : (req.user?.phone || '9876543210');
     const bookingType = req.body.bookingType || req.body.booking_source || 'ONLINE'; // ONLINE, ASSISTED, WALK_IN
     const initialStatus = req.body.status || (bookingType === 'WALK_IN' ? 'CHECKED_IN' : 'WAITING');
     const slotCapacityLimit = Number(req.body.slotCapacity || 5); // Configurable max 5 trucks per 30-min window

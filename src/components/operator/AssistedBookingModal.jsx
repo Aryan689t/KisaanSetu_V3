@@ -4,6 +4,7 @@ import {
   X, UserPlus, Phone, MapPin, Wheat, Scale, 
   CheckCircle2, Printer, MessageSquare, Ticket, AlertCircle, ShieldCheck
 } from 'lucide-react';
+import { sanitizePersonName, isValidPersonName, sanitizeMobile, isValidMobile, sanitizeAadhaarLast4, isValidAadhaarLast4 } from '../../lib/validation';
 
 export const AssistedBookingModal = ({ onClose }) => {
   const { centres, crops, timeSlots, bookSlot, queueItems } = useDemo();
@@ -30,17 +31,29 @@ export const AssistedBookingModal = ({ onClose }) => {
 
   const handleCreateAssistedBooking = async (e) => {
     e.preventDefault();
-    if (!farmerName.trim()) {
-      setErrorMsg('Please enter farmer name.');
+    setErrorMsg('');
+
+    if (!isValidPersonName(farmerName)) {
+      setErrorMsg('Please enter a valid farmer name (letters and spaces only, 2-60 characters).');
       return;
     }
+
+    if (mobile && !isValidMobile(mobile)) {
+      setErrorMsg('Please enter a valid 10-digit mobile number (starting with 6-9).');
+      return;
+    }
+
+    if (aadhaarLast4 && !isValidAadhaarLast4(aadhaarLast4)) {
+      setErrorMsg('Please enter valid 4 digits of Aadhaar.');
+      return;
+    }
+
     if (!expectedQty || Number(expectedQty) <= 0) {
       setErrorMsg('Please enter a valid crop quantity.');
       return;
     }
 
     setIsSubmitting(true);
-    setErrorMsg('');
 
     try {
       const slotTimeCombined = `Today (Spot Entry) • ${selectedSlot}`;
@@ -107,6 +120,13 @@ export const AssistedBookingModal = ({ onClose }) => {
         {!confirmedToken ? (
           <form onSubmit={handleCreateAssistedBooking} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
             
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-center space-x-2 animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span className="font-semibold">{errorMsg}</span>
+              </div>
+            )}
+
             {/* Quick Context Advisory */}
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-950 flex items-start space-x-2">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -119,12 +139,16 @@ export const AssistedBookingModal = ({ onClose }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-agri-text mb-1 uppercase tracking-wider">
-                  Farmer Full Name *
+                  Farmer Full Name (Letters only) *
                 </label>
                 <input
                   type="text"
+                  maxLength={60}
                   value={farmerName}
-                  onChange={(e) => setFarmerName(e.target.value)}
+                  onChange={(e) => {
+                    setFarmerName(sanitizePersonName(e.target.value));
+                    if (errorMsg) setErrorMsg('');
+                  }}
                   placeholder="e.g. Gurdeep Singh"
                   className="w-full p-2.5 bg-white border border-agri-ivory-muted rounded-xl text-sm font-bold text-agri-text focus:ring-2 focus:ring-agri-green/30 focus:border-agri-green"
                   required
@@ -133,13 +157,18 @@ export const AssistedBookingModal = ({ onClose }) => {
 
               <div>
                 <label className="block text-xs font-bold text-agri-text mb-1 uppercase tracking-wider">
-                  Mobile Number (Optional)
+                  Mobile Number (10 digits, Optional)
                 </label>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  placeholder="+91 98123 45678"
+                  onChange={(e) => {
+                    setMobile(sanitizeMobile(e.target.value));
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  placeholder="9812345678"
                   className="w-full p-2.5 bg-white border border-agri-ivory-muted rounded-xl text-sm font-bold font-mono text-agri-text focus:ring-2 focus:ring-agri-green/30 focus:border-agri-green"
                 />
                 <span className="text-[10px] text-agri-text-muted block mt-0.5">Used for SMS gate token dispatch</span>
@@ -184,10 +213,14 @@ export const AssistedBookingModal = ({ onClose }) => {
                   Aadhaar Last 4
                 </label>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
                   maxLength={4}
                   value={aadhaarLast4}
-                  onChange={(e) => setAadhaarLast4(e.target.value)}
+                  onChange={(e) => {
+                    setAadhaarLast4(sanitizeAadhaarLast4(e.target.value));
+                    if (errorMsg) setErrorMsg('');
+                  }}
                   className="w-full p-2.5 bg-white border border-agri-ivory-muted rounded-xl text-xs font-bold font-mono text-agri-text focus:ring-2 focus:ring-agri-green/30 focus:border-agri-green"
                 />
               </div>

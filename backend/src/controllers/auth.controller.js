@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { prisma, supabase, hasDatabaseUrl } from '../config/db.js';
+import { isValidPersonName, isValidMobile, sanitizePersonName, sanitizeMobile } from '../utils/validation.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'kisansetu-jwt-secret-key-2026';
 
@@ -11,21 +12,21 @@ const demoUsers = [
     email: 'farmer@kisansetu.gov.in',
     full_name: 'Ramesh Singh',
     role: 'farmer',
-    phone: '+91 98765 43210'
+    phone: '9876543210'
   },
   {
     id: 'usr-operator-1',
     email: 'operator@kisansetu.gov.in',
     full_name: 'Rajesh Kumar (Yard Incharge)',
     role: 'operator',
-    phone: '+91 98765 43211'
+    phone: '9812345678'
   },
   {
     id: 'usr-admin-1',
     email: 'admin@kisansetu.gov.in',
     full_name: 'S. K. Sharma (DoCA Admin)',
     role: 'admin',
-    phone: '+91 98765 43212'
+    phone: '9811002233'
   }
 ];
 
@@ -39,6 +40,23 @@ export const register = async (req, res) => {
         message: 'Email and full name are required'
       });
     }
+
+    if (!isValidPersonName(fullName)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid full name. Must contain only letters and spaces (2-60 characters).'
+      });
+    }
+
+    if (phone && !isValidMobile(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid mobile number. Must be a valid 10-digit Indian mobile number.'
+      });
+    }
+
+    const sanitizedFullName = sanitizePersonName(fullName);
+    const sanitizedPhone = phone ? sanitizeMobile(phone) : null;
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 

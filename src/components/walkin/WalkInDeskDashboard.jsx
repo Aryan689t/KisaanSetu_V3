@@ -25,6 +25,7 @@ import {
 import { MetricCard } from '../ui/MetricCard';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LiveQueueTable } from '../operator/LiveQueueTable';
+import { sanitizePersonName, isValidPersonName, sanitizeMobile, isValidMobile, sanitizeAadhaarLast4, isValidAadhaarLast4 } from '../../lib/validation';
 
 // Standard APMC Weighment Counters / Operator Tables
 const OPERATOR_TABLES = [
@@ -124,17 +125,29 @@ export const WalkInDeskDashboard = () => {
 
   const handleCreateWalkInBooking = async (e) => {
     e.preventDefault();
-    if (!farmerName.trim()) {
-      setErrorMsg(isHindi ? 'कृपया किसान का नाम दर्ज करें।' : 'Please enter farmer name.');
+    setErrorMsg('');
+
+    if (!isValidPersonName(farmerName)) {
+      setErrorMsg(isHindi ? 'कृपया केवल अक्षरों में सही किसान का नाम दर्ज करें (2-60 अक्षर)।' : 'Please enter a valid farmer name (letters and spaces only, 2-60 characters).');
       return;
     }
+
+    if (mobile && !isValidMobile(mobile)) {
+      setErrorMsg(isHindi ? 'कृपया वैध 10 अंकों का मोबाइल नंबर दर्ज करें (शुरुआत 6-9 से)।' : 'Please enter a valid 10-digit mobile number (starting with 6-9).');
+      return;
+    }
+
+    if (aadhaarLast4 && !isValidAadhaarLast4(aadhaarLast4)) {
+      setErrorMsg(isHindi ? 'कृपया आधार के अंतिम 4 अंक सही दर्ज करें।' : 'Please enter valid 4 digits of Aadhaar.');
+      return;
+    }
+
     if (!expectedQty || Number(expectedQty) <= 0) {
       setErrorMsg(isHindi ? 'कृपया वैध फसल मात्रा दर्ज करें।' : 'Please enter a valid crop quantity.');
       return;
     }
 
     setIsSubmitting(true);
-    setErrorMsg('');
 
     try {
       const slotTimeCombined = `Today (Spot Entry) • 11:00 AM - 11:30 AM`;
@@ -408,13 +421,17 @@ export const WalkInDeskDashboard = () => {
                 {/* Farmer Name */}
                 <div>
                   <label className="block text-xs font-bold text-agri-text mb-1 uppercase tracking-wider">
-                    {isHindi ? 'किसान का पूरा नाम *' : 'Farmer Full Name *'}
+                    {isHindi ? 'किसान का पूरा नाम (केवल अक्षर) *' : 'Farmer Full Name (Letters only) *'}
                   </label>
                   <input
                     type="text"
                     required
+                    maxLength={60}
                     value={farmerName}
-                    onChange={(e) => setFarmerName(e.target.value)}
+                    onChange={(e) => {
+                      setFarmerName(sanitizePersonName(e.target.value));
+                      if (errorMsg) setErrorMsg('');
+                    }}
                     placeholder="e.g. Gurdeep Singh"
                     className="w-full p-3 bg-agri-ivory/40 border border-agri-ivory-muted rounded-xl text-sm font-bold text-agri-text focus:ring-2 focus:ring-agri-green/30 focus:border-agri-green outline-none"
                   />
@@ -424,13 +441,18 @@ export const WalkInDeskDashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-agri-text mb-1 uppercase tracking-wider">
-                      {isHindi ? 'मोबाइल नंबर (वैकल्पिक)' : 'Mobile (Optional)'}
+                      {isHindi ? 'मोबाइल नंबर (10 अंक, वैकल्पिक)' : 'Mobile (10 digits, Optional)'}
                     </label>
                     <input
-                      type="text"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
                       value={mobile}
-                      onChange={(e) => setMobile(e.target.value)}
-                      placeholder="+91 98123 45678"
+                      onChange={(e) => {
+                        setMobile(sanitizeMobile(e.target.value));
+                        if (errorMsg) setErrorMsg('');
+                      }}
+                      placeholder="9812345678"
                       className="w-full p-2.5 bg-agri-ivory/40 border border-agri-ivory-muted rounded-xl text-xs font-bold font-mono text-agri-text focus:ring-2 focus:ring-agri-green/30 focus:border-agri-green outline-none"
                     />
                     <span className="text-[10px] text-agri-text-muted block mt-0.5">For SMS spot notification</span>
@@ -441,10 +463,14 @@ export const WalkInDeskDashboard = () => {
                       {isHindi ? 'आधार अंतिम 4 अंक' : 'Aadhaar Last 4'}
                     </label>
                     <input
-                      type="text"
+                      type="tel"
+                      inputMode="numeric"
                       maxLength={4}
                       value={aadhaarLast4}
-                      onChange={(e) => setAadhaarLast4(e.target.value)}
+                      onChange={(e) => {
+                        setAadhaarLast4(sanitizeAadhaarLast4(e.target.value));
+                        if (errorMsg) setErrorMsg('');
+                      }}
                       placeholder="4821"
                       className="w-full p-2.5 bg-agri-ivory/40 border border-agri-ivory-muted rounded-xl text-xs font-bold font-mono text-agri-text focus:ring-2 focus:ring-agri-green/30 focus:border-agri-green outline-none"
                     />
