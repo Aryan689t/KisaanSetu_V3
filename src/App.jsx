@@ -6,12 +6,14 @@ import { Footer } from './components/layout/Footer';
 import { LoginGate } from './components/layout/LoginGate';
 import { FarmerAuth } from './components/auth/FarmerAuth';
 import { OperatorAuth } from './components/auth/OperatorAuth';
+import { WalkInDeskAuth } from './components/auth/WalkInDeskAuth';
 import { AdminAuth } from './components/auth/AdminAuth';
 import { FarmerDashboard } from './components/farmer/FarmerDashboard';
 import { CentreDiscovery } from './components/farmer/CentreDiscovery';
 import { LiveQueueTracker } from './components/farmer/LiveQueueTracker';
 import { FarmerHistory } from './components/farmer/FarmerHistory';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
+import { WalkInDeskDashboard } from './components/walkin/WalkInDeskDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 
 const MainContent = () => {
@@ -29,6 +31,8 @@ const MainContent = () => {
       )}
 
       {activeRole === 'operator' && <OperatorDashboard />}
+
+      {activeRole === 'walkin' && <WalkInDeskDashboard />}
 
       {activeRole === 'admin' && <AdminDashboard />}
     </main>
@@ -59,6 +63,9 @@ const AppRoutes = () => {
     }
     if (currentPath.includes('operator-auth')) {
       return <OperatorAuth onBack={() => { window.history.pushState({}, '', '/'); setCurrentPath('/'); }} />;
+    }
+    if (currentPath.includes('walkin-auth') || currentPath.includes('walkin') || currentPath.includes('assisted')) {
+      return <WalkInDeskAuth onBack={() => { window.history.pushState({}, '', '/'); setCurrentPath('/'); }} />;
     }
     if (currentPath.includes('admin-auth')) {
       return <AdminAuth onBack={() => { window.history.pushState({}, '', '/'); setCurrentPath('/'); }} />;

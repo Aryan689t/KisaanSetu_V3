@@ -99,6 +99,7 @@ export const translations = {
     payment: 'Payments',
     farmerRole: 'Farmer View',
     operatorRole: 'Mandi Operator View',
+    walkinRole: 'Walk-In Desk View',
     adminRole: 'DoCA Admin View',
     login: 'Sign In / Account',
     logout: 'Sign Out',
@@ -169,6 +170,7 @@ export const translations = {
     payment: 'भुगतान',
     farmerRole: 'किसान दृश्य',
     operatorRole: 'मंडी ऑपरेटर दृश्य',
+    walkinRole: 'वॉक-इन डेस्क दृश्य',
     adminRole: 'विभाग प्रशासक दृश्य',
     login: 'साइन इन / खाता',
     logout: 'साइन आउट',
@@ -231,12 +233,81 @@ export const translations = {
   }
 };
 
+// Standard Demo Profiles for hackathon and interactive presentation
+export const DEMO_PROFILES = {
+  farmer: {
+    name: 'Ramesh Singh',
+    roleTitle: 'Farmer',
+    email: 'farmer@kisansetu.gov.in',
+    district: 'Sonipat, Haryana',
+    initials: 'RS',
+    mobile: '9876543210',
+    aadhaarLast4: '4092'
+  },
+  operator: {
+    name: 'Rajesh Kumar',
+    roleTitle: 'Procurement Operator',
+    email: 'operator@kisansetu.gov.in',
+    district: 'Sonipat Procurement Yard',
+    initials: 'RK',
+    mobile: '9812345678',
+    aadhaarLast4: '7821'
+  },
+  walkin: {
+    name: 'Suresh Patel',
+    roleTitle: 'Gate Desk Operator',
+    email: 'desk.operator@kisansetu.gov.in',
+    district: 'Sonipat Main Yard • Gate 1 Desk',
+    initials: 'SP',
+    mobile: '9812345678',
+    aadhaarLast4: '5921'
+  },
+  admin: {
+    name: 'S. K. Sharma',
+    roleTitle: 'DoCA Admin',
+    email: 'admin@doca.gov.in',
+    district: 'New Delhi HQ',
+    initials: 'SK',
+    mobile: '9811002233',
+    aadhaarLast4: '1001'
+  }
+};
+
+export const getDemoUserForRole = (role, customEmail = '', customData = {}) => {
+  const profile = DEMO_PROFILES[role] || DEMO_PROFILES.farmer;
+  const fullName = customData.fullName || customData.full_name || (customEmail && !customEmail.includes('@kisansetu.gov.in') ? customEmail.split('@')[0] : profile.name);
+  const email = customEmail || profile.email;
+  const district = customData.district || profile.district;
+  const mobile = customData.mobile || customData.phone || profile.mobile;
+  const aadhaarLast4 = customData.aadhaarLast4 || customData.aadhaar_last4 || profile.aadhaarLast4;
+
+  return {
+    id: customData.id || `usr-${role}-${role === 'farmer' ? 'ramesh' : role === 'operator' ? 'rajesh' : 'patel'}`,
+    email: email,
+    phone: mobile,
+    mobile: mobile,
+    aadhaarLast4: aadhaarLast4,
+    district: district,
+    user_metadata: {
+      full_name: fullName,
+      name: fullName,
+      role: role,
+      roleTitle: profile.roleTitle,
+      district: district,
+      initials: profile.initials,
+      mobile: mobile,
+      aadhaarLast4: aadhaarLast4
+    },
+    created_at: new Date().toISOString()
+  };
+};
+
 export const DemoProvider = ({ children }) => {
   // Navigation & Role State
-  const [activeRole, setActiveRole] = useState(() => {
+  const [activeRole, setActiveRoleState] = useState(() => {
     try {
       const savedRole = localStorage.getItem('kisansetu_role');
-      if (savedRole && ['farmer', 'operator', 'admin'].includes(savedRole)) {
+      if (savedRole && ['farmer', 'operator', 'walkin', 'admin'].includes(savedRole)) {
         return savedRole;
       }
       const savedUser = localStorage.getItem('kisansetu_user');
@@ -278,6 +349,29 @@ export const DemoProvider = ({ children }) => {
       return null;
     }
   });
+
+  // Synchronized Role Switcher (updates activeRole and associated demo identity seamlessly)
+  const setActiveRole = (role) => {
+    if (!role || !['farmer', 'operator', 'walkin', 'admin'].includes(role)) return;
+    setActiveRoleState(role);
+    try {
+      localStorage.setItem('kisansetu_role', role);
+    } catch {}
+
+    // Synchronize active user profile for demo session
+    setUser((prevUser) => {
+      // If real Supabase user session exists with matching role, keep it
+      if (prevUser && !prevUser.id?.startsWith('usr-') && prevUser.user_metadata?.role === role) {
+        return prevUser;
+      }
+      const nextUser = getDemoUserForRole(role);
+      try {
+        localStorage.setItem('kisansetu_user', JSON.stringify(nextUser));
+      } catch {}
+      return nextUser;
+    });
+  };
+
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -291,7 +385,7 @@ export const DemoProvider = ({ children }) => {
         try {
           localStorage.setItem('kisansetu_user', JSON.stringify(session.user));
           if (session.user.user_metadata?.role) {
-            setActiveRole(session.user.user_metadata.role);
+            setActiveRoleState(session.user.user_metadata.role);
             localStorage.setItem('kisansetu_role', session.user.user_metadata.role);
           }
         } catch {}
@@ -895,30 +989,12 @@ export const DemoProvider = ({ children }) => {
 
   // Role Switcher & Farmer Authentication Login/Register handler
   const loginWithRole = (role, email = '', userData = {}) => {
-    setActiveRole(role);
+    setActiveRoleState(role);
     try {
       localStorage.setItem('kisansetu_role', role);
     } catch {}
 
-    const defaultName = role === 'farmer' ? 'Ramesh Singh' : role === 'operator' ? 'Rajesh Kumar (Yard Incharge)' : 'S. K. Sharma (DoCA Admin)';
-    const fullName = userData.fullName || userData.full_name || (email && !email.includes('@kisansetu.gov.in') ? email.split('@')[0] : defaultName);
-
-    const authenticatedUser = {
-      id: userData.id || (userData.fullName ? `usr-${role}-${Date.now()}` : (role === 'farmer' ? 'usr-farmer-ramesh' : `usr-${role}-${Date.now()}`)),
-      email: email || `${role}@kisansetu.gov.in`,
-      phone: userData.mobile || userData.phone || '',
-      mobile: userData.mobile || userData.phone || '',
-      aadhaarLast4: userData.aadhaarLast4 || userData.aadhaar_last4 || '',
-      district: userData.district || 'Sonipat, Haryana',
-      user_metadata: {
-        full_name: fullName,
-        role: role,
-        mobile: userData.mobile || '',
-        aadhaarLast4: userData.aadhaarLast4 || '',
-        district: userData.district || 'Sonipat, Haryana'
-      },
-      created_at: new Date().toISOString()
-    };
+    const authenticatedUser = getDemoUserForRole(role, email, userData);
 
     setUser(authenticatedUser);
     try {
@@ -928,8 +1004,8 @@ export const DemoProvider = ({ children }) => {
     }
     setIsLoginOpen(false);
 
-    const roleName = role === 'farmer' ? 'Farmer' : role === 'operator' ? 'Mandi Operator' : 'DoCA Admin';
-    addNotification('Authentication Successful', `Signed in as ${fullName} (${roleName}).`, 'success', role);
+    const roleName = authenticatedUser.user_metadata?.roleTitle || role;
+    addNotification('Authentication Successful', `Signed in as ${authenticatedUser.user_metadata.full_name} (${roleName}).`, 'success', role);
   };
 
   // Logout

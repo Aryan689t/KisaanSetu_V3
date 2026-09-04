@@ -4,7 +4,7 @@ import { UserCheck, PhoneCall, Scale, CheckCircle2, UserX, AlertCircle } from 'l
 import { StatusBadge } from '../ui/StatusBadge';
 import { ActiveProcurementModal } from './ActiveProcurementModal';
 
-export const LiveQueueTable = () => {
+export const LiveQueueTable = ({ readOnly = false }) => {
   const { queueItems, checkInFarmer, callNextFarmer, markFarmerNoShow } = useDemo();
   const [selectedTokenForInspection, setSelectedTokenForInspection] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
@@ -210,69 +210,76 @@ export const LiveQueueTable = () => {
                   <p>Station: <span className="font-mono text-agri-green font-bold">{item.counter || 'Counter 2'}</span></p>
                 </div>
 
-                {/* Mobile Actions */}
-                <div className="mt-3 pt-2 border-t border-agri-ivory-muted space-y-2">
-                  {item.status === 'WAITING' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => checkInFarmer(item.token)}
-                        className="bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm"
-                      >
-                        <UserCheck className="w-4 h-4" />
-                        <span>Check-In</span>
-                      </button>
-                      <button
-                        onClick={() => markFarmerNoShow(item.token)}
-                        className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
-                      >
-                        <UserX className="w-3.5 h-3.5 text-rose-500" />
-                        <span>No-Show</span>
-                      </button>
-                    </div>
-                  )}
+                {/* Mobile Actions / Read-Only View */}
+                {readOnly ? (
+                  <div className="mt-2.5 pt-2 border-t border-agri-ivory-muted flex items-center justify-between text-[11px] text-agri-text-muted font-mono">
+                    <span>Directed Station:</span>
+                    <strong className="text-agri-green">{item.counter || 'Operator Table 2'}</strong>
+                  </div>
+                ) : (
+                  <div className="mt-3 pt-2 border-t border-agri-ivory-muted space-y-2">
+                    {item.status === 'WAITING' && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => checkInFarmer(item.token)}
+                          className="bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm"
+                        >
+                          <UserCheck className="w-4 h-4" />
+                          <span>Check-In</span>
+                        </button>
+                        <button
+                          onClick={() => markFarmerNoShow(item.token)}
+                          className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                        >
+                          <UserX className="w-3.5 h-3.5 text-rose-500" />
+                          <span>No-Show</span>
+                        </button>
+                      </div>
+                    )}
 
-                  {item.status === 'CHECKED_IN' && (
-                    <div className="grid grid-cols-2 gap-2">
+                    {item.status === 'CHECKED_IN' && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => callNextFarmer(item.token, item.counter || 'Counter 2')}
+                          className="bg-agri-gold text-agri-green-dark font-extrabold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm animate-pulse"
+                        >
+                          <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
+                          <span>Call ({item.counter || 'Counter 2'})</span>
+                        </button>
+                        <button
+                          onClick={() => markFarmerNoShow(item.token)}
+                          className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                        >
+                          <UserX className="w-3.5 h-3.5 text-rose-500" />
+                          <span>No-Show</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {item.status === 'PROCESSING' && (
                       <button
-                        onClick={() => callNextFarmer(item.token, item.counter || 'Counter 2')}
-                        className="bg-agri-gold text-agri-green-dark font-extrabold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm animate-pulse"
+                        onClick={() => setSelectedTokenForInspection(item)}
+                        className="w-full bg-agri-green text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-sm"
                       >
-                        <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
-                        <span>Call ({item.counter || 'Counter 2'})</span>
+                        <Scale className="w-4 h-4 text-agri-gold" />
+                        <span>Enter Quality & Weighment</span>
                       </button>
-                      <button
-                        onClick={() => markFarmerNoShow(item.token)}
-                        className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
-                      >
-                        <UserX className="w-3.5 h-3.5 text-rose-500" />
-                        <span>No-Show</span>
-                      </button>
-                    </div>
-                  )}
+                    )}
 
-                  {item.status === 'PROCESSING' && (
-                    <button
-                      onClick={() => setSelectedTokenForInspection(item)}
-                      className="w-full bg-agri-green text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-sm"
-                    >
-                      <Scale className="w-4 h-4 text-agri-gold" />
-                      <span>Enter Quality & Weighment</span>
-                    </button>
-                  )}
+                    {item.status === 'COMPLETED' && (
+                      <span className="w-full text-emerald-800 font-bold text-xs flex items-center justify-center space-x-1 bg-emerald-50 py-2 rounded-xl border border-emerald-200">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Procured ({item.actualQty || 38.5} Qtl)</span>
+                      </span>
+                    )}
 
-                  {item.status === 'COMPLETED' && (
-                    <span className="w-full text-emerald-800 font-bold text-xs flex items-center justify-center space-x-1 bg-emerald-50 py-2 rounded-xl border border-emerald-200">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Procured ({item.actualQty || 38.5} Qtl)</span>
-                    </span>
-                  )}
-
-                  {isNoShow && (
-                    <span className="w-full text-gray-500 font-medium text-xs flex items-center justify-center space-x-1 bg-gray-100 py-2 rounded-xl">
-                      <span>Missed Slot / Capacity Released</span>
-                    </span>
-                  )}
-                </div>
+                    {isNoShow && (
+                      <span className="w-full text-gray-500 font-medium text-xs flex items-center justify-center space-x-1 bg-gray-100 py-2 rounded-xl">
+                        <span>Missed Slot / Capacity Released</span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -289,7 +296,9 @@ export const LiveQueueTable = () => {
                 <th className="py-3.5 px-4">Slot Window</th>
                 <th className="py-3.5 px-4">Counter</th>
                 <th className="py-3.5 px-4">Current Status</th>
-                <th className="py-3.5 px-4 text-right">Operational Action</th>
+                <th className="py-3.5 px-4 text-right">
+                  {readOnly ? 'Queue Status' : 'Operational Action'}
+                </th>
               </tr>
             </thead>
 
@@ -372,79 +381,91 @@ export const LiveQueueTable = () => {
                       <StatusBadge status={item.status} type="queue" />
                     </td>
 
-                    {/* Operational Actions */}
+                    {/* Operational Actions / Read-Only Display */}
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        
-                        {/* Step 1: Gate Check-In (For WAITING) */}
-                        {item.status === 'WAITING' && (
-                          <>
-                            <button
-                              onClick={() => checkInFarmer(item.token)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] flex items-center space-x-1.5 transition-colors shadow-sm touch-target"
-                            >
-                              <UserCheck className="w-3.5 h-3.5" />
-                              <span>Gate Check-In</span>
-                            </button>
-                            <button
-                              onClick={() => markFarmerNoShow(item.token)}
-                              className="text-gray-500 hover:text-rose-700 bg-white hover:bg-rose-50 border border-gray-200 px-2 py-1.5 rounded-lg text-[11px] font-medium flex items-center space-x-1"
-                              title="Mark Farmer No-Show to release queue capacity"
-                            >
-                              <UserX className="w-3 h-3 text-rose-500" />
-                              <span>No-Show</span>
-                            </button>
-                          </>
-                        )}
-
-                        {/* Step 2: Call to Counter (For CHECKED_IN) */}
-                        {item.status === 'CHECKED_IN' && (
-                          <>
-                            <button
-                              onClick={() => callNextFarmer(item.token, item.counter || 'Counter 2')}
-                              className="bg-agri-gold text-agri-green-dark hover:bg-agri-gold-dark font-extrabold px-3 py-1.5 rounded-lg text-[11px] flex items-center space-x-1.5 transition-all shadow-sm animate-pulse touch-target"
-                            >
-                              <PhoneCall className="w-3.5 h-3.5 fill-agri-green-dark" />
-                              <span>Call ({item.counter || 'Counter 2'})</span>
-                            </button>
-                            <button
-                              onClick={() => markFarmerNoShow(item.token)}
-                              className="text-gray-500 hover:text-rose-700 bg-white hover:bg-rose-50 border border-gray-200 px-2 py-1.5 rounded-lg text-[11px] font-medium flex items-center space-x-1"
-                              title="Mark Farmer No-Show"
-                            >
-                              <UserX className="w-3 h-3 text-rose-500" />
-                              <span>No-Show</span>
-                            </button>
-                          </>
-                        )}
-
-                        {/* Step 3: Enter Quality & Weighment (For PROCESSING) */}
-                        {item.status === 'PROCESSING' && (
-                          <button
-                            onClick={() => setSelectedTokenForInspection(item)}
-                            className="bg-agri-green text-white hover:bg-agri-green-dark font-extrabold px-3 py-1.5 rounded-lg text-[11px] flex items-center space-x-1.5 transition-all shadow-sm touch-target"
-                          >
-                            <Scale className="w-3.5 h-3.5 text-agri-gold" />
-                            <span>Log Weighment</span>
-                          </button>
-                        )}
-
-                        {/* Step 4: Procurement Completed (For COMPLETED) */}
-                        {item.status === 'COMPLETED' && (
-                          <span className="text-emerald-700 font-bold text-[11px] inline-flex items-center space-x-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Procured ({item.actualQty || 38.5} Qtl)</span>
+                      {readOnly ? (
+                        <div className="flex items-center justify-end">
+                          <span className="text-[11px] font-mono font-medium text-agri-text-muted bg-agri-ivory/80 px-2.5 py-1 rounded border border-agri-ivory-muted">
+                            {item.status === 'COMPLETED'
+                              ? '✓ Procured'
+                              : item.status === 'PROCESSING'
+                              ? '● At Scale'
+                              : `Direct to ${item.counter || 'Table'}`}
                           </span>
-                        )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end space-x-2">
+                          
+                          {/* Step 1: Gate Check-In (For WAITING) */}
+                          {item.status === 'WAITING' && (
+                            <>
+                              <button
+                                onClick={() => checkInFarmer(item.token)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] flex items-center space-x-1.5 transition-colors shadow-sm touch-target"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                                <span>Gate Check-In</span>
+                              </button>
+                              <button
+                                onClick={() => markFarmerNoShow(item.token)}
+                                className="text-gray-500 hover:text-rose-700 bg-white hover:bg-rose-50 border border-gray-200 px-2 py-1.5 rounded-lg text-[11px] font-medium flex items-center space-x-1"
+                                title="Mark Farmer No-Show to release queue capacity"
+                              >
+                                <UserX className="w-3 h-3 text-rose-500" />
+                                <span>No-Show</span>
+                              </button>
+                            </>
+                          )}
 
-                        {/* Step 5: No-Show Record */}
-                        {isNoShow && (
-                          <span className="text-gray-500 font-mono text-[11px] bg-gray-100 px-2 py-1 rounded">
-                            No-Show • Released
-                          </span>
-                        )}
+                          {/* Step 2: Call to Counter (For CHECKED_IN) */}
+                          {item.status === 'CHECKED_IN' && (
+                            <>
+                              <button
+                                onClick={() => callNextFarmer(item.token, item.counter || 'Counter 2')}
+                                className="bg-agri-gold text-agri-green-dark hover:bg-agri-gold-dark font-extrabold px-3 py-1.5 rounded-lg text-[11px] flex items-center space-x-1.5 transition-all shadow-sm animate-pulse touch-target"
+                              >
+                                <PhoneCall className="w-3.5 h-3.5 fill-agri-green-dark" />
+                                <span>Call ({item.counter || 'Counter 2'})</span>
+                              </button>
+                              <button
+                                onClick={() => markFarmerNoShow(item.token)}
+                                className="text-gray-500 hover:text-rose-700 bg-white hover:bg-rose-50 border border-gray-200 px-2 py-1.5 rounded-lg text-[11px] font-medium flex items-center space-x-1"
+                                title="Mark Farmer No-Show"
+                              >
+                                <UserX className="w-3 h-3 text-rose-500" />
+                                <span>No-Show</span>
+                              </button>
+                            </>
+                          )}
 
-                      </div>
+                          {/* Step 3: Enter Quality & Weighment (For PROCESSING) */}
+                          {item.status === 'PROCESSING' && (
+                            <button
+                              onClick={() => setSelectedTokenForInspection(item)}
+                              className="bg-agri-green text-white hover:bg-agri-green-dark font-extrabold px-3 py-1.5 rounded-lg text-[11px] flex items-center space-x-1.5 transition-all shadow-sm touch-target"
+                            >
+                              <Scale className="w-3.5 h-3.5 text-agri-gold" />
+                              <span>Log Weighment</span>
+                            </button>
+                          )}
+
+                          {/* Step 4: Procurement Completed (For COMPLETED) */}
+                          {item.status === 'COMPLETED' && (
+                            <span className="text-emerald-700 font-bold text-[11px] inline-flex items-center space-x-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Procured ({item.actualQty || 38.5} Qtl)</span>
+                            </span>
+                          )}
+
+                          {/* Step 5: No-Show Record */}
+                          {isNoShow && (
+                            <span className="text-gray-500 font-mono text-[11px] bg-gray-100 px-2 py-1 rounded">
+                              No-Show • Released
+                            </span>
+                          )}
+
+                        </div>
+                      )}
                     </td>
 
                   </tr>

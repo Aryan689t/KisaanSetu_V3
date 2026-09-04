@@ -139,7 +139,7 @@ export const OperatorAuth = ({ onBack }) => {
               onClick={() => loginWithRole('operator')}
               className="text-xs font-bold text-blue-800 hover:underline inline-flex items-center space-x-1"
             >
-              <span>⚡ Quick Demo Operator Login (Sonipat Gate #2)</span>
+              <span>⚡ Quick Demo Operator Login (Rajesh Kumar, Yard Station)</span>
             </button>
           </div>
 

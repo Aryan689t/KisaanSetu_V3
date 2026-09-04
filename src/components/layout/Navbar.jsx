@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useDemo } from '../../context/DemoContext';
-import { Bell, Wheat, LayoutDashboard, MapPin, Clock, ReceiptText, Settings, User } from 'lucide-react';
+import { useDemo, DEMO_PROFILES } from '../../context/DemoContext';
+import { Bell, Wheat, LayoutDashboard, MapPin, Clock, ReceiptText, Settings, UserCheck, Wrench, UserPlus } from 'lucide-react';
 import { NotificationDrawer } from '../ui/NotificationDrawer';
 import { FarmerMobileNav } from './FarmerMobileNav';
 import { OnboardingModal } from '../farmer/OnboardingModal';
@@ -22,6 +22,26 @@ export const Navbar = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const unreadCount = notifications.filter(n => !n.read && (n.forRole === activeRole || n.forRole === 'all')).length;
+
+  // Dynamically resolve active demo identity for current activeRole
+  const defaultProfile = DEMO_PROFILES?.[activeRole] || DEMO_PROFILES.farmer;
+  const isMatchingUserSession = user && user.user_metadata?.role === activeRole;
+
+  const displayName = isMatchingUserSession 
+    ? (user.user_metadata?.full_name || defaultProfile.name)
+    : defaultProfile.name;
+
+  const displayEmail = isMatchingUserSession 
+    ? (user.email || defaultProfile.email)
+    : defaultProfile.email;
+
+  const displayRoleTitle = isMatchingUserSession 
+    ? (user.user_metadata?.roleTitle || defaultProfile.roleTitle)
+    : defaultProfile.roleTitle;
+
+  const displayInitials = isMatchingUserSession 
+    ? (user.user_metadata?.initials || defaultProfile.initials)
+    : defaultProfile.initials;
 
   return (
     <>
@@ -58,7 +78,7 @@ export const Navbar = () => {
               </div>
             </div>
 
-            {/* Desktop Farmer Navigation Tabs */}
+            {/* Desktop Navigation / Context Bar based on activeRole */}
             {activeRole === 'farmer' && (
               <nav className="hidden md:flex items-center space-x-1 sm:space-x-1.5 bg-agri-green-dark/50 p-1.5 rounded-xl border border-agri-green-light/20 shrink-0">
                 <button
@@ -109,6 +129,20 @@ export const Navbar = () => {
                   <span className="whitespace-nowrap leading-none">{t('payment', 'Payments')}</span>
                 </button>
               </nav>
+            )}
+
+            {activeRole === 'operator' && (
+              <div className="hidden md:flex items-center space-x-2 bg-agri-green-dark/60 px-3.5 py-1.5 rounded-xl border border-blue-400/30 text-xs">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                <span className="font-bold text-white">Sonipat Main Yard • Operator Station</span>
+              </div>
+            )}
+
+            {activeRole === 'walkin' && (
+              <div className="hidden md:flex items-center space-x-2 bg-agri-green-dark/60 px-3.5 py-1.5 rounded-xl border border-amber-400/30 text-xs">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span className="font-bold text-white">APMC Mandi Gate 1 • Walk-In & Spot Token Desk</span>
+              </div>
             )}
 
             {/* Language & Accessibility Control Bar */}
@@ -162,18 +196,23 @@ export const Navbar = () => {
               {/* Account / Login Trigger */}
               <button
                 onClick={() => setIsLoginOpen(true)}
-                className="pl-2 sm:pl-2.5 border-l border-agri-green-light/30 flex items-center space-x-2 text-left hover:opacity-90 transition-opacity"
+                className="pl-2 sm:pl-2.5 border-l border-agri-green-light/30 flex items-center space-x-2 text-left hover:opacity-90 transition-opacity cursor-pointer"
                 title="Account Settings & Authentication"
               >
                 <div className="w-8 h-8 rounded-full bg-agri-gold/20 text-agri-gold flex items-center justify-center font-bold text-xs border border-agri-gold/40 shrink-0">
-                  {user ? (user.user_metadata?.full_name?.[0] || 'U') : (activeRole === 'farmer' ? 'RS' : activeRole === 'operator' ? 'OP' : 'AD')}
+                  {displayInitials}
                 </div>
                 <div className="hidden lg:block">
-                  <p className="text-xs font-bold leading-tight text-white">
-                    {user?.user_metadata?.full_name || (activeRole === 'farmer' ? 'Ramesh Singh' : activeRole === 'operator' ? 'Operator #4' : 'DoCA Admin')}
-                  </p>
-                  <p className="text-[10px] text-agri-ivory/70 capitalize leading-tight font-sans">
-                    {user ? user.email : (activeRole === 'farmer' ? 'Sonipat, Haryana' : activeRole === 'operator' ? 'Sonipat Yard' : 'New Delhi HQ')}
+                  <div className="flex items-center space-x-1.5">
+                    <p className="text-xs font-bold leading-tight text-white">
+                      {displayName}
+                    </p>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-white/15 text-agri-gold border border-agri-gold/30">
+                      {displayRoleTitle}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-agri-ivory/70 leading-tight font-sans">
+                    {displayEmail}
                   </p>
                 </div>
               </button>
