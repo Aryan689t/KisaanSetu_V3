@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { UserCheck, ShieldCheck, Cpu, RotateCcw, Play, AlertTriangle, CheckCircle2, Clapperboard, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { UserCheck, ShieldCheck, Cpu, UserPlus, RotateCcw, Play, AlertTriangle, CheckCircle2, Clapperboard, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 
 export const SubtleDemoBar = () => {
   const {
@@ -25,7 +25,7 @@ export const SubtleDemoBar = () => {
         <div className="flex md:hidden items-center justify-between w-full">
           <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-[11px] font-mono">
             <Clapperboard className="w-3.5 h-3.5" />
-            <span className="capitalize">{activeRole} View</span>
+            <span className="capitalize">{activeRole === 'walkin' ? 'Walk-In Desk' : `${activeRole} View`}</span>
           </div>
 
           <button
@@ -72,15 +72,15 @@ export const SubtleDemoBar = () => {
               </button>
 
               <button
-                onClick={() => { setActiveRole('admin'); setIsMobileOpen(false); }}
+                onClick={() => { setActiveRole('walkin'); setIsMobileOpen(false); }}
                 className={`flex-1 md:flex-none px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[36px] ${
-                  activeRole === 'admin'
+                  activeRole === 'walkin'
                     ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
                     : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
                 }`}
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin</span>
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Walk-In Desk</span>
               </button>
             </div>
           </div>

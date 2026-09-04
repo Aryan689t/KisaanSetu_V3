@@ -86,13 +86,42 @@ export const callNext = async (req, res) => {
   }
 };
 
+const PADDY_QUALITY_SPECIFICATIONS = [
+  { id: 'moisturePercent', name: 'Moisture Content', maxLimit: 17.0 },
+  { id: 'foreignMatter', name: 'Foreign Matter', maxLimit: 2.0 },
+  { id: 'damagedGrains', name: 'Damaged & Discoloured Grains', maxLimit: 5.0 },
+  { id: 'chalkyGrains', name: 'Chalky Grains', maxLimit: 5.0 },
+  { id: 'admixture', name: 'Admixture of Lower Varieties', maxLimit: 10.0 },
+  { id: 'immatureGrains', name: 'Immature & Shrivelled Grains', maxLimit: 3.0 }
+];
+
+export const validatePaddyQuality = (readings = {}) => {
+  const violations = [];
+  for (const spec of PADDY_QUALITY_SPECIFICATIONS) {
+    if (readings[spec.id] != null && readings[spec.id] !== '') {
+      const val = Number(readings[spec.id]);
+      if (isNaN(val) || val < 0) {
+        violations.push(`${spec.name} must be a valid non-negative number`);
+      } else if (val > spec.maxLimit) {
+        violations.push(`${spec.name} (${val}%) exceeds maximum permissible limit of ${spec.maxLimit}%`);
+      }
+    }
+  }
+  return violations;
+};
+
 export const completeProcurement = async (req, res) => {
   try {
     const {
       token,
       bookingId,
       actualQty,
-      moisturePercent = 12.4,
+      moisturePercent = 14.2,
+      foreignMatter,
+      damagedGrains,
+      chalkyGrains,
+      admixture,
+      immatureGrains,
       qualityGrade = 'Grade A',
       ratePerQuintal = 2200
     } = req.body;
@@ -104,6 +133,25 @@ export const completeProcurement = async (req, res) => {
 
     if (!actualQty || Number(actualQty) <= 0) {
       return res.status(400).json({ success: false, message: 'actualQty must be greater than 0' });
+    }
+
+    // Server-side quality specifications enforcement
+    const qualityViolations = validatePaddyQuality({
+      moisturePercent,
+      foreignMatter,
+      damagedGrains,
+      chalkyGrains,
+      admixture,
+      immatureGrains
+    });
+
+    if (qualityViolations.length > 0) {
+      return res.status(422).json({
+        success: false,
+        code: 'QUALITY_INSPECTION_FAILED',
+        message: `Crop batch failed official MSP quality specifications: ${qualityViolations.join('; ')}`,
+        violations: qualityViolations
+      });
     }
 
     const qty = Number(actualQty);

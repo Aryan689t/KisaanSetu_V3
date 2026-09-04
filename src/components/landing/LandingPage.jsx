@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ShieldCheck,
   UserCheck,
+  UserPlus,
   Wrench,
   ChevronRight,
   ChevronDown,
@@ -205,7 +206,7 @@ export const LandingPage = ({ onSelectPortal }) => {
                         setLoginDropdownOpen(false);
                         onSelectPortal('farmer-auth');
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#123621] transition-all flex items-center space-x-3 group border border-transparent hover:border-agri-gold/30"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#123621] transition-all flex items-center space-x-3 group border border-transparent hover:border-agri-gold/30 cursor-pointer"
                     >
                       <div className="w-8 h-8 rounded-lg bg-emerald-900/80 text-agri-gold border border-agri-gold/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <HalPloughIcon className="w-4 h-4" />
@@ -226,7 +227,7 @@ export const LandingPage = ({ onSelectPortal }) => {
                         setLoginDropdownOpen(false);
                         onSelectPortal('operator-auth');
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#123621] transition-all flex items-center space-x-3 group border border-transparent hover:border-blue-400/30"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#123621] transition-all flex items-center space-x-3 group border border-transparent hover:border-blue-400/30 cursor-pointer"
                     >
                       <div className="w-8 h-8 rounded-lg bg-blue-950/80 text-blue-300 border border-blue-400/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <OperatorTerminalIcon className="w-4 h-4" />
@@ -240,6 +241,27 @@ export const LandingPage = ({ onSelectPortal }) => {
                         </p>
                       </div>
                     </button>
+
+                    {/* Walk-In Desk Option */}
+                    <button
+                      onClick={() => {
+                        setLoginDropdownOpen(false);
+                        onSelectPortal('walkin-auth');
+                      }}
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#123621] transition-all flex items-center space-x-3 group border border-transparent hover:border-amber-400/30 cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-amber-950/80 text-amber-300 border border-amber-400/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <UserCheck className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">
+                          {isHindi ? 'वॉक-इन सहायता डेस्क' : 'Walk-In Desk Login'}
+                        </p>
+                        <p className="text-[10px] text-agri-ivory/70 truncate">
+                          {isHindi ? 'बिना स्मार्टफोन किसानों का टोकन व काउंटर आवंटन' : 'Spot registration & least-congested counter dispatch'}
+                        </p>
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -247,7 +269,7 @@ export const LandingPage = ({ onSelectPortal }) => {
               {/* Get Started CTA */}
               <button
                 onClick={() => onSelectPortal('farmer-auth')}
-                className="px-4 py-2 rounded-xl text-xs font-extrabold bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark transition-all shadow-md flex items-center space-x-1.5"
+                className="px-4 py-2 rounded-xl text-xs font-extrabold bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
               >
                 <span>{isHindi ? 'शुरू करें' : 'Get Started'}</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -306,26 +328,36 @@ export const LandingPage = ({ onSelectPortal }) => {
               </button>
             </div>
 
-            <div className="pt-2 border-t border-agri-green-light/20 grid grid-cols-2 gap-2">
+            <div className="pt-2 border-t border-agri-green-light/20 grid grid-cols-3 gap-1.5">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onSelectPortal('farmer-auth');
                 }}
-                className="w-full py-2.5 px-2 rounded-xl text-xs font-bold bg-white text-agri-green-dark text-center flex items-center justify-center space-x-1.5"
+                className="w-full py-2.5 px-1 rounded-xl text-[11px] font-bold bg-white text-agri-green-dark text-center flex flex-col items-center justify-center space-y-1"
               >
                 <HalPloughIcon className="w-4 h-4 text-agri-green-dark" />
-                <span>{isHindi ? 'किसान लॉगिन' : 'Farmer Login'}</span>
+                <span>{isHindi ? 'किसान' : 'Farmer'}</span>
               </button>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onSelectPortal('operator-auth');
                 }}
-                className="w-full py-2.5 px-2 rounded-xl text-xs font-bold bg-[#123621] border border-blue-400/40 text-blue-200 text-center flex items-center justify-center space-x-1.5"
+                className="w-full py-2.5 px-1 rounded-xl text-[11px] font-bold bg-[#123621] border border-blue-400/40 text-blue-200 text-center flex flex-col items-center justify-center space-y-1"
               >
                 <OperatorTerminalIcon className="w-4 h-4 text-blue-300" />
-                <span>{isHindi ? 'ऑपरेटर लॉगिन' : 'Operator Login'}</span>
+                <span>{isHindi ? 'ऑपरेटर' : 'Operator'}</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onSelectPortal('walkin-auth');
+                }}
+                className="w-full py-2.5 px-1 rounded-xl text-[11px] font-bold bg-[#123621] border border-amber-400/40 text-amber-200 text-center flex flex-col items-center justify-center space-y-1"
+              >
+                <UserCheck className="w-4 h-4 text-amber-300" />
+                <span>{isHindi ? 'वॉक-इन' : 'Walk-In'}</span>
               </button>
             </div>
           </div>
@@ -375,26 +407,26 @@ export const LandingPage = ({ onSelectPortal }) => {
                   : 'Book your mandi visit, get a digital token, track your queue position from home, and receive your MSP payout directly in your bank account.'}
               </p>
 
-              {/* Two Prominent Horizontal Login Cards: Farmer & Mandi Operator */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 max-w-2xl mx-auto lg:mx-0">
+              {/* Three Prominent Role Access Cards: Farmer, Mandi Operator, & Walk-In Desk */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 max-w-3xl mx-auto lg:mx-0">
                 
                 {/* Farmer Login Card */}
                 <button
                   onClick={() => onSelectPortal('farmer-auth')}
-                  className="p-4 sm:p-5 rounded-2xl bg-[#0e2c1a]/95 hover:bg-[#143d24] border-2 border-agri-gold/40 hover:border-agri-gold text-left transition-all shadow-xl backdrop-blur-md flex items-center space-x-3.5 group touch-target transform hover:-translate-y-0.5 cursor-pointer"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-[#0e2c1a]/95 hover:bg-[#143d24] border-2 border-agri-gold/40 hover:border-agri-gold text-left transition-all shadow-xl backdrop-blur-md flex flex-col justify-between group touch-target transform hover:-translate-y-0.5 cursor-pointer min-h-[110px]"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-emerald-950/90 text-agri-gold border border-agri-gold/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-inner">
-                    <HalPloughIcon className="w-6 h-6" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-heading text-sm sm:text-base font-extrabold text-white group-hover:text-agri-gold transition-colors">
-                        {isHindi ? 'किसान लॉगिन' : 'Farmer Login'}
-                      </span>
-                      <ArrowRight className="w-4 h-4 text-agri-gold opacity-75 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-950/90 text-agri-gold border border-agri-gold/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+                      <HalPloughIcon className="w-5 h-5" />
                     </div>
-                    <p className="text-xs text-agri-ivory/80 truncate mt-0.5 font-normal">
-                      {isHindi ? 'स्लॉट बुक करें व टोकन ट्रैक करें' : 'Book slots & track your token'}
+                    <ArrowRight className="w-4 h-4 text-agri-gold opacity-75 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <div>
+                    <span className="font-heading text-xs sm:text-sm font-extrabold text-white group-hover:text-agri-gold transition-colors block">
+                      {isHindi ? 'किसान लॉगिन' : 'Farmer Login'}
+                    </span>
+                    <p className="text-[11px] text-agri-ivory/80 truncate mt-0.5 font-normal">
+                      {isHindi ? 'स्लॉट व टोकन ट्रैक' : 'Book slot & token'}
                     </p>
                   </div>
                 </button>
@@ -402,20 +434,41 @@ export const LandingPage = ({ onSelectPortal }) => {
                 {/* Mandi Operator Login Card */}
                 <button
                   onClick={() => onSelectPortal('operator-auth')}
-                  className="p-4 sm:p-5 rounded-2xl bg-[#0e2c1a]/95 hover:bg-[#143d24] border-2 border-blue-400/40 hover:border-blue-400 text-left transition-all shadow-xl backdrop-blur-md flex items-center space-x-3.5 group touch-target transform hover:-translate-y-0.5 cursor-pointer"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-[#0e2c1a]/95 hover:bg-[#143d24] border-2 border-blue-400/40 hover:border-blue-400 text-left transition-all shadow-xl backdrop-blur-md flex flex-col justify-between group touch-target transform hover:-translate-y-0.5 cursor-pointer min-h-[110px]"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-blue-950/90 text-blue-300 border border-blue-400/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-inner">
-                    <OperatorTerminalIcon className="w-6 h-6" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-heading text-sm sm:text-base font-extrabold text-white group-hover:text-blue-300 transition-colors">
-                        {isHindi ? 'ऑपरेटर लॉगिन' : 'Operator Login'}
-                      </span>
-                      <ArrowRight className="w-4 h-4 text-blue-300 opacity-75 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-blue-950/90 text-blue-300 border border-blue-400/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+                      <OperatorTerminalIcon className="w-5 h-5" />
                     </div>
-                    <p className="text-xs text-agri-ivory/80 truncate mt-0.5 font-normal">
-                      {isHindi ? 'कतार व खरीद प्रबंधन' : 'Manage queues & procurement'}
+                    <ArrowRight className="w-4 h-4 text-blue-300 opacity-75 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <div>
+                    <span className="font-heading text-xs sm:text-sm font-extrabold text-white group-hover:text-blue-300 transition-colors block">
+                      {isHindi ? 'ऑपरेटर लॉगिन' : 'Operator Login'}
+                    </span>
+                    <p className="text-[11px] text-agri-ivory/80 truncate mt-0.5 font-normal">
+                      {isHindi ? 'कतार व तौल डेस्क' : 'Manage queues & scales'}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Walk-In Desk Card */}
+                <button
+                  onClick={() => onSelectPortal('walkin-auth')}
+                  className="p-3.5 sm:p-4 rounded-2xl bg-[#0e2c1a]/95 hover:bg-[#143d24] border-2 border-amber-400/40 hover:border-amber-400 text-left transition-all shadow-xl backdrop-blur-md flex flex-col justify-between group touch-target transform hover:-translate-y-0.5 cursor-pointer min-h-[110px]"
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-amber-950/90 text-amber-300 border border-amber-400/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+                      <UserCheck className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-amber-300 opacity-75 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <div>
+                    <span className="font-heading text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-300 transition-colors block">
+                      {isHindi ? 'वॉक-इन डेस्क' : 'Walk-In Desk'}
+                    </span>
+                    <p className="text-[11px] text-agri-ivory/80 truncate mt-0.5 font-normal">
+                      {isHindi ? 'गेट पंजीकरण व काउंटर' : 'Gate token & dispatch'}
                     </p>
                   </div>
                 </button>
@@ -786,6 +839,35 @@ export const LandingPage = ({ onSelectPortal }) => {
               </p>
             </div>
 
+          </div>
+
+          {/* Inclusivity & Walk-In Assisted Integration Story Banner */}
+          <div className="bg-[#FAF7EE] rounded-3xl p-5 sm:p-6 border-2 border-agri-gold/50 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+              <div className="space-y-1">
+                <span className="text-[10px] font-extrabold uppercase bg-agri-gold/20 text-agri-green-dark px-2.5 py-0.5 rounded-full border border-agri-gold/40 font-mono inline-block">
+                  {isHindi ? '🌾 सभी किसानों के लिए समान अवसर' : '🌾 Inclusive Digital Governance'}
+                </span>
+                <h3 className="font-heading font-bold text-sm sm:text-base text-agri-text">
+                  {isHindi
+                    ? 'स्मार्टफोन नहीं है? कोई बात नहीं। वॉक-इन सहायता डेस्क सभी के लिए उपलब्ध है।'
+                    : 'No smartphone? No farmer is left behind.'}
+                </h3>
+                <p className="text-xs text-agri-text-muted max-w-2xl leading-relaxed">
+                  {isHindi
+                    ? 'ऑनलाइन किसान और बिना फोन वाले किसान — दोनों वॉक-इन डेस्क के माध्यम से एक ही साझा कतार में आते हैं, पारदर्शी तौल कराते हैं और सीधा बैंक भुगतान पाते हैं।'
+                    : 'Whether booking in advance online or getting a spot token at the Mandi Gate Assisted Desk, all farmers enter the exact same database queue and enjoy equal transparent procurement.'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => onSelectPortal('walkin-auth')}
+                className="px-5 py-2.5 rounded-xl bg-agri-green hover:bg-agri-green-dark text-white font-extrabold text-xs transition-all shadow-sm shrink-0 cursor-pointer flex items-center space-x-1.5"
+              >
+                <span>{isHindi ? 'वॉक-इन डेस्क देखें' : 'View Walk-In Desk'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
         </div>
@@ -1637,32 +1719,32 @@ export const LandingPage = ({ onSelectPortal }) => {
               </button>
             </div>
 
-            {/* 3. ADMIN PORTAL */}
+            {/* 3. WALK-IN / ASSISTED DESK PORTAL */}
             <div className="bg-white rounded-3xl p-6 border-2 border-amber-500/40 shadow-lg hover:shadow-xl hover:border-amber-600 transition-all flex flex-col justify-between space-y-5 group">
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform">
-                  <ShieldCheck className="w-6 h-6 text-amber-700" />
+                  <UserPlus className="w-6 h-6 text-amber-700" />
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase bg-amber-50 text-amber-900 px-2.5 py-0.5 rounded border border-amber-200 font-mono">
-                    /admin-auth
+                    /walkin-auth
                   </span>
                   <h3 className="font-heading text-lg font-bold text-agri-text mt-1.5">
-                    {isHindi ? 'विभाग एडमिन (Admin Portal)' : 'DoCA Executive Admin Portal'}
+                    {isHindi ? 'वॉक-इन सहायता डेस्क (Walk-In Desk)' : 'Walk-In & Assisted Desk Portal'}
                   </h3>
                   <p className="text-xs text-agri-text-muted leading-relaxed mt-1">
                     {isHindi
-                      ? 'आधिकारिक विभाग साख द्वारा साइन इन करें। राज्यव्यापी मंडी क्षमता व एमएसपी डीबीटी प्रेषण नियंत्रित करें।'
-                      : 'Executive login with official department email and passcode for state-wide procurement analytics and DBT clearance.'}
+                      ? 'बिना स्मार्टफोन वाले किसानों का गेट पर ऑन-स्पॉट पंजीकरण। तुरंत टोकन जनरेट कर मुख्य कतार में शामिल करें।'
+                      : 'Assisted gate registration for farmers without smartphones. Issue official spot tokens directly into the common live queue.'}
                   </p>
                 </div>
               </div>
 
               <button
-                onClick={() => onSelectPortal('admin-auth')}
-                className="w-full bg-amber-700 hover:bg-amber-800 text-white font-extrabold text-xs py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 touch-target"
+                onClick={() => onSelectPortal('walkin-auth')}
+                className="w-full bg-amber-700 hover:bg-amber-800 text-white font-extrabold text-xs py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 touch-target cursor-pointer"
               >
-                <span>{isHindi ? 'एडमिन पोर्टल खोलें' : 'Open Admin Auth Portal'}</span>
+                <span>{isHindi ? 'वॉक-इन डेस्क पोर्टल खोलें' : 'Open Walk-In Desk Portal'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -1696,16 +1778,16 @@ export const LandingPage = ({ onSelectPortal }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => onSelectPortal('farmer-auth')}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-sm transition-all shadow-xl flex items-center justify-center space-x-2 touch-target"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold text-sm transition-all shadow-xl flex items-center justify-center space-x-2 touch-target cursor-pointer"
             >
               <span>{isHindi ? 'किसान स्लॉट बुक करें' : 'Get Started as Farmer'}</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
             <button
               onClick={() => scrollToSection('portals')}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition-all flex items-center justify-center space-x-2 touch-target"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition-all flex items-center justify-center space-x-2 touch-target cursor-pointer"
             >
-              <span>{isHindi ? 'अन्य पोर्टल लॉगिन' : 'Operator / Admin Portals'}</span>
+              <span>{isHindi ? 'ऑपरेटर व वॉक-इन डेस्क' : 'Operator & Walk-In Desks'}</span>
             </button>
           </div>
         </div>

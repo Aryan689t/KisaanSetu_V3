@@ -7,10 +7,10 @@ import {
   updateBookingStatus, 
   updateBookingProcurement, 
   disburseBookingPayment, 
-  generateNextToken, 
-  subscribeToTokenUpdates 
+  generateNextToken 
 } from '../lib/supabaseService';
 import { createBooking as apiCreateBooking } from '../lib/apiService';
+import { calculateEstimatedWaitMinutes, evaluateMandiCongestionState, rankAndRecommendCentres } from '../lib/mandiEngine';
 import {
   initialCentres,
   initialCrops,
@@ -22,6 +22,71 @@ import {
 
 const DemoContext = createContext();
 
+/**
+ * Parses any booking's date, slot time, and status into a standardized
+ * scheduled timestamp for accurate chronological sorting.
+ */
+export function parseBookingSchedule(booking) {
+  if (!booking) return { timestamp: 0, isUpcoming: false, formattedDate: '29 Aug 2026', formattedTime: '11:00 AM' };
+
+  const rawStr = `${booking.slotDate || ''} ${booking.slot_date || ''} ${booking.slotTime || ''} ${booking.slot_time || ''}`;
+  
+  // 1. Determine Date (default to Aug 29, 2026)
+  let year = 2026;
+  let month = 7; // August (0-indexed)
+  let day = 29;
+
+  const monthNames = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+  const dateMatch = rawStr.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})(?:[,\s]+(\d{4}))?/i);
+  
+  if (dateMatch) {
+    const mStr = dateMatch[1].toLowerCase().slice(0, 3);
+    if (monthNames[mStr] !== undefined) month = monthNames[mStr];
+    day = parseInt(dateMatch[2], 10);
+    if (dateMatch[3]) year = parseInt(dateMatch[3], 10);
+  } else if (/tomorrow/i.test(rawStr)) {
+    day = 30;
+  } else if (/today/i.test(rawStr)) {
+    day = 29;
+  } else if (booking.createdAt || booking.created_at) {
+    const d = new Date(booking.createdAt || booking.created_at);
+    if (!isNaN(d.getTime())) {
+      year = d.getFullYear();
+      month = d.getMonth();
+      day = d.getDate();
+    }
+  }
+
+  // 2. Determine Time (start of slot window)
+  let hours = 11;
+  let minutes = 0;
+  const timeMatch = rawStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (timeMatch) {
+    let h = parseInt(timeMatch[1], 10);
+    const m = parseInt(timeMatch[2], 10);
+    const meridiem = timeMatch[3].toUpperCase();
+    if (meridiem === 'PM' && h < 12) h += 12;
+    if (meridiem === 'AM' && h === 12) h = 0;
+    hours = h;
+    minutes = m;
+  }
+
+  const scheduleDate = new Date(year, month, day, hours, minutes, 0, 0);
+  const timestamp = scheduleDate.getTime();
+  const isUpcoming = booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED';
+
+  const formattedDate = scheduleDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const formattedTime = timeMatch ? `${timeMatch[1]}:${timeMatch[2]} ${timeMatch[3]}` : (booking.slotTime || '11:00 AM');
+
+  return {
+    timestamp,
+    isUpcoming,
+    scheduleDate,
+    formattedDate,
+    formattedTime
+  };
+}
+
 // Comprehensive Bilingual Translation Dictionary
 export const translations = {
   en: {
@@ -29,11 +94,12 @@ export const translations = {
     navBrand: 'KisanSetu',
     navTagline: 'Department of Consumer Affairs • Direct Crop Procurement',
     home: 'Home',
-    mandi: 'Mandi Discovery',
-    token: 'Token Pass',
-    payment: 'Payments & History',
+    mandi: 'Mandi',
+    token: 'Token',
+    payment: 'Payments',
     farmerRole: 'Farmer View',
     operatorRole: 'Mandi Operator View',
+    walkinRole: 'Walk-In Desk View',
     adminRole: 'DoCA Admin View',
     login: 'Sign In / Account',
     logout: 'Sign Out',
@@ -98,12 +164,13 @@ export const translations = {
     // Brand & Header
     navBrand: 'किसानसेतु',
     navTagline: 'उपभोक्ता मामले विभाग • प्रत्यक्ष फसल खरीद',
-    home: 'मुख्य पृष्ठ',
-    mandi: 'मंडी खोजें',
-    token: 'टोकन पास',
-    payment: 'भुगतान व इतिहास',
+    home: 'होम',
+    mandi: 'मंडी',
+    token: 'टोकन',
+    payment: 'भुगतान',
     farmerRole: 'किसान दृश्य',
     operatorRole: 'मंडी ऑपरेटर दृश्य',
+    walkinRole: 'वॉक-इन डेस्क दृश्य',
     adminRole: 'विभाग प्रशासक दृश्य',
     login: 'साइन इन / खाता',
     logout: 'साइन आउट',
@@ -166,12 +233,81 @@ export const translations = {
   }
 };
 
+// Standard Demo Profiles for hackathon and interactive presentation
+export const DEMO_PROFILES = {
+  farmer: {
+    name: 'Ramesh Singh',
+    roleTitle: 'Farmer',
+    email: 'farmer@kisansetu.gov.in',
+    district: 'Sonipat, Haryana',
+    initials: 'RS',
+    mobile: '9876543210',
+    aadhaarLast4: '4092'
+  },
+  operator: {
+    name: 'Rajesh Kumar',
+    roleTitle: 'Procurement Operator',
+    email: 'operator@kisansetu.gov.in',
+    district: 'Sonipat Procurement Yard',
+    initials: 'RK',
+    mobile: '9812345678',
+    aadhaarLast4: '7821'
+  },
+  walkin: {
+    name: 'Suresh Patel',
+    roleTitle: 'Gate Desk Operator',
+    email: 'desk.operator@kisansetu.gov.in',
+    district: 'Sonipat Main Yard • Gate 1 Desk',
+    initials: 'SP',
+    mobile: '9812345678',
+    aadhaarLast4: '5921'
+  },
+  admin: {
+    name: 'S. K. Sharma',
+    roleTitle: 'DoCA Admin',
+    email: 'admin@doca.gov.in',
+    district: 'New Delhi HQ',
+    initials: 'SK',
+    mobile: '9811002233',
+    aadhaarLast4: '1001'
+  }
+};
+
+export const getDemoUserForRole = (role, customEmail = '', customData = {}) => {
+  const profile = DEMO_PROFILES[role] || DEMO_PROFILES.farmer;
+  const fullName = customData.fullName || customData.full_name || (customEmail && !customEmail.includes('@kisansetu.gov.in') ? customEmail.split('@')[0] : profile.name);
+  const email = customEmail || profile.email;
+  const district = customData.district || profile.district;
+  const mobile = customData.mobile || customData.phone || profile.mobile;
+  const aadhaarLast4 = customData.aadhaarLast4 || customData.aadhaar_last4 || profile.aadhaarLast4;
+
+  return {
+    id: customData.id || `usr-${role}-${role === 'farmer' ? 'ramesh' : role === 'operator' ? 'rajesh' : 'patel'}`,
+    email: email,
+    phone: mobile,
+    mobile: mobile,
+    aadhaarLast4: aadhaarLast4,
+    district: district,
+    user_metadata: {
+      full_name: fullName,
+      name: fullName,
+      role: role,
+      roleTitle: profile.roleTitle,
+      district: district,
+      initials: profile.initials,
+      mobile: mobile,
+      aadhaarLast4: aadhaarLast4
+    },
+    created_at: new Date().toISOString()
+  };
+};
+
 export const DemoProvider = ({ children }) => {
   // Navigation & Role State
-  const [activeRole, setActiveRole] = useState(() => {
+  const [activeRole, setActiveRoleState] = useState(() => {
     try {
       const savedRole = localStorage.getItem('kisansetu_role');
-      if (savedRole && ['farmer', 'operator', 'admin'].includes(savedRole)) {
+      if (savedRole && ['farmer', 'operator', 'walkin', 'admin'].includes(savedRole)) {
         return savedRole;
       }
       const savedUser = localStorage.getItem('kisansetu_user');
@@ -213,6 +349,29 @@ export const DemoProvider = ({ children }) => {
       return null;
     }
   });
+
+  // Synchronized Role Switcher (updates activeRole and associated demo identity seamlessly)
+  const setActiveRole = (role) => {
+    if (!role || !['farmer', 'operator', 'walkin', 'admin'].includes(role)) return;
+    setActiveRoleState(role);
+    try {
+      localStorage.setItem('kisansetu_role', role);
+    } catch {}
+
+    // Synchronize active user profile for demo session
+    setUser((prevUser) => {
+      // If real Supabase user session exists with matching role, keep it
+      if (prevUser && !prevUser.id?.startsWith('usr-') && prevUser.user_metadata?.role === role) {
+        return prevUser;
+      }
+      const nextUser = getDemoUserForRole(role);
+      try {
+        localStorage.setItem('kisansetu_user', JSON.stringify(nextUser));
+      } catch {}
+      return nextUser;
+    });
+  };
+
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -226,7 +385,7 @@ export const DemoProvider = ({ children }) => {
         try {
           localStorage.setItem('kisansetu_user', JSON.stringify(session.user));
           if (session.user.user_metadata?.role) {
-            setActiveRole(session.user.user_metadata.role);
+            setActiveRoleState(session.user.user_metadata.role);
             localStorage.setItem('kisansetu_role', session.user.user_metadata.role);
           }
         } catch {}
@@ -312,7 +471,7 @@ export const DemoProvider = ({ children }) => {
   });
 
   // Farmer's own bookings (only bookings belonging to currently logged-in farmer)
-  const farmerBookings = queueItems.filter(q => {
+  const rawFarmerBookings = queueItems.filter(q => {
     if (!q || !q.token) return false;
 
     // 1. If an authenticated Supabase user is logged in with a real UUID
@@ -322,12 +481,30 @@ export const DemoProvider = ({ children }) => {
       return sessionFarmerTokens.includes(q.token);
     }
 
-    // 2. For demo farmer (Ramesh Singh):
-    // Only include SNP-014 (the canonical demo booking) or tokens created in this session
+    // 2. For registered or demo farmer session:
+    if (user?.mobile && (q.mobile === user.mobile || q.phone === user.mobile)) return true;
+    if (user?.email && q.mobile === user.email) return true;
     if (q.token === 'SNP-014' || q.bookingId === 'BK-2026-8812') return true;
     if (sessionFarmerTokens.includes(q.token)) return true;
 
     return false;
+  });
+
+  // Sort chronologically:
+  // 1. Upcoming/Active bookings come first (sorted by earliest scheduled date & time ascending)
+  // 2. Completed/Cancelled bookings come after (sorted descending by completion date)
+  const farmerBookings = [...rawFarmerBookings].sort((a, b) => {
+    const parsedA = parseBookingSchedule(a);
+    const parsedB = parseBookingSchedule(b);
+
+    if (parsedA.isUpcoming && !parsedB.isUpcoming) return -1;
+    if (!parsedA.isUpcoming && parsedB.isUpcoming) return 1;
+
+    if (parsedA.isUpcoming && parsedB.isUpcoming) {
+      return parsedA.timestamp - parsedB.timestamp;
+    }
+
+    return parsedB.timestamp - parsedA.timestamp;
   });
 
   // Dynamic activeBooking resolution
@@ -415,17 +592,11 @@ export const DemoProvider = ({ children }) => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  // Compute recommended centre dynamically based on live telemetry load score
+  // Compute recommended centre dynamically using the APMC Load Balancing Engine
   const getRecommendedCentre = (centresList = centres) => {
     if (!centresList || centresList.length === 0) return initialCentres[0];
-    
-    const scored = centresList.map(c => {
-      const score = (c.estWaitMinutes * 0.4) + (c.capacityPercent * 0.4) - (c.availableSlots * 0.5) - (c.activeCounters * 1.5) + (c.distanceKm * 0.2);
-      return { ...c, score };
-    });
-
-    scored.sort((a, b) => a.score - b.score);
-    return scored[0];
+    const ranked = rankAndRecommendCentres(centresList);
+    return ranked[0] || centresList[0];
   };
 
   // Set Demo Condition
@@ -449,13 +620,13 @@ export const DemoProvider = ({ children }) => {
         if (c.id === 'cnt-panipat') {
           return {
             ...c,
-            queueCount: 14,
-            estWaitMinutes: 31,
-            capacityPercent: 62,
+            queueCount: 6,
+            estWaitMinutes: 12,
+            capacityPercent: 35,
             availableSlots: 11,
             status: 'NORMAL',
             recommended: true,
-            recommendationReason: 'Optimal queue clearance & available capacity (~31 min wait).'
+            recommendationReason: '⚡ 4 active counters • Fast lane (~12 min wait).'
           };
         }
         return c;
@@ -463,7 +634,7 @@ export const DemoProvider = ({ children }) => {
 
       addNotification(
         '⚠️ Mandi Congestion Alert',
-        'Sonipat Main Yard is experiencing heavy truck backlog (~67 min wait). Panipat Mandi (~31 min wait) is currently recommended.',
+        'Sonipat Main Yard is experiencing heavy truck backlog (~67 min wait). Panipat Mandi (~12 min wait) is currently recommended.',
         'warning',
         'farmer'
       );
@@ -511,31 +682,57 @@ export const DemoProvider = ({ children }) => {
     );
   };
 
-  // Book New Slot via Backend REST API (POST /api/bookings)
-  const bookSlot = async ({ centreId, cropName, slotTime, expectedQty }) => {
+  // Book New Slot via Backend REST API (Supports Online Farmer & Operator Assisted / Walk-In)
+  const bookSlot = async ({ 
+    centreId, 
+    cropName, 
+    slotTime, 
+    slotDate, 
+    expectedQty,
+    farmerName = null,
+    mobile = null,
+    aadhaarLast4 = '4821',
+    bookingType = 'ONLINE',
+    status = 'WAITING',
+    counter = 'Counter 2'
+  }) => {
     const centre = centres.find(c => c.id === centreId) || centres[0];
-    const farmerFullName = user?.user_metadata?.full_name || 'Ramesh Singh (YOU)';
-    const farmerMobile = user?.email || '+91 98765 43210';
+    const farmerFullName = farmerName || user?.user_metadata?.full_name || 'Ramesh Singh (YOU)';
+    const farmerMobile = mobile || user?.mobile || user?.email || '+91 98765 43210';
+    const userId = user?.id || (user?.user_metadata?.role === 'farmer' ? user.id : 'usr-farmer-ramesh');
     
-    // Call backend API (Token is generated by backend and persisted to database)
+    // Call backend API (Token is generated by backend and persisted to database with slot capacity check)
     const result = await apiCreateBooking({
       centreId: centre.id,
       cropName: cropName || 'Paddy (Grade A)',
       slotTime: slotTime || '11:00 AM - 11:30 AM',
       expectedQty: Number(expectedQty) || 40,
       farmerName: farmerFullName,
-      mobile: farmerMobile
+      mobile: farmerMobile,
+      aadhaarLast4,
+      bookingType,
+      status,
+      counter
     });
 
-    const bookingRecord = result.data;
+    const bookingRecord = {
+      ...result.data,
+      slotDate: slotDate || 'Today (Aug 29, 2026)',
+      user_id: userId,
+      farmerId: userId,
+      bookingType,
+      status: result.data?.status || status,
+      counter: result.data?.counter || counter
+    };
 
-    // Register this newly created token under current farmer session
-    if (bookingRecord?.token) {
+    // Register this newly created token under current farmer session if online booking
+    if (bookingRecord?.token && bookingType === 'ONLINE') {
       setSessionFarmerTokens(prev => {
         const updated = Array.from(new Set([...prev, bookingRecord.token]));
         try { sessionStorage.setItem('kisansetu_farmer_tokens', JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
+      setActiveBookingToken(bookingRecord.token);
     }
 
     // Append newly created booking to state without overwriting existing bookings
@@ -543,9 +740,6 @@ export const DemoProvider = ({ children }) => {
       const filtered = prev.filter(item => item.token !== bookingRecord.token);
       return [bookingRecord, ...filtered];
     });
-
-    // Set newly created booking as active for the farmer and persist in localStorage
-    setActiveBookingToken(bookingRecord.token);
 
     // Update centre available slot count
     setCentres(prev => prev.map(c => {
@@ -560,13 +754,36 @@ export const DemoProvider = ({ children }) => {
     }));
 
     addNotification(
-      'Slot Booked Successfully!',
+      bookingType === 'WALK_IN' ? 'Spot Token Issued!' : 'Slot Booked Successfully!',
       `Official Token ${bookingRecord.token} generated for ${centre.name} (${slotTime}).`,
       'success',
-      'farmer'
+      bookingType === 'WALK_IN' ? 'operator' : 'farmer'
     );
 
     return bookingRecord;
+  };
+
+  // Mark Farmer No-Show / Cancelled
+  const markFarmerNoShow = async (tokenStr) => {
+    setQueueItems(prev => prev.map(item => {
+      if (item.token === tokenStr) {
+        return { 
+          ...item, 
+          status: 'NO_SHOW', 
+          noShowTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        };
+      }
+      return item;
+    }));
+
+    await updateBookingStatus(tokenStr, 'NO_SHOW');
+
+    addNotification(
+      'Token Marked No-Show',
+      `Token ${tokenStr} was marked as No-Show. Capacity released.`,
+      'info',
+      'operator'
+    );
   };
 
   // Check-In Farmer
@@ -626,11 +843,29 @@ export const DemoProvider = ({ children }) => {
   };
 
   // Complete Procurement
-  const completeProcurement = async ({ tokenStr = 'SNP-014', actualQty = 38.5, moisturePercent = 12.4, qualityGrade = 'Grade A', ratePerQuintal = 2200 }) => {
+  const completeProcurement = async ({ 
+    tokenStr = 'SNP-014', 
+    actualQty = 38.5, 
+    moisturePercent = 14.2, 
+    qualityGrade = 'Grade A', 
+    ratePerQuintal = 2200,
+    qualityParameters = null 
+  }) => {
     const qty = Number(actualQty);
     const rate = Number(ratePerQuintal) || 2200;
     const totalPayout = Math.round(qty * rate);
     const formulaStr = `${qty} quintals × ₹${rate.toLocaleString()}/quintal = ₹${totalPayout.toLocaleString()}`;
+
+    const effectiveQualityParams = qualityParameters || {
+      moisturePercent: Number(moisturePercent),
+      foreignMatter: 1.2,
+      damagedGrains: 2.4,
+      chalkyGrains: 3.0,
+      admixture: 4.0,
+      immatureGrains: 1.5,
+      allPassed: true,
+      inspectedAt: new Date().toISOString()
+    };
 
     // 1. Optimistic UI update
     setQueueItems(prev => prev.map(item => {
@@ -641,6 +876,7 @@ export const DemoProvider = ({ children }) => {
           actualQty: qty,
           moisturePercent: Number(moisturePercent),
           qualityGrade,
+          qualityParameters: effectiveQualityParams,
           ratePerQuintal: rate,
           completedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           paymentStatus: 'PENDING_DISBURSAL',
@@ -652,12 +888,13 @@ export const DemoProvider = ({ children }) => {
       return item;
     }));
 
-    // 2. Persist to Supabase
+    // 2. Persist to Supabase / Backend
     await updateBookingProcurement(tokenStr, {
       actualQty: qty,
       moisturePercent: Number(moisturePercent),
       qualityGrade,
-      ratePerQuintal: rate
+      ratePerQuintal: rate,
+      qualityParameters: effectiveQualityParams
     });
 
     const targetItem = queueItems.find(q => q.token === tokenStr);
@@ -675,6 +912,7 @@ export const DemoProvider = ({ children }) => {
       formula: formulaStr,
       qualityGrade,
       moisturePercent: Number(moisturePercent),
+      qualityParameters: effectiveQualityParams,
       procurementStatus: 'COMPLETED',
       paymentStatus: 'PENDING_DISBURSAL',
       dbtReference: 'Pending Admin Settlement',
@@ -751,30 +989,12 @@ export const DemoProvider = ({ children }) => {
 
   // Role Switcher & Farmer Authentication Login/Register handler
   const loginWithRole = (role, email = '', userData = {}) => {
-    setActiveRole(role);
+    setActiveRoleState(role);
     try {
       localStorage.setItem('kisansetu_role', role);
     } catch {}
 
-    const defaultName = role === 'farmer' ? 'Ramesh Singh' : role === 'operator' ? 'Rajesh Kumar (Yard Incharge)' : 'S. K. Sharma (DoCA Admin)';
-    const fullName = userData.fullName || userData.full_name || (email && !email.includes('@kisansetu.gov.in') ? email.split('@')[0] : defaultName);
-
-    const authenticatedUser = {
-      id: userData.id || (userData.fullName ? `usr-${role}-${Date.now()}` : (role === 'farmer' ? 'usr-farmer-ramesh' : `usr-${role}-${Date.now()}`)),
-      email: email || `${role}@kisansetu.gov.in`,
-      phone: userData.mobile || userData.phone || '',
-      mobile: userData.mobile || userData.phone || '',
-      aadhaarLast4: userData.aadhaarLast4 || userData.aadhaar_last4 || '',
-      district: userData.district || 'Sonipat, Haryana',
-      user_metadata: {
-        full_name: fullName,
-        role: role,
-        mobile: userData.mobile || '',
-        aadhaarLast4: userData.aadhaarLast4 || '',
-        district: userData.district || 'Sonipat, Haryana'
-      },
-      created_at: new Date().toISOString()
-    };
+    const authenticatedUser = getDemoUserForRole(role, email, userData);
 
     setUser(authenticatedUser);
     try {
@@ -784,8 +1004,8 @@ export const DemoProvider = ({ children }) => {
     }
     setIsLoginOpen(false);
 
-    const roleName = role === 'farmer' ? 'Farmer' : role === 'operator' ? 'Mandi Operator' : 'DoCA Admin';
-    addNotification('Authentication Successful', `Signed in as ${fullName} (${roleName}).`, 'success', role);
+    const roleName = authenticatedUser.user_metadata?.roleTitle || role;
+    addNotification('Authentication Successful', `Signed in as ${authenticatedUser.user_metadata.full_name} (${roleName}).`, 'success', role);
   };
 
   // Logout
@@ -865,6 +1085,7 @@ export const DemoProvider = ({ children }) => {
         bookSlot,
         checkInFarmer,
         callNextFarmer,
+        markFarmerNoShow,
         completeProcurement,
         disbursePayment,
         resetDemoState,

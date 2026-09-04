@@ -38,10 +38,13 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
     setErrorMessage(null);
 
     try {
+      const combinedSlotTime = `${selectedDate} • ${selectedSlot}`;
+
       const created = await bookSlot({
         centreId: selectedCentre.id,
         cropName: selectedCrop,
-        slotTime: selectedSlot,
+        slotTime: combinedSlotTime,
+        slotDate: selectedDate,
         expectedQty: Number(expectedQty)
       });
 
@@ -410,6 +413,13 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
                   </span>
                 </div>
               </div>
+
+              {errorMessage && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 font-bold flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
 
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
                 <p className="leading-relaxed">

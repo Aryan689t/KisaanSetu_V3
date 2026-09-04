@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useDemo } from '../../context/DemoContext';
-import { X, Wheat, UserCheck, ShieldCheck, Wrench, LogOut, Lock, Mail, ArrowRight } from 'lucide-react';
+import { useDemo, DEMO_PROFILES } from '../../context/DemoContext';
+import { X, Wheat, LogOut, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export const LoginModal = () => {
-  const { isLoginOpen, setIsLoginOpen, user, loginWithRole, logout, t } = useDemo();
+  const { isLoginOpen, setIsLoginOpen, user, activeRole, loginWithRole, logout, t } = useDemo();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -13,6 +13,26 @@ export const LoginModal = () => {
     e.preventDefault();
     loginWithRole('farmer', email);
   };
+
+  // Derive active profile matching the activeRole
+  const activeProfile = DEMO_PROFILES?.[activeRole] || DEMO_PROFILES.farmer;
+  const isMatchingUser = user && user.user_metadata?.role === activeRole;
+
+  const displayName = isMatchingUser 
+    ? (user.user_metadata?.full_name || activeProfile.name)
+    : activeProfile.name;
+
+  const displayEmail = isMatchingUser 
+    ? (user.email || activeProfile.email)
+    : activeProfile.email;
+
+  const displayRoleTitle = isMatchingUser 
+    ? (user.user_metadata?.roleTitle || activeProfile.roleTitle)
+    : activeProfile.roleTitle;
+
+  const displayInitials = isMatchingUser 
+    ? (user.user_metadata?.initials || activeProfile.initials)
+    : activeProfile.initials;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -35,41 +55,45 @@ export const LoginModal = () => {
           </div>
           <button
             onClick={() => setIsLoginOpen(false)}
-            className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-4">
 
           {user ? (
-            /* Logged in state view */
+            /* Clean, Simple Logged in state view */
             <div className="bg-agri-ivory p-4 rounded-xl border border-agri-gold/40 space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-agri-green text-white flex items-center justify-center font-bold text-lg">
-                  {user.user_metadata?.full_name?.[0] || 'U'}
+              <div className="flex items-center space-x-3.5">
+                <div className="w-12 h-12 rounded-full bg-agri-green text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
+                  {displayInitials}
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm text-agri-text">
-                    {user.user_metadata?.full_name || 'Ramesh Singh'}
+                <div className="space-y-0.5">
+                  <h4 className="font-heading font-bold text-base text-agri-text leading-tight">
+                    {displayName}
                   </h4>
-                  <p className="text-xs text-agri-text-muted">
-                    {user.email}
+                  <p className="text-xs text-agri-text-muted font-sans">
+                    {displayEmail}
                   </p>
-                  <span className="inline-block mt-1 text-[10px] font-bold bg-agri-gold/20 text-agri-green-dark px-2 py-0.5 rounded border border-agri-gold/40">
-                    Role: {user.user_metadata?.role || 'Farmer'}
-                  </span>
+                  <div className="pt-0.5">
+                    <span className="inline-block text-[10px] font-bold bg-agri-gold/20 text-agri-green-dark px-2.5 py-0.5 rounded border border-agri-gold/40">
+                      Role: {displayRoleTitle}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <button
-                onClick={logout}
-                className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>{t('logout', 'Sign Out')}</span>
-              </button>
+              <div className="pt-1 border-t border-agri-ivory-muted">
+                <button
+                  onClick={logout}
+                  className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-sm cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{t('logout', 'Sign Out')}</span>
+                </button>
+              </div>
             </div>
           ) : (
             /* Credentials Form & Quick Role Switcher */
@@ -128,7 +152,7 @@ export const LoginModal = () => {
               <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => loginWithRole('farmer')}
-                  className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 text-center transition-all flex flex-col items-center space-y-1"
+                  className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 text-center transition-all flex flex-col items-center space-y-1 cursor-pointer"
                 >
                   <UserCheck className="w-5 h-5 text-emerald-600" />
                   <span className="text-[11px] font-bold">{t('farmerRole', 'Farmer')}</span>
@@ -136,18 +160,18 @@ export const LoginModal = () => {
 
                 <button
                   onClick={() => loginWithRole('operator')}
-                  className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl border border-blue-200 text-center transition-all flex flex-col items-center space-y-1"
+                  className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl border border-blue-200 text-center transition-all flex flex-col items-center space-y-1 cursor-pointer"
                 >
                   <Wrench className="w-5 h-5 text-blue-600" />
                   <span className="text-[11px] font-bold">{t('operatorRole', 'Operator')}</span>
                 </button>
 
                 <button
-                  onClick={() => loginWithRole('admin')}
-                  className="p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl border border-amber-200 text-center transition-all flex flex-col items-center space-y-1"
+                  onClick={() => loginWithRole('walkin')}
+                  className="p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl border border-amber-200 text-center transition-all flex flex-col items-center space-y-1 cursor-pointer"
                 >
-                  <ShieldCheck className="w-5 h-5 text-amber-700" />
-                  <span className="text-[11px] font-bold">{t('adminRole', 'Admin')}</span>
+                  <UserCheck className="w-5 h-5 text-amber-700" />
+                  <span className="text-[11px] font-bold">{t('walkinRole', 'Walk-In Desk')}</span>
                 </button>
               </div>
             </>

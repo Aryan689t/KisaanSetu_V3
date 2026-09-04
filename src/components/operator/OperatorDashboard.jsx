@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { Cpu, Users, Scale, Clock, CheckCircle2, PhoneCall, ShieldCheck, UserCheck, AlertCircle, Calculator } from 'lucide-react';
+import { Cpu, Users, Scale, Clock, CheckCircle2, PhoneCall, ShieldCheck, UserCheck, AlertCircle, Calculator, UserPlus } from 'lucide-react';
 import { MetricCard } from '../ui/MetricCard';
 import { LiveQueueTable } from './LiveQueueTable';
 import { ActiveProcurementModal } from './ActiveProcurementModal';
+import { AssistedBookingModal } from './AssistedBookingModal';
 
 export const OperatorDashboard = () => {
   const { queueItems, checkInFarmer, callNextFarmer } = useDemo();
   const [selectedInspectionToken, setSelectedInspectionToken] = useState(null);
+  const [isAssistedModalOpen, setIsAssistedModalOpen] = useState(false);
 
   // Metrics summary
   const totalBookings = queueItems.length;
@@ -16,8 +18,12 @@ export const OperatorDashboard = () => {
   const processingCount = queueItems.filter(q => q.status === 'PROCESSING').length;
   const completedCount = queueItems.filter(q => q.status === 'COMPLETED').length;
 
-  // Lifecycle items
-  const currentProcessingItem = queueItems.find(q => q.status === 'PROCESSING');
+  // Multi-counter assignments
+  const countersList = ['Counter 1', 'Counter 2', 'Counter 3', 'Counter 4'];
+  const getActiveItemForCounter = (counterName) => {
+    return queueItems.find(q => q.status === 'PROCESSING' && (q.counter === counterName || q.counter?.includes(counterName.slice(-1))));
+  };
+
   const nextCheckedInItem = queueItems.find(q => q.status === 'CHECKED_IN');
   const nextWaitingItem = queueItems.find(q => q.status === 'WAITING');
 
@@ -36,54 +42,45 @@ export const OperatorDashboard = () => {
               Procurement Desk & Live Queue Operations
             </h1>
             <p className="text-xs sm:text-sm text-agri-ivory/80 mt-1 font-sans">
-              Manage gate check-ins, queue movement, counter call announcements, and log official weighbridge metrics.
+              Manage gate check-ins, assisted walk-in tokens, multi-counter call routing, and electronic weighbridge QA.
             </p>
           </div>
 
-          {/* Dynamic Operator Quick Control */}
-          <div className="bg-agri-surface/10 p-4 rounded-xl border border-white/20 text-right shrink-0">
-            <span className="text-[10px] text-agri-gold font-bold uppercase tracking-wider block font-mono">
-              DEMO WORKFLOW TRIGGER
-            </span>
+          {/* Operator Action Bar */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {/* Assisted Walk-In Token Button */}
+            <button
+              onClick={() => setIsAssistedModalOpen(true)}
+              className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ Issue Spot Token (Walk-In)</span>
+            </button>
 
-            {/* If currently processing, show inspect trigger */}
-            {currentProcessingItem ? (
-              <button
-                onClick={() => setSelectedInspectionToken(currentProcessingItem)}
-                className="mt-2 bg-agri-green text-white hover:bg-agri-green-dark font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-md"
-              >
-                <Scale className="w-4 h-4 text-agri-gold" />
-                <span>INSPECT TOKEN ({currentProcessingItem.token})</span>
-              </button>
-            ) : nextCheckedInItem ? (
-              /* If a farmer is checked-in, call next to counter */
+            {/* Quick Demo Workflow Trigger */}
+            {nextCheckedInItem ? (
               <button
                 onClick={() => callNextFarmer(nextCheckedInItem.token, 'Counter 2')}
-                className="mt-2 bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-md animate-pulse"
+                className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 border border-white/30 transition-all"
               >
-                <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
-                <span>CALL NEXT ({nextCheckedInItem.token})</span>
+                <PhoneCall className="w-4 h-4 text-agri-gold" />
+                <span>Call Next ({nextCheckedInItem.token})</span>
               </button>
             ) : nextWaitingItem ? (
-              /* If farmer is waiting, prompt gate check in */
               <button
                 onClick={() => checkInFarmer(nextWaitingItem.token)}
-                className="mt-2 bg-agri-ivory text-agri-green-dark hover:bg-white font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-md"
+                className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 border border-white/30 transition-all"
               >
-                <UserCheck className="w-4 h-4 text-agri-green" />
-                <span>CHECK IN GATE ({nextWaitingItem.token})</span>
+                <UserCheck className="w-4 h-4 text-agri-gold" />
+                <span>Check In ({nextWaitingItem.token})</span>
               </button>
-            ) : (
-              <span className="mt-2 inline-block text-xs text-agri-ivory-muted font-medium">
-                All bookings cleared for today
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
 
       {/* Yard Queue Summary Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
         <MetricCard
           title="Total Bookings"
           value={totalBookings}
@@ -91,22 +88,23 @@ export const OperatorDashboard = () => {
           icon={Users}
         />
         <MetricCard
-          title="Waiting Gate"
+          title="Waiting"
           value={waitingCount}
-          subtitle="In yard queue"
+          subtitle="In yard arrival queue"
           icon={Clock}
+          highlight={waitingCount > 0}
         />
         <MetricCard
           title="Checked-In"
           value={checkedInCount}
-          subtitle="Verified at entry"
+          subtitle="Verified at entry gate"
           icon={ShieldCheck}
           highlight={checkedInCount > 0}
         />
         <MetricCard
           title="Processing"
           value={processingCount}
-          subtitle="At inspection counter"
+          subtitle="At inspection counters"
           icon={Scale}
           highlight={processingCount > 0}
         />
@@ -119,101 +117,101 @@ export const OperatorDashboard = () => {
         />
       </div>
 
-      {/* DYNAMIC CURRENTLY PROCESSING SECTION */}
-      {currentProcessingItem ? (
-        <div className="paper-surface rounded-2xl p-6 border-2 border-agri-gold shadow-agri-md animate-in fade-in duration-200">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-agri-ivory-muted">
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-agri-gold animate-ping"></span>
-                <span className="text-[10px] font-extrabold uppercase bg-agri-gold text-agri-green-dark px-3 py-1 rounded-full">
-                  CURRENTLY ACTIVE AT INSPECTION COUNTER 2
-                </span>
-              </div>
-              
-              <h2 className="font-heading text-xl font-bold text-agri-green mt-2.5 flex items-center space-x-3">
-                <span>Token #{currentProcessingItem.token}</span>
-                <span className="text-sm font-semibold text-agri-text font-sans">
-                  ({currentProcessingItem.farmerName})
-                </span>
-              </h2>
-              <p className="text-xs text-agri-text-muted mt-1">
-                Crop Offered: <strong>{currentProcessingItem.crop}</strong> • Expected Target: <strong>{currentProcessingItem.expectedQty} Quintals</strong> • Slot: <strong>{currentProcessingItem.slotTime || '11:00 AM'}</strong>
-              </p>
-            </div>
+      {/* MULTI-COUNTER STATUS BAR (Counters 1 to 4) */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-agri-ivory-muted shadow-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Scale className="w-4 h-4 text-agri-green" />
+            <h3 className="font-heading font-bold text-sm text-agri-text">
+              Live Weighbridge Stations Status (4 Active Counters)
+            </h3>
+          </div>
+          <span className="text-[11px] text-agri-text-muted font-mono">
+            DoCA APMC Certified Scales
+          </span>
+        </div>
 
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setSelectedInspectionToken(currentProcessingItem)}
-                className="bg-agri-green hover:bg-agri-green-dark text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-agri-sm transition-all flex items-center space-x-2 hover:scale-[1.02]"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {countersList.map((counterName) => {
+            const activeItem = getActiveItemForCounter(counterName);
+            const isCounterActive = !!activeItem;
+
+            return (
+              <div
+                key={counterName}
+                className={`p-3 rounded-xl border transition-all ${
+                  isCounterActive 
+                    ? 'bg-amber-50/70 border-amber-300 shadow-sm' 
+                    : 'bg-agri-ivory/50 border-agri-ivory-muted'
+                }`}
               >
-                <Scale className="w-4 h-4 text-agri-gold" />
-                <span>Log Moisture & Weighment</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Calculation Formula Preview */}
-          <div className="mt-4 p-3 bg-agri-gold-light/20 rounded-xl text-xs font-mono text-agri-text flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-agri-gold/30">
-            <span className="text-agri-text-muted">Target Rate: <strong>₹2,200/Quintal (MSP Grade A)</strong></span>
-            <span className="text-agri-green-dark font-bold text-sm">
-              Formula: {currentProcessingItem.actualQty || 38.5} Quintals × ₹2,200 = ₹{((currentProcessingItem.actualQty || 38.5) * 2200).toLocaleString()}
-            </span>
-          </div>
-        </div>
-      ) : nextCheckedInItem ? (
-        /* IDLE COUNTER WITH READY FARMER PROMPT */
-        <div className="paper-surface rounded-2xl p-6 border border-agri-gold/60 shadow-agri-sm bg-gradient-to-r from-agri-gold-light/10 via-[#FFFDF7] to-agri-ivory/40">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start space-x-3">
-              <div className="p-2.5 bg-agri-gold/20 text-agri-green-dark rounded-xl border border-agri-gold/40 shrink-0">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded">
-                    GATE CHECK-IN VERIFIED
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-agri-text font-mono">
+                    {counterName}
                   </span>
-                  <span className="text-xs text-agri-text-muted">Counter 2 Available</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono uppercase ${
+                    isCounterActive 
+                      ? 'bg-amber-200 text-amber-900 border border-amber-400' 
+                      : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  }`}>
+                    {isCounterActive ? 'Active' : 'Available'}
+                  </span>
                 </div>
-                <h3 className="font-heading text-lg font-bold text-agri-text mt-1">
-                  Token #{nextCheckedInItem.token} ({nextCheckedInItem.farmerName}) is waiting at gate
-                </h3>
-                <p className="text-xs text-agri-text-muted mt-0.5">
-                  Crop: {nextCheckedInItem.crop} • Expected: {nextCheckedInItem.expectedQty} Qtl
-                </p>
-              </div>
-            </div>
 
-            <button
-              onClick={() => callNextFarmer(nextCheckedInItem.token, 'Counter 2')}
-              className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-agri-sm shrink-0 animate-bounce"
-            >
-              <PhoneCall className="w-4 h-4 fill-agri-green-dark" />
-              <span>Call Token {nextCheckedInItem.token} to Counter 2</span>
-            </button>
-          </div>
+                <div className="mt-2 min-h-[38px] flex flex-col justify-center">
+                  {isCounterActive ? (
+                    <div className="text-[11px] space-y-0.5">
+                      <div className="font-bold text-agri-green-dark flex items-center justify-between">
+                        <span>Token #{activeItem.token}</span>
+                        <span className="font-normal text-agri-text-muted">{activeItem.expectedQty} Qtl</span>
+                      </div>
+                      <p className="text-agri-text truncate text-[10px]">{activeItem.farmerName}</p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-agri-text-muted italic">
+                      Ready for next tractor weighment
+                    </p>
+                  )}
+                </div>
+
+                {/* Quick Action */}
+                <div className="mt-2 pt-2 border-t border-agri-ivory-muted flex items-center justify-end">
+                  {isCounterActive ? (
+                    <button
+                      onClick={() => setSelectedInspectionToken(activeItem)}
+                      className="text-[11px] font-bold text-agri-green hover:text-agri-green-dark flex items-center space-x-1"
+                    >
+                      <Scale className="w-3 h-3" />
+                      <span>Log Weighment</span>
+                    </button>
+                  ) : nextCheckedInItem ? (
+                    <button
+                      onClick={() => callNextFarmer(nextCheckedInItem.token, counterName)}
+                      className="text-[11px] font-bold text-amber-700 hover:text-amber-900 flex items-center space-x-1"
+                    >
+                      <PhoneCall className="w-3 h-3" />
+                      <span>Assign ({nextCheckedInItem.token})</span>
+                    </button>
+                  ) : (
+                    <span className="text-[10px] text-gray-400">Idle</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      ) : (
-        /* ALL CLEAR IDLE CARD */
-        <div className="paper-surface rounded-2xl p-6 border border-agri-ivory-muted shadow-agri-sm bg-agri-ivory/30 text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-agri-green-soft text-agri-green mx-auto flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <h3 className="font-heading font-bold text-sm text-agri-text">
-            Inspection Counter 2 Ready & Available
-          </h3>
-          <p className="text-xs text-agri-text-muted">
-            No active farmer at counter. Check in arriving farmers from the queue table below to proceed.
-          </p>
-        </div>
-      )}
+      </div>
 
       {/* Live Queue Management Table */}
       <div className="space-y-3">
-        <h2 className="font-heading text-lg font-bold text-agri-text">
-          Live Mandi Queue Operational Management
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-bold text-agri-text">
+            Live Mandi Queue Operational Management
+          </h2>
+          <span className="text-xs text-agri-text-muted">
+            {waitingCount + checkedInCount + processingCount} active farmers in yard
+          </span>
+        </div>
         <LiveQueueTable />
       </div>
 
@@ -222,6 +220,13 @@ export const OperatorDashboard = () => {
         <ActiveProcurementModal
           tokenItem={selectedInspectionToken}
           onClose={() => setSelectedInspectionToken(null)}
+        />
+      )}
+
+      {/* Assisted / Walk-In Spot Booking Modal */}
+      {isAssistedModalOpen && (
+        <AssistedBookingModal
+          onClose={() => setIsAssistedModalOpen(false)}
         />
       )}
 

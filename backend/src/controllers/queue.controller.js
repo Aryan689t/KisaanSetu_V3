@@ -102,9 +102,20 @@ export const getQueuePosition = async (req, res) => {
       });
     }
 
+    let activeCounters = 4;
+    if (hasDatabaseUrl && prisma) {
+      const centre = await prisma.centre.findUnique({ where: { id: centreId } });
+      if (centre?.active_counters) activeCounters = Math.max(1, Number(centre.active_counters));
+    } else if (supabase) {
+      const { data: centre } = await supabase.from('centres').select('active_counters').eq('id', centreId).maybeSingle();
+      if (centre?.active_counters) activeCounters = Math.max(1, Number(centre.active_counters));
+    }
+
     const targetBooking = activeBookings[index];
     const farmersAhead = Math.max(0, index);
-    const estWaitMinutes = targetBooking.status === 'COMPLETED' ? 0 : farmersAhead * 8;
+    const estWaitMinutes = targetBooking.status === 'COMPLETED' 
+      ? 0 
+      : (farmersAhead === 0 ? 4 : Math.max(5, Math.round((farmersAhead * 8) / activeCounters)));
 
     return res.json({
       success: true,
