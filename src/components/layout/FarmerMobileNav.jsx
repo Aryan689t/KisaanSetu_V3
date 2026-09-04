@@ -8,7 +8,7 @@ export const FarmerMobileNav = () => {
   const navItems = [
     {
       id: 'dashboard',
-      label: lang === 'hi' ? 'मुख्य' : 'Home',
+      label: lang === 'hi' ? 'होम' : 'Home',
       icon: Home
     },
     {
@@ -23,7 +23,7 @@ export const FarmerMobileNav = () => {
     },
     {
       id: 'history',
-      label: lang === 'hi' ? 'भुगतान' : 'Payment',
+      label: lang === 'hi' ? 'भुगतान' : 'Payments',
       icon: CreditCard
     }
   ];

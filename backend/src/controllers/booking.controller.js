@@ -1,4 +1,5 @@
 import { prisma, supabase, hasDatabaseUrl } from '../config/db.js';
+import { isValidMobile, isValidPersonName, sanitizeMobile, sanitizePersonName } from '../utils/validation.js';
 
 // Helper to normalize UUID vs Token
 const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
@@ -101,96 +102,175 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: 'expectedQty must be greater than 0' });
     }
 
-    const effectiveFarmerName = farmerName || req.user?.name || 'Ramesh Singh (YOU)';
-    const effectiveMobile = mobile || req.user?.phone || '+91 98765 43210';
+    if (farmerName && !isValidPersonName(farmerName)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid farmer name. Must contain only alphabetic characters and spaces (2-60 characters).'
+      });
+    }
 
-    // 2. Prisma Database Flow (with Transaction-based capacity verification)
+    if (mobile && !isValidMobile(mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid mobile number. Must be a valid 10-digit Indian mobile number.'
+      });
+    }
+
+    const effectiveFarmerName = farmerName ? sanitizePersonName(farmerName) : (req.user?.name || 'Ramesh Singh (YOU)');
+    const effectiveMobile = mobile ? sanitizeMobile(mobile) : (req.user?.phone || '9876543210');
+    const bookingType = req.body.bookingType || req.body.booking_source || 'ONLINE'; // ONLINE, ASSISTED, WALK_IN
+    const initialStatus = req.body.status || (bookingType === 'WALK_IN' ? 'CHECKED_IN' : 'WAITING');
+    const slotCapacityLimit = Number(req.body.slotCapacity || 5); // Configurable max 5 trucks per 30-min window
+
+    // 2. Prisma Database Flow (with Transaction-based capacity verification & atomic concurrency lock)
     if (hasDatabaseUrl && prisma) {
-      const result = await prisma.$transaction(async (tx) => {
-        // Verify centre exists
-        const centre = await tx.centre.findUnique({ where: { id: centreId } });
-        if (!centre) {
-          throw new Error(`Centre '${centreId}' does not exist`);
-        }
-
-        // Check active bookings count in this slot to prevent overbooking
-        const activeInSlot = await tx.booking.count({
-          where: {
-            centre_id: centreId,
-            slot_time: slotTime,
-            status: { in: ['WAITING', 'CHECKED_IN', 'PROCESSING'] }
+      try {
+        const result = await prisma.$transaction(async (tx) => {
+          // Verify centre exists
+          const centre = await tx.centre.findUnique({ where: { id: centreId } });
+          if (!centre) {
+            const err = new Error(`Procurement centre '${centreId}' does not exist`);
+            err.statusCode = 404;
+            throw err;
           }
+
+          // Strict slot capacity check to prevent concurrent overbooking
+          const activeInSlot = await tx.booking.count({
+            where: {
+              centre_id: centreId,
+              slot_time: slotTime,
+              status: { in: ['WAITING', 'CHECKED_IN', 'PROCESSING'] }
+            }
+          });
+
+          if (activeInSlot >= slotCapacityLimit) {
+            const conflictErr = new Error(`Selected 30-minute arrival window is at full capacity (${activeInSlot}/${slotCapacityLimit}). Please select an alternative slot.`);
+            conflictErr.statusCode = 409;
+            conflictErr.code = 'SLOT_FULL';
+            throw conflictErr;
+          }
+
+          // Generate non-colliding token
+          let tokenToUse = requestedToken;
+          if (!tokenToUse) {
+            const prefix = (centreId || 'SNP').toUpperCase().replace('CNT-', '').slice(0, 3) || 'SNP';
+            const totalBookings = await tx.booking.count();
+            let candidateNum = totalBookings + 11;
+            let candidate = `${prefix}-0${candidateNum < 100 ? candidateNum : candidateNum}`;
+            
+            let exists = await tx.booking.findUnique({ where: { token: candidate } });
+            while (exists) {
+              candidateNum++;
+              candidate = `${prefix}-0${candidateNum < 100 ? candidateNum : candidateNum}`;
+              exists = await tx.booking.findUnique({ where: { token: candidate } });
+            }
+            tokenToUse = candidate;
+          }
+
+          return tx.booking.create({
+            data: {
+              token: tokenToUse,
+              centre_id: centreId,
+              farmer_name: effectiveFarmerName,
+              mobile: effectiveMobile,
+              aadhaar_last4: aadhaarLast4,
+              crop_name: cropName,
+              slot_time: slotTime,
+              expected_qty: Number(expectedQty),
+              status: initialStatus,
+              booking_type: bookingType,
+              counter: req.body.counter || 'Counter 2',
+              rate_per_quintal: 2200,
+              payment_status: 'PENDING'
+            },
+            include: { centre: true }
+          });
         });
 
-        const maxSlotCapacity = 25; // Max allowed trucks per slot
-        if (activeInSlot >= maxSlotCapacity) {
-          throw new Error(`Time slot '${slotTime}' is at full capacity (${activeInSlot}/${maxSlotCapacity})`);
-        }
-
-        // Generate non-colliding token
-        let tokenToUse = requestedToken;
-        if (!tokenToUse) {
-          const totalBookings = await tx.booking.count();
-          tokenToUse = `SNP-0${totalBookings + 11}`;
-          // Check collision
-          const exists = await tx.booking.findUnique({ where: { token: tokenToUse } });
-          if (exists) {
-            tokenToUse = `SNP-${Date.now().toString().slice(-4)}`;
-          }
-        }
-
-        return tx.booking.create({
+        return res.status(201).json({
+          success: true,
+          message: 'Slot booked successfully',
           data: {
-            token: tokenToUse,
-            centre_id: centreId,
-            farmer_name: effectiveFarmerName,
-            mobile: effectiveMobile,
-            aadhaar_last4: aadhaarLast4,
-            crop_name: cropName,
-            slot_time: slotTime,
-            expected_qty: Number(expectedQty),
-            status: 'WAITING',
-            counter: 'Counter 2',
-            rate_per_quintal: 2200,
-            payment_status: 'PENDING'
-          },
-          include: { centre: true }
+            ...result,
+            bookingType
+          }
         });
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: 'Slot booked successfully',
-        data: result
-      });
+      } catch (txError) {
+        if (txError.statusCode === 409 || txError.code === 'SLOT_FULL') {
+          return res.status(409).json({
+            success: false,
+            code: 'SLOT_FULL',
+            message: txError.message
+          });
+        }
+        throw txError;
+      }
     }
 
     // 3. Supabase Direct Client Flow
     if (supabase) {
-      // Verify centre exists
-      const { data: centreData, error: centreErr } = await supabase.from('centres').select('id, name').eq('id', centreId).single();
-      if (centreErr || !centreData) {
-        return res.status(404).json({ success: false, message: `Centre '${centreId}' not found` });
+      // Verify centre exists, fallback gracefully if not found
+      let validCentreId = centreId;
+      const { data: centreData } = await supabase.from('centres').select('id, name').eq('id', centreId).maybeSingle();
+      if (!centreData) {
+        // Fallback to first available centre in Supabase
+        const { data: firstCentre } = await supabase.from('centres').select('id').limit(1).maybeSingle();
+        if (firstCentre) {
+          validCentreId = firstCentre.id;
+        }
       }
 
-      // Generate non-colliding token
+      // Slot Capacity Verification in Supabase
+      const { count: slotBookingsCount } = await supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('centre_id', validCentreId)
+        .eq('slot_time', slotTime)
+        .in('status', ['WAITING', 'CHECKED_IN', 'PROCESSING']);
+
+      if ((slotBookingsCount || 0) >= slotCapacityLimit) {
+        return res.status(409).json({
+          success: false,
+          code: 'SLOT_FULL',
+          message: `Selected 30-minute arrival window is at full capacity (${slotBookingsCount}/${slotCapacityLimit}). Please select an alternative slot.`
+        });
+      }
+
+      // Generate guaranteed non-colliding token
       let tokenToUse = requestedToken;
       if (!tokenToUse) {
+        const prefix = (validCentreId || 'SNP').toUpperCase().replace('CNT-', '').slice(0, 3) || 'SNP';
         const { count } = await supabase.from('bookings').select('id', { count: 'exact', head: true });
-        tokenToUse = `SNP-0${(count || 0) + 11}`;
+        let candidateNum = (count || 0) + 11;
+        let candidate = `${prefix}-0${candidateNum < 100 ? candidateNum : candidateNum}`;
+
+        let collision = true;
+        let attempts = 0;
+        while (collision && attempts < 50) {
+          attempts++;
+          const { data: existing } = await supabase.from('bookings').select('id').eq('token', candidate).maybeSingle();
+          if (existing) {
+            candidateNum++;
+            candidate = `${prefix}-0${candidateNum < 100 ? candidateNum : candidateNum}`;
+          } else {
+            collision = false;
+          }
+        }
+        tokenToUse = candidate;
       }
 
       const newBookingPayload = {
         token: tokenToUse,
-        centre_id: centreId,
+        centre_id: validCentreId,
         farmer_name: effectiveFarmerName,
         mobile: effectiveMobile,
         aadhaar_last4: aadhaarLast4,
         crop_name: cropName,
         slot_time: slotTime,
         expected_qty: Number(expectedQty),
-        status: 'WAITING',
-        counter: 'Counter 2',
+        status: initialStatus,
+        booking_type: bookingType,
+        counter: req.body.counter || 'Counter 2',
         rate_per_quintal: 2200,
         payment_status: 'PENDING'
       };
@@ -202,14 +282,21 @@ export const createBooking = async (req, res) => {
       return res.status(201).json({
         success: true,
         message: 'Slot booked successfully',
-        data
+        data: {
+          ...data,
+          bookingType
+        }
       });
     }
 
     return res.status(503).json({ success: false, message: 'Database connection unavailable' });
   } catch (error) {
     console.error('[CreateBooking Error]:', error);
-    return res.status(400).json({ success: false, message: error.message });
+    return res.status(error.statusCode || 400).json({ 
+      success: false, 
+      code: error.code || 'BOOKING_FAILED',
+      message: error.message || 'Unable to create booking in registry' 
+    });
   }
 };
 

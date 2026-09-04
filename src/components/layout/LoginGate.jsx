@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
 import { FarmerAuth } from '../auth/FarmerAuth';
 import { OperatorAuth } from '../auth/OperatorAuth';
+import { WalkInDeskAuth } from '../auth/WalkInDeskAuth';
 import { AdminAuth } from '../auth/AdminAuth';
 import { LandingPage } from '../landing/LandingPage';
 
 export const LoginGate = () => {
   const { loginWithRole, lang, setLang } = useDemo();
-  const [portalView, setPortalView] = useState(null); // null | 'farmer-auth' | 'operator-auth' | 'admin-auth'
+  const [portalView, setPortalView] = useState(null); // null | 'farmer-auth' | 'operator-auth' | 'walkin-auth' | 'admin-auth'
 
   if (portalView === 'farmer-auth') {
     return <FarmerAuth onBack={() => setPortalView(null)} />;
@@ -15,6 +16,10 @@ export const LoginGate = () => {
 
   if (portalView === 'operator-auth') {
     return <OperatorAuth onBack={() => setPortalView(null)} />;
+  }
+
+  if (portalView === 'walkin-auth' || portalView === 'walkin' || portalView === 'assisted') {
+    return <WalkInDeskAuth onBack={() => setPortalView(null)} />;
   }
 
   if (portalView === 'admin-auth') {

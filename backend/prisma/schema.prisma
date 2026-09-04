@@ -39,6 +39,7 @@ model Booking {
   slot_time        String
   expected_qty     Decimal   @db.Decimal(10, 2)
   status           String    @default("WAITING") // WAITING, CHECKED_IN, PROCESSING, COMPLETED, CANCELLED
+  booking_type     String?   @default("ONLINE") // ONLINE, ASSISTED, WALK_IN
   counter          String?   @default("Counter 2")
   actual_qty       Decimal?  @db.Decimal(10, 2)
   moisture_percent Decimal?  @db.Decimal(5, 2)

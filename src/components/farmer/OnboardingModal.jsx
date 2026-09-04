@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { CheckCircle2, UserCheck, Cpu, ShieldCheck, ArrowRight, X } from 'lucide-react';
+import { CheckCircle2, UserCheck, Cpu, UserPlus, ShieldCheck, ArrowRight, X } from 'lucide-react';
 
 export const OnboardingModal = () => {
   const { lang, setLang, setActiveRole, isOnboardingOpen, setIsOnboardingOpen } = useDemo();
@@ -136,20 +136,22 @@ export const OnboardingModal = () => {
 
               <button
                 onClick={() => {
-                  setActiveRole('admin');
+                  setActiveRole('walkin');
                   setIsOnboardingOpen(false);
                 }}
                 className="w-full p-3.5 rounded-xl border border-agri-ivory-muted bg-white text-left flex items-center justify-between hover:border-agri-gold transition-all"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-9 h-9 rounded-lg bg-agri-ivory text-agri-green flex items-center justify-center font-bold">
-                    <ShieldCheck className="w-5 h-5" />
+                    <UserPlus className="w-5 h-5" />
                   </div>
                   <div>
                     <strong className="font-bold text-agri-text text-sm block">
-                      📊 {lang === 'hi' ? 'राज्य प्रशासन (Admin)' : 'State Supervisor'}
+                      📋 {lang === 'hi' ? 'वॉक-इन सहायता डेस्क (Walk-In Desk)' : 'Walk-In Desk (Assisted Entry)'}
                     </strong>
-                    <span className="text-xs text-agri-text-muted">DoCA telemetry dashboard</span>
+                    <span className="text-xs text-agri-text-muted">
+                      {lang === 'hi' ? 'स्मार्टफोन के बिना किसानों का पंजीकरण' : 'Spot registration for non-smartphone farmers'}
+                    </span>
                   </div>
                 </div>
               </button>

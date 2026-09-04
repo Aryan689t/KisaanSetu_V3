@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDemo } from '../../context/DemoContext';
-import { Wheat, Phone, ShieldCheck, User, Lock, ArrowRight, ArrowLeft, CheckCircle2, Globe } from 'lucide-react';
+import { Wheat, Phone, ShieldCheck, User, Lock, ArrowRight, ArrowLeft, CheckCircle2, Globe, AlertCircle } from 'lucide-react';
+import { sanitizeMobile, isValidMobile, sanitizePersonName, isValidPersonName, sanitizeAadhaarLast4, isValidAadhaarLast4 } from '../../lib/validation';
 
 export const FarmerAuth = ({ onBack }) => {
   const { loginWithRole, lang, setLang, t } = useDemo();
@@ -12,11 +13,42 @@ export const FarmerAuth = ({ onBack }) => {
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [district, setDistrict] = useState('Sonipat, Haryana');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const userEmail = `${mobile || 'farmer'}@kisansetu.gov.in`;
-    loginWithRole('farmer', userEmail);
+    setErrorMsg('');
+
+    // 1. Mobile Number Validation
+    if (!isValidMobile(mobile)) {
+      setErrorMsg(lang === 'hi' ? 'कृपया वैध 10 अंकों का मोबाइल नंबर दर्ज करें (शुरुआत 6-9 से)।' : 'Please enter a valid 10-digit mobile number (starting with 6-9).');
+      return;
+    }
+
+    // 2. Full Name Validation (when registering)
+    if (isRegisterMode && !isValidPersonName(fullName)) {
+      setErrorMsg(lang === 'hi' ? 'कृपया केवल अक्षरों में सही नाम दर्ज करें (2 से 60 अक्षर)।' : 'Please enter a valid person name containing only letters and spaces.');
+      return;
+    }
+
+    // 3. Aadhaar Last 4 Digits Validation
+    if (aadhaarLast4 && !isValidAadhaarLast4(aadhaarLast4)) {
+      setErrorMsg(lang === 'hi' ? 'कृपया आधार के अंतिम 4 अंक सही दर्ज करें।' : 'Please enter valid 4 digits of Aadhaar.');
+      return;
+    }
+
+    const userEmail = mobile ? `${mobile}@kisansetu.gov.in` : 'farmer@kisansetu.gov.in';
+    const data = isRegisterMode ? {
+      fullName: fullName.trim() || 'Farmer',
+      mobile: mobile.trim(),
+      aadhaarLast4: aadhaarLast4.trim() || '4092',
+      district: district.trim()
+    } : {
+      mobile: mobile.trim(),
+      aadhaarLast4: aadhaarLast4.trim() || '4092',
+      district: district.trim()
+    };
+    loginWithRole('farmer', userEmail, data);
   };
 
   return (
@@ -116,21 +148,32 @@ export const FarmerAuth = ({ onBack }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center space-x-2 animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span className="font-semibold">{errorMsg}</span>
+              </div>
+            )}
             
             {/* Full Name (Only on Registration) */}
             {isRegisterMode && (
               <div>
                 <label className="block text-xs font-bold text-agri-text mb-1">
-                  {lang === 'hi' ? 'पूरा नाम (आधार के अनुसार)' : 'Full Name (As per Aadhaar)'}
+                  {lang === 'hi' ? 'पूरा नाम (केवल अक्षर)' : 'Full Name (Letters only)'}
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3 top-3 text-agri-text-muted" />
                   <input
                     type="text"
                     required
+                    maxLength={60}
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ramesh Singh"
+                    onChange={(e) => {
+                      setFullName(sanitizePersonName(e.target.value));
+                      if (errorMsg) setErrorMsg('');
+                    }}
+                    placeholder="e.g. Ramesh Singh"
                     className="w-full pl-9 pr-3 py-2.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 outline-none"
                   />
                 </div>
@@ -140,18 +183,22 @@ export const FarmerAuth = ({ onBack }) => {
             {/* Mobile Number */}
             <div>
               <label className="block text-xs font-bold text-agri-text mb-1">
-                {lang === 'hi' ? 'मोबाइल नंबर (10 अंक)' : 'Mobile Number'}
+                {lang === 'hi' ? 'मोबाइल नंबर (10 अंक)' : 'Mobile Number (10 digits)'}
               </label>
               <div className="relative">
                 <Phone className="w-4 h-4 absolute left-3 top-3 text-agri-text-muted" />
                 <input
                   type="tel"
+                  inputMode="numeric"
                   required
-                  pattern="[0-9]{10}"
+                  maxLength={10}
                   value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
+                  onChange={(e) => {
+                    setMobile(sanitizeMobile(e.target.value));
+                    if (errorMsg) setErrorMsg('');
+                  }}
                   placeholder="9876543210"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 outline-none font-mono"
                 />
               </div>
             </div>
@@ -164,12 +211,16 @@ export const FarmerAuth = ({ onBack }) => {
               <div className="relative">
                 <ShieldCheck className="w-4 h-4 absolute left-3 top-3 text-agri-text-muted" />
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
                   maxLength={4}
                   required
                   value={aadhaarLast4}
-                  onChange={(e) => setAadhaarLast4(e.target.value)}
-                  placeholder="4821"
+                  onChange={(e) => {
+                    setAadhaarLast4(sanitizeAadhaarLast4(e.target.value));
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  placeholder="4092"
                   className="w-full pl-9 pr-3 py-2.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 outline-none font-mono"
                 />
               </div>
