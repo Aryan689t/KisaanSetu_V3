@@ -198,11 +198,11 @@ npm run dev
 
 ## 👥 Team CodeBusters
 
-- **Tathagat Aryan** (Team Lead)
-- **Sanchit Marwah**
-- **Aman Kumar Yadav**
-- **Sristi**
-- **Shreyansh Kumar**
-- **Sanchit Prajapati**
+- **Tathagat Aryan** — Full Stack
+- **Sanchit Marwah** (Sanchit M) — Frontend & Auth
+- **Shreyansh Kumar** — UI/Docs
+- **Sanchit Prajapati** (Sanchit P) — Research
+- **Aman Kumar Yadav** — Presentation
+- **Sristi** — Testing
 
 > *This project was developed as a prototype for Smart India Hackathon 2026.*
