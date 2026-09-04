@@ -147,19 +147,8 @@ Supabase	Database / backend services
 Vercel	Deployment
 Git & GitHub	Version control
 
-📂 Project Structure
-KisanSetu/
-│
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── ...
-│
-├── public/
-├── README.md
-├── package.json
-└── ...
+
+
 🚀 Getting Started
 Prerequisites
 
