@@ -198,7 +198,7 @@ npm run dev
 
 ## 👥 Team CodeBusters
 
-- **Tathagat Aryan** — Full Stack
+- **Tathagat Aryan** — Full Stack & Team Leader
 - **Sanchit Marwah** — Frontend & Auth
 - **Shreyansh Kumar** — UI/Docs
 - **Sanchit Prajapati** — Research
