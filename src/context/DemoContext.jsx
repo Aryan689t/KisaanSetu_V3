@@ -302,6 +302,26 @@ export const getDemoUserForRole = (role, customEmail = '', customData = {}) => {
   };
 };
 
+export const isAdvanceBooking = (item) => {
+  if (!item) return false;
+  // If explicitly designated as WALK_IN or ASSISTED, it is never advance
+  if (item.bookingType === 'WALK_IN' || item.bookingType === 'ASSISTED' || item.booking_type === 'WALK_IN' || item.booking_type === 'ASSISTED') return false;
+  if (typeof item.token === 'string' && (item.token.startsWith('W-') || item.token.startsWith('SON-') || item.token.startsWith('KAR-'))) return false;
+  if (typeof item.slotTime === 'string' && item.slotTime.includes('Spot Entry')) return false;
+  if (typeof item.slot_time === 'string' && item.slot_time.includes('Spot Entry')) return false;
+
+  // The advance pre-registered green channel cohort
+  const advanceTokens = ['SNP-011', 'SNP-012', 'SNP-013', 'SNP-014', 'SNP-015', 'SNP-016', 'SNP-017', 'SNP-027'];
+  if (advanceTokens.includes(item.token)) return true;
+
+  return item.bookingType === 'ONLINE' || item.bookingType === 'ADVANCE';
+};
+
+export const isWalkInBooking = (item) => {
+  if (!item) return false;
+  return !isAdvanceBooking(item);
+};
+
 export const DemoProvider = ({ children }) => {
   // Navigation & Role State
   const [activeRole, setActiveRoleState] = useState(() => {
@@ -322,6 +342,24 @@ export const DemoProvider = ({ children }) => {
   });
 
   const [farmerTab, setFarmerTab] = useState('dashboard'); // 'dashboard' | 'centres' | 'queue' | 'history'
+
+  // Operator Sub-Channel Simulation State ('online' | 'physical')
+  // Demonstrates Advance Booking (3 operators / low load) vs Physical Walk-In (2 operators / high load)
+  const [operatorChannel, setOperatorChannelState] = useState(() => {
+    try {
+      return localStorage.getItem('kisansetu_operator_channel') || 'online';
+    } catch {
+      return 'online';
+    }
+  });
+
+  const setOperatorChannel = (channel) => {
+    if (!channel || !['online', 'physical'].includes(channel)) return;
+    setOperatorChannelState(channel);
+    try {
+      localStorage.setItem('kisansetu_operator_channel', channel);
+    } catch {}
+  };
 
   // Language & Accessibility State
   const [lang, setLang] = useState('en'); // 'en' | 'hi'
@@ -450,6 +488,23 @@ export const DemoProvider = ({ children }) => {
       return 'SNP-014';
     }
   });
+
+  // Offline Simulation State (PWA Simulation)
+  const [isOffline, setIsOffline] = useState(false);
+  const toggleOfflineMode = () => {
+    setIsOffline(prev => {
+      const next = !prev;
+      addNotification(
+        next ? '🔴 Offline Mode Active' : '🟢 Network Connection Restored',
+        next 
+          ? 'Network connection dropped. KisanSetu is caching all actions locally in IndexedDB/Storage.'
+          : 'Back online. Telemetry and queue sync re-established with APMC server.',
+        next ? 'warning' : 'success',
+        'farmer'
+      );
+      return next;
+    });
+  };
 
   const setActiveBookingToken = (token) => {
     setActiveBookingTokenState(token);
@@ -649,8 +704,8 @@ export const DemoProvider = ({ children }) => {
     }
   };
 
-  // Switch Booking Centre
-  const switchBookingCentre = async (newCentreId) => {
+  // Switch Booking Centre (with optional freight subsidy)
+  const switchBookingCentre = async (newCentreId, subsidyAmount = 200) => {
     const targetCentre = centres.find(c => c.id === newCentreId);
     if (!targetCentre) return;
 
@@ -663,7 +718,9 @@ export const DemoProvider = ({ children }) => {
           centreId: targetCentre.id,
           centreName: targetCentre.name,
           counter: 'Counter 1 (Assigned)',
-          slotTime: '11:30 AM - 12:00 PM'
+          slotTime: '11:30 AM - 12:00 PM',
+          freightSubsidy: subsidyAmount,
+          reroutedFrom: 'Sonipat Main Procurement Centre'
         };
       }
       return item;
@@ -672,13 +729,49 @@ export const DemoProvider = ({ children }) => {
     setDismissedRerouteAlert(true);
 
     // Persist to Supabase
-    await updateBookingStatus(currentToken, activeBooking?.status || 'WAITING', { centre_id: targetCentre.id });
+    await updateBookingStatus(currentToken, activeBooking?.status || 'WAITING', { 
+      centre_id: targetCentre.id 
+    });
 
     addNotification(
-      'Mandi Rerouted Successfully!',
-      `Token ${currentToken} switched to ${targetCentre.name}. Estimated wait time reduced to ~${targetCentre.estWaitMinutes} mins.`,
+      '⚡ Mandi Rerouted with Freight Subsidy!',
+      `Token ${currentToken} transferred to ${targetCentre.name}. Estimated wait reduced to ~${targetCentre.estWaitMinutes} mins. +₹${subsidyAmount} Govt Freight Subsidy credited to your DBT settlement!`,
       'success',
       'farmer'
+    );
+  };
+
+  // Send to Holding / Drying Yard (Moisture > 17% Failure Flow)
+  const sendToDryingYard = async (tokenStr = 'SNP-014', measuredMoisture = 19.2) => {
+    setQueueItems(prev => prev.map(item => {
+      if (item.token === tokenStr) {
+        return {
+          ...item,
+          status: 'DRYING_REQUIRED',
+          moisturePercent: Number(measuredMoisture),
+          dryingYardLocation: 'Yard 2 • Solar Aeration Bed C',
+          suspendedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+      }
+      return item;
+    }));
+
+    await updateBookingStatus(tokenStr, 'DRYING_REQUIRED', {
+      moisture_percent: Number(measuredMoisture)
+    });
+
+    addNotification(
+      '☀️ Produce Sent to Holding / Drying Yard',
+      `Token ${tokenStr}: Moisture measured at ${measuredMoisture}% (>17% limit). Redirected to Yard 2 Sun-Drying Bed. Queue position & wait time are suspended until moisture drops below 17%.`,
+      'warning',
+      'farmer'
+    );
+
+    addNotification(
+      'Holding Yard Transfer Logged',
+      `Token ${tokenStr} flagged with ${measuredMoisture}% moisture. Transferred to Holding Yard 2 bed.`,
+      'info',
+      'operator'
     );
   };
 
@@ -1061,6 +1154,8 @@ export const DemoProvider = ({ children }) => {
       value={{
         activeRole,
         setActiveRole,
+        operatorChannel,
+        setOperatorChannel,
         farmerTab,
         setFarmerTab,
         centres,
@@ -1082,6 +1177,7 @@ export const DemoProvider = ({ children }) => {
         setDismissedRerouteAlert,
         getRecommendedCentre,
         switchBookingCentre,
+        sendToDryingYard,
         bookSlot,
         checkInFarmer,
         callNextFarmer,
@@ -1096,6 +1192,8 @@ export const DemoProvider = ({ children }) => {
         setIsOnboardingOpen,
         isLoginOpen,
         setIsLoginOpen,
+        isOffline,
+        toggleOfflineMode,
         user,
         session,
         loginWithRole,

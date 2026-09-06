@@ -1,77 +1,104 @@
 import React, { useState } from 'react';
-import { useDemo } from '../../context/DemoContext';
-import { Cpu, Users, Scale, Clock, CheckCircle2, PhoneCall, ShieldCheck, UserCheck, AlertCircle, Calculator, UserPlus } from 'lucide-react';
-import { MetricCard } from '../ui/MetricCard';
+import { useDemo, isWalkInBooking, isAdvanceBooking } from '../../context/DemoContext';
+import { 
+  Users, 
+  Scale, 
+  Clock, 
+  CheckCircle2, 
+  PhoneCall, 
+  ShieldCheck, 
+  UserCheck, 
+  UserPlus,
+  Zap
+} from 'lucide-react';
 import { LiveQueueTable } from './LiveQueueTable';
 import { ActiveProcurementModal } from './ActiveProcurementModal';
 import { AssistedBookingModal } from './AssistedBookingModal';
 
 export const OperatorDashboard = () => {
-  const { queueItems, checkInFarmer, callNextFarmer } = useDemo();
+  const { 
+    queueItems, 
+    checkInFarmer, 
+    callNextFarmer, 
+    operatorChannel
+  } = useDemo();
+  
   const [selectedInspectionToken, setSelectedInspectionToken] = useState(null);
   const [isAssistedModalOpen, setIsAssistedModalOpen] = useState(false);
 
-  // Metrics summary
-  const totalBookings = queueItems.length;
-  const waitingCount = queueItems.filter(q => q.status === 'WAITING').length;
-  const checkedInCount = queueItems.filter(q => q.status === 'CHECKED_IN').length;
-  const processingCount = queueItems.filter(q => q.status === 'PROCESSING').length;
-  const completedCount = queueItems.filter(q => q.status === 'COMPLETED').length;
+  const isOnlineChannel = operatorChannel === 'online';
 
-  // Multi-counter assignments
-  const countersList = ['Counter 1', 'Counter 2', 'Counter 3', 'Counter 4'];
-  const getActiveItemForCounter = (counterName) => {
-    return queueItems.find(q => q.status === 'PROCESSING' && (q.counter === counterName || q.counter?.includes(counterName.slice(-1))));
-  };
+  // Filter queue items specific to this operator's channel
+  const channelQueueItems = queueItems.filter(item => {
+    return isOnlineChannel ? isAdvanceBooking(item) : isWalkInBooking(item);
+  });
 
-  const nextCheckedInItem = queueItems.find(q => q.status === 'CHECKED_IN');
-  const nextWaitingItem = queueItems.find(q => q.status === 'WAITING');
+  // Channel-specific metrics
+  const waitingCount = channelQueueItems.filter(q => q.status === 'WAITING').length;
+  const checkedInCount = channelQueueItems.filter(q => q.status === 'CHECKED_IN').length;
+  const processingCount = channelQueueItems.filter(q => q.status === 'PROCESSING').length;
+  const completedCount = channelQueueItems.filter(q => q.status === 'COMPLETED').length;
+
+  const nextCheckedInItem = channelQueueItems.find(q => q.status === 'CHECKED_IN');
+  const nextWaitingItem = channelQueueItems.find(q => q.status === 'WAITING');
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-4 animate-in fade-in duration-300 font-sans">
       
-      {/* Operations Control Centre Header */}
-      <div className="bg-agri-green-dark text-white rounded-2xl p-6 sm:p-8 shadow-agri-md relative overflow-hidden border border-agri-green/40">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center space-x-2 bg-agri-gold/20 text-agri-gold px-3 py-1 rounded-full text-xs font-semibold mb-2 border border-agri-gold/30">
-              <Cpu className="w-3.5 h-3.5" />
-              <span>SONIPAT MAIN PROCUREMENT YARD • OPERATOR CONTROL DESK</span>
+      {/* ========================================================================= */}
+      {/* 1. OPERATOR IDENTITY / COMPACT HEADER                                     */}
+      {/* ========================================================================= */}
+      <div className={`rounded-2xl p-4 sm:p-5 text-white shadow-sm border transition-all ${
+        isOnlineChannel
+          ? 'bg-gradient-to-r from-[#113822] via-[#0e2f1c] to-[#15462a] border-emerald-500/40'
+          : 'bg-gradient-to-r from-[#3b2707] via-[#2a1b05] to-[#452e09] border-amber-500/40'
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider ${
+                isOnlineChannel
+                  ? 'bg-emerald-400 text-emerald-950'
+                  : 'bg-amber-400 text-amber-950'
+              }`}>
+                {isOnlineChannel ? 'Online Operator 01' : 'Physical Operator 01'}
+              </span>
+              <span className="text-xs text-agri-ivory/80 font-mono">
+                {isOnlineChannel ? '3 Operators • Low Queue Load' : '2 Operators • High Queue Load'}
+              </span>
             </div>
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Procurement Desk & Live Queue Operations
+
+            <h1 className="font-heading text-lg sm:text-xl font-black tracking-tight text-white">
+              {isOnlineChannel 
+                ? 'Online Operator Desk 01 — Advance Booking Intake' 
+                : 'Physical Operator Desk 01 — Walk-in Channel Intake'}
             </h1>
-            <p className="text-xs sm:text-sm text-agri-ivory/80 mt-1 font-sans">
-              Manage gate check-ins, assisted walk-in tokens, multi-counter call routing, and electronic weighbridge QA.
-            </p>
           </div>
 
-          {/* Operator Action Bar */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            {/* Assisted Walk-In Token Button */}
+          {/* Quick Actions */}
+          <div className="flex items-center space-x-2 shrink-0">
             <button
               onClick={() => setIsAssistedModalOpen(true)}
-              className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+              className="bg-agri-gold hover:bg-agri-gold-dark text-agri-green-dark font-extrabold px-3.5 py-2 rounded-xl text-xs flex items-center space-x-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>+ Issue Spot Token (Walk-In)</span>
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Issue Spot Token</span>
             </button>
 
-            {/* Quick Demo Workflow Trigger */}
             {nextCheckedInItem ? (
               <button
-                onClick={() => callNextFarmer(nextCheckedInItem.token, 'Counter 2')}
-                className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 border border-white/30 transition-all"
+                onClick={() => callNextFarmer(nextCheckedInItem.token, isOnlineChannel ? 'Counter 2 (Express)' : 'Counter 3 (General)')}
+                className="bg-white/20 hover:bg-white/30 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs flex items-center space-x-1.5 border border-white/30 transition-all cursor-pointer active:scale-95"
               >
-                <PhoneCall className="w-4 h-4 text-agri-gold" />
+                <PhoneCall className="w-3.5 h-3.5 text-agri-gold" />
                 <span>Call Next ({nextCheckedInItem.token})</span>
               </button>
             ) : nextWaitingItem ? (
               <button
                 onClick={() => checkInFarmer(nextWaitingItem.token)}
-                className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 border border-white/30 transition-all"
+                className="bg-white/20 hover:bg-white/30 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs flex items-center space-x-1.5 border border-white/30 transition-all cursor-pointer active:scale-95"
               >
-                <UserCheck className="w-4 h-4 text-agri-gold" />
+                <UserCheck className="w-3.5 h-3.5 text-agri-gold" />
                 <span>Check In ({nextWaitingItem.token})</span>
               </button>
             ) : null}
@@ -79,143 +106,91 @@ export const OperatorDashboard = () => {
         </div>
       </div>
 
-      {/* Yard Queue Summary Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
-        <MetricCard
-          title="Total Bookings"
-          value={totalBookings}
-          subtitle="Scheduled today"
-          icon={Users}
-        />
-        <MetricCard
-          title="Waiting"
-          value={waitingCount}
-          subtitle="In yard arrival queue"
-          icon={Clock}
-          highlight={waitingCount > 0}
-        />
-        <MetricCard
-          title="Checked-In"
-          value={checkedInCount}
-          subtitle="Verified at entry gate"
-          icon={ShieldCheck}
-          highlight={checkedInCount > 0}
-        />
-        <MetricCard
-          title="Processing"
-          value={processingCount}
-          subtitle="At inspection counters"
-          icon={Scale}
-          highlight={processingCount > 0}
-        />
-        <MetricCard
-          title="Completed"
-          value={completedCount}
-          subtitle="Weighed & logged"
-          icon={CheckCircle2}
-          badgeText="Today"
-        />
-      </div>
-
-      {/* MULTI-COUNTER STATUS BAR (Counters 1 to 4) */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-agri-ivory-muted shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Scale className="w-4 h-4 text-agri-green" />
-            <h3 className="font-heading font-bold text-sm text-agri-text">
-              Live Weighbridge Stations Status (4 Active Counters)
-            </h3>
+      {/* ========================================================================= */}
+      {/* 2. SMALL KPI STRIP                                                        */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        
+        {/* Waiting */}
+        <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+          waitingCount > 0 
+            ? (isOnlineChannel ? 'bg-emerald-50/80 border-emerald-300' : 'bg-amber-50/80 border-amber-300')
+            : 'bg-white border-agri-ivory-muted'
+        }`}>
+          <div className="flex items-center space-x-2.5">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              waitingCount > 0 
+                ? (isOnlineChannel ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')
+                : 'bg-gray-100 text-gray-500'
+            }`}>
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-gray-500 block">Waiting</span>
+              <span className="text-sm font-black text-agri-text font-mono">{waitingCount} in queue</span>
+            </div>
           </div>
-          <span className="text-[11px] text-agri-text-muted font-mono">
-            DoCA APMC Certified Scales
-          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {countersList.map((counterName) => {
-            const activeItem = getActiveItemForCounter(counterName);
-            const isCounterActive = !!activeItem;
-
-            return (
-              <div
-                key={counterName}
-                className={`p-3 rounded-xl border transition-all ${
-                  isCounterActive 
-                    ? 'bg-amber-50/70 border-amber-300 shadow-sm' 
-                    : 'bg-agri-ivory/50 border-agri-ivory-muted'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-agri-text font-mono">
-                    {counterName}
-                  </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono uppercase ${
-                    isCounterActive 
-                      ? 'bg-amber-200 text-amber-900 border border-amber-400' 
-                      : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                  }`}>
-                    {isCounterActive ? 'Active' : 'Available'}
-                  </span>
-                </div>
-
-                <div className="mt-2 min-h-[38px] flex flex-col justify-center">
-                  {isCounterActive ? (
-                    <div className="text-[11px] space-y-0.5">
-                      <div className="font-bold text-agri-green-dark flex items-center justify-between">
-                        <span>Token #{activeItem.token}</span>
-                        <span className="font-normal text-agri-text-muted">{activeItem.expectedQty} Qtl</span>
-                      </div>
-                      <p className="text-agri-text truncate text-[10px]">{activeItem.farmerName}</p>
-                    </div>
-                  ) : (
-                    <p className="text-[11px] text-agri-text-muted italic">
-                      Ready for next tractor weighment
-                    </p>
-                  )}
-                </div>
-
-                {/* Quick Action */}
-                <div className="mt-2 pt-2 border-t border-agri-ivory-muted flex items-center justify-end">
-                  {isCounterActive ? (
-                    <button
-                      onClick={() => setSelectedInspectionToken(activeItem)}
-                      className="text-[11px] font-bold text-agri-green hover:text-agri-green-dark flex items-center space-x-1"
-                    >
-                      <Scale className="w-3 h-3" />
-                      <span>Log Weighment</span>
-                    </button>
-                  ) : nextCheckedInItem ? (
-                    <button
-                      onClick={() => callNextFarmer(nextCheckedInItem.token, counterName)}
-                      className="text-[11px] font-bold text-amber-700 hover:text-amber-900 flex items-center space-x-1"
-                    >
-                      <PhoneCall className="w-3 h-3" />
-                      <span>Assign ({nextCheckedInItem.token})</span>
-                    </button>
-                  ) : (
-                    <span className="text-[10px] text-gray-400">Idle</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+        {/* Checked-In */}
+        <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+          checkedInCount > 0 ? 'bg-blue-50/80 border-blue-300' : 'bg-white border-agri-ivory-muted'
+        }`}>
+          <div className="flex items-center space-x-2.5">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              checkedInCount > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500'
+            }`}>
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-gray-500 block">Checked-In</span>
+              <span className="text-sm font-black text-agri-text font-mono">{checkedInCount} at gate</span>
+            </div>
+          </div>
         </div>
+
+        {/* Processing / At Scales */}
+        <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+          processingCount > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-white border-agri-ivory-muted'
+        }`}>
+          <div className="flex items-center space-x-2.5">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              processingCount > 0 ? 'bg-amber-200 text-amber-900' : 'bg-gray-100 text-gray-500'
+            }`}>
+              <Scale className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-gray-500 block">At Scales</span>
+              <span className="text-sm font-black text-agri-text font-mono">{processingCount} testing</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Completed */}
+        <div className="p-3 rounded-xl border bg-white border-agri-ivory-muted flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-gray-500 block">Completed</span>
+              <span className="text-sm font-black text-agri-text font-mono">{completedCount} today</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      {/* Live Queue Management Table */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-agri-text">
-            Live Mandi Queue Operational Management
-          </h2>
-          <span className="text-xs text-agri-text-muted">
-            {waitingCount + checkedInCount + processingCount} active farmers in yard
-          </span>
-        </div>
-        <LiveQueueTable />
+      {/* ========================================================================= */}
+      {/* 3. QUEUE TABLE DIRECTLY UNDERNEATH                                        */}
+      {/* ========================================================================= */}
+      <div className="pt-1">
+        <LiveQueueTable channel={operatorChannel} />
       </div>
 
-      {/* Active Inspection Modal */}
+      {/* ========================================================================= */}
+      {/* 4. MODALS (WEIGHMENT & QC / SPOT TOKEN)                                   */}
+      {/* ========================================================================= */}
       {selectedInspectionToken && (
         <ActiveProcurementModal
           tokenItem={selectedInspectionToken}
@@ -223,7 +198,6 @@ export const OperatorDashboard = () => {
         />
       )}
 
-      {/* Assisted / Walk-In Spot Booking Modal */}
       {isAssistedModalOpen && (
         <AssistedBookingModal
           onClose={() => setIsAssistedModalOpen(false)}

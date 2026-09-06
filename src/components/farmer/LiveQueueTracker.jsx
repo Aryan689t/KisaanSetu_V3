@@ -64,7 +64,8 @@ export const LiveQueueTracker = () => {
   const isDisbursed = activeBooking?.paymentStatus === 'DISBURSED';
   const isProcessing = activeBooking?.status === 'PROCESSING';
   const isCheckedIn = activeBooking?.status === 'CHECKED_IN';
-  const isWaiting = !isCheckedIn && !isProcessing && !isCompleted;
+  const isSuspendedDrying = activeBooking?.status === 'DRYING_REQUIRED' || activeBooking?.status === 'SUSPENDED_DRYING';
+  const isWaiting = !isCheckedIn && !isProcessing && !isCompleted && !isSuspendedDrying;
 
   // Determine active step index: 0 = Booked, 1 = Checked-In, 2 = Weighed/Inspected, 3 = Payment Disbursed
   const currentStepIndex = isDisbursed || isCompleted ? 3 : isProcessing ? 2 : isCheckedIn ? 1 : 0;
@@ -202,6 +203,43 @@ export const LiveQueueTracker = () => {
 
         {/* Dynamic Queue Status & Waiting Telemetry */}
         <div className="bg-[#102e1c] p-4 sm:p-5 rounded-2xl border border-agri-gold/30 space-y-4 font-sans">
+
+          {/* SUSPENDED / DRYING REQUIRED State */}
+          {isSuspendedDrying && (
+            <div className="space-y-3 bg-rose-950/80 p-4 rounded-xl border-2 border-amber-400">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-amber-300 uppercase font-mono flex items-center space-x-1.5">
+                  <span>☀️ INSPECTION SUSPENDED (DRYING REQUIRED)</span>
+                </span>
+                <span className="text-[11px] font-bold text-rose-200 bg-rose-900 px-2.5 py-0.5 rounded-full border border-rose-500 font-mono">
+                  {activeBooking?.moisturePercent || 19.2}% Moisture
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="bg-black/40 p-3 rounded-xl border border-white/10">
+                  <span className="text-[11px] text-gray-400 block font-mono">
+                    Queue Timer
+                  </span>
+                  <p className="font-heading text-xl font-black text-amber-300 font-mono mt-0.5">
+                    PAUSED ⏸
+                  </p>
+                </div>
+                <div className="bg-black/40 p-3 rounded-xl border border-white/10">
+                  <span className="text-[11px] text-gray-400 block font-mono">
+                    Holding Location
+                  </span>
+                  <p className="font-heading text-xs font-bold text-amber-200 mt-1 truncate">
+                    {activeBooking?.dryingYardLocation || 'Yard 2 • Aeration Bed C'}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-amber-100 leading-relaxed text-center font-medium">
+                Produce exceeds maximum 17.0% moisture. Please allow solar aeration before re-inspection. Wait time is currently paused.
+              </p>
+            </div>
+          )}
 
           {/* WAITING State */}
           {isWaiting && (

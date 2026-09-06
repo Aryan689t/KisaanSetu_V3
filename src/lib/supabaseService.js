@@ -18,6 +18,11 @@ export function mapBookingRow(row) {
     ? `${actualQtyNum} quintals × ₹${rateNum.toLocaleString()}/quintal = ₹${totalPayoutNum.toLocaleString()}`
     : `${expectedQtyNum} quintals × ₹${rateNum.toLocaleString()}/quintal (Est.)`;
 
+  const isAdvanceToken = ['SNP-011', 'SNP-012', 'SNP-013', 'SNP-014', 'SNP-015', 'SNP-016', 'SNP-017', 'SNP-027'].includes(row.token) && !row.slot_time?.includes('Spot Entry');
+  const resolvedBookingType = (row.booking_type === 'WALK_IN' || row.bookingType === 'WALK_IN' || row.booking_type === 'ASSISTED' || row.token?.startsWith('W-') || row.token?.startsWith('SON-') || row.token?.startsWith('KAR-') || row.slot_time?.includes('Spot Entry'))
+    ? 'WALK_IN'
+    : (isAdvanceToken ? 'ONLINE' : 'WALK_IN');
+
   return {
     id: row.id,
     token: row.token,
@@ -43,8 +48,8 @@ export function mapBookingRow(row) {
     quality_grade: row.quality_grade,
     counter: row.counter || 'Counter 2',
     status: row.status || 'WAITING',
-    bookingType: row.booking_type || row.bookingType || 'ONLINE',
-    booking_type: row.booking_type || row.bookingType || 'ONLINE',
+    bookingType: resolvedBookingType,
+    booking_type: resolvedBookingType,
     ratePerQuintal: rateNum,
     rate_per_quintal: rateNum,
     totalPayout: totalPayoutNum,

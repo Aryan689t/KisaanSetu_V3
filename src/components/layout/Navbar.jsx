@@ -16,6 +16,7 @@ export const Navbar = () => {
     setLang,
     setIsOnboardingOpen,
     setIsLoginOpen,
+    isOffline,
     user,
     t
   } = useDemo();
@@ -27,19 +28,19 @@ export const Navbar = () => {
   const defaultProfile = DEMO_PROFILES?.[activeRole] || DEMO_PROFILES.farmer;
   const isMatchingUserSession = user && user.user_metadata?.role === activeRole;
 
-  const displayName = isMatchingUserSession 
+  const displayName = isMatchingUserSession
     ? (user.user_metadata?.full_name || defaultProfile.name)
     : defaultProfile.name;
 
-  const displayEmail = isMatchingUserSession 
+  const displayEmail = isMatchingUserSession
     ? (user.email || defaultProfile.email)
     : defaultProfile.email;
 
-  const displayRoleTitle = isMatchingUserSession 
+  const displayRoleTitle = isMatchingUserSession
     ? (user.user_metadata?.roleTitle || defaultProfile.roleTitle)
     : defaultProfile.roleTitle;
 
-  const displayInitials = isMatchingUserSession 
+  const displayInitials = isMatchingUserSession
     ? (user.user_metadata?.initials || defaultProfile.initials)
     : defaultProfile.initials;
 
@@ -52,7 +53,7 @@ export const Navbar = () => {
       <header className="bg-agri-green text-white border-b border-agri-green-dark shadow-agri-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            
+
             {/* Branding Logo & DoCA Department Badge */}
             <div className="flex items-center space-x-3">
               <div
@@ -83,11 +84,10 @@ export const Navbar = () => {
               <nav className="hidden md:flex items-center space-x-1 sm:space-x-1.5 bg-agri-green-dark/50 p-1.5 rounded-xl border border-agri-green-light/20 shrink-0">
                 <button
                   onClick={() => setFarmerTab('dashboard')}
-                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
-                    farmerTab === 'dashboard'
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${farmerTab === 'dashboard'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
-                  }`}
+                    }`}
                 >
                   <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
                   <span className="whitespace-nowrap leading-none">{t('home', 'Home')}</span>
@@ -95,11 +95,10 @@ export const Navbar = () => {
 
                 <button
                   onClick={() => setFarmerTab('centres')}
-                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
-                    farmerTab === 'centres'
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${farmerTab === 'centres'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
-                  }`}
+                    }`}
                 >
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
                   <span className="whitespace-nowrap leading-none">{t('mandi', 'Mandi')}</span>
@@ -107,11 +106,10 @@ export const Navbar = () => {
 
                 <button
                   onClick={() => setFarmerTab('queue')}
-                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
-                    farmerTab === 'queue'
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${farmerTab === 'queue'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
-                  }`}
+                    }`}
                 >
                   <Clock className="w-3.5 h-3.5 shrink-0" />
                   <span className="whitespace-nowrap leading-none">{t('token', 'Token')}</span>
@@ -119,11 +117,10 @@ export const Navbar = () => {
 
                 <button
                   onClick={() => setFarmerTab('history')}
-                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${
-                    farmerTab === 'history'
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 whitespace-nowrap transition-all select-none ${farmerTab === 'history'
                       ? 'bg-[#FFFDF7] text-agri-green shadow-sm'
                       : 'text-agri-ivory/80 hover:text-white hover:bg-agri-green/60'
-                  }`}
+                    }`}
                 >
                   <ReceiptText className="w-3.5 h-3.5 shrink-0" />
                   <span className="whitespace-nowrap leading-none">{t('payment', 'Payments')}</span>
@@ -147,23 +144,41 @@ export const Navbar = () => {
 
             {/* Language & Accessibility Control Bar */}
             <div className="flex items-center space-x-1.5 sm:space-x-2">
-              
+
+              {/* Network Status PWA Indicator */}
+              {isOffline ? (
+                <div 
+                  className="flex items-center space-x-1.5 bg-red-950 text-red-200 px-2.5 py-1 rounded-lg border-2 border-red-500 text-[11px] font-mono font-extrabold shadow-sm animate-pulse shrink-0"
+                  title="Offline mode: changes are cached locally in browser storage"
+                >
+                  <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                  <span className="hidden xs:inline">🔴 Offline: Saving data locally</span>
+                  <span className="xs:hidden">🔴 Offline</span>
+                </div>
+              ) : (
+                <div 
+                  className="hidden sm:flex items-center space-x-1.5 bg-emerald-950/70 text-emerald-300 px-2.5 py-1 rounded-lg border border-emerald-500/40 text-[11px] font-mono font-bold shrink-0"
+                  title="Online: Connected to real-time APMC Mandi Server"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>🟢 Online: Direct APMC Sync</span>
+                </div>
+              )}
+
               {/* English / Hindi Pill Switcher */}
               <div className="flex items-center bg-agri-green-dark/70 p-0.5 rounded-lg border border-agri-gold/30">
                 <button
                   onClick={() => setLang('en')}
-                  className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
-                    lang === 'en' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/80 hover:text-white'
-                  }`}
+                  className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${lang === 'en' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/80 hover:text-white'
+                    }`}
                 >
                   EN
                 </button>
 
                 <button
                   onClick={() => setLang('hi')}
-                  className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
-                    lang === 'hi' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/80 hover:text-white'
-                  }`}
+                  className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${lang === 'hi' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/80 hover:text-white'
+                    }`}
                 >
                   हिंदी
                 </button>
@@ -192,7 +207,7 @@ export const Navbar = () => {
                   </span>
                 )}
               </button>
-              
+
               {/* Account / Login Trigger */}
               <button
                 onClick={() => setIsLoginOpen(true)}

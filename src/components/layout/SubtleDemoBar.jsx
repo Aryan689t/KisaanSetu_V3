@@ -1,36 +1,47 @@
 import React, { useState } from 'react';
-import { useDemo } from '../../context/DemoContext';
-import { UserCheck, ShieldCheck, Cpu, UserPlus, RotateCcw, Play, AlertTriangle, CheckCircle2, Clapperboard, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { useDemo, isAdvanceBooking, isWalkInBooking } from '../../context/DemoContext';
+import { UserCheck, ShieldCheck, Cpu, UserPlus, RotateCcw, Play, AlertTriangle, CheckCircle2, Clapperboard, ChevronDown, ChevronUp, Settings, Wifi, WifiOff } from 'lucide-react';
 
 export const SubtleDemoBar = () => {
   const {
     activeRole,
     setActiveRole,
+    operatorChannel,
+    setOperatorChannel,
+    queueItems = [],
     callNextFarmer,
     completeProcurement,
     disbursePayment,
     resetDemoState,
     activeBooking,
     demoCondition,
-    setDemoCondition
+    setDemoCondition,
+    isOffline,
+    toggleOfflineMode
   } = useDemo();
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
     <div className="bg-[#102a1a] text-agri-ivory text-xs py-1.5 px-3 sm:px-6 border-b border-agri-green-dark/80 shadow-inner select-none">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2 overflow-x-auto">
         
         {/* Mobile Header Bar (< md) */}
         <div className="flex md:hidden items-center justify-between w-full">
           <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-[11px] font-mono">
             <Clapperboard className="w-3.5 h-3.5" />
-            <span className="capitalize">{activeRole === 'walkin' ? 'Walk-In Desk' : `${activeRole} View`}</span>
+            <span className="capitalize">
+              {activeRole === 'walkin' 
+                ? 'Walk-In Desk' 
+                : activeRole === 'operator' 
+                  ? (operatorChannel === 'online' ? 'Online Operator' : 'Physical Operator')
+                  : `${activeRole} View`}
+            </span>
           </div>
 
           <button
             onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className="px-2.5 py-1 bg-white/10 text-amber-300 rounded-lg text-[11px] font-bold flex items-center space-x-1 border border-white/20 touch-target min-h-[36px]"
+            className="px-2.5 py-1 bg-white/10 text-amber-300 rounded-lg text-[11px] font-bold flex items-center space-x-1 border border-white/20 touch-target min-h-[34px]"
           >
             <Settings className="w-3.5 h-3.5" />
             <span>⚙ Demo Controls</span>
@@ -38,57 +49,111 @@ export const SubtleDemoBar = () => {
           </button>
         </div>
 
-        {/* Role Selector (Always on md+, Collapsible on mobile) */}
-        <div className={`${isMobileOpen ? 'flex' : 'hidden md:flex'} flex-col md:flex-row items-stretch md:items-center gap-2 pt-2 md:pt-0`}>
-          <div className="flex items-center space-x-1.5">
-            <div className="hidden md:inline-flex items-center space-x-1 text-amber-400 font-extrabold uppercase text-[10px] tracking-wider pr-2.5 border-r border-agri-green/40 shrink-0 font-mono">
-              <Clapperboard className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>DEMO CONTROLS</span>
-            </div>
-
-            <div className="flex items-center space-x-1 w-full md:w-auto">
-              <button
-                onClick={() => { setActiveRole('farmer'); setIsMobileOpen(false); }}
-                className={`flex-1 md:flex-none px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[36px] ${
-                  activeRole === 'farmer'
-                    ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
-                    : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>Farmer</span>
-              </button>
-
-              <button
-                onClick={() => { setActiveRole('operator'); setIsMobileOpen(false); }}
-                className={`flex-1 md:flex-none px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[36px] ${
-                  activeRole === 'operator'
-                    ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
-                    : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
-                }`}
-              >
-                <Cpu className="w-3.5 h-3.5" />
-                <span>Operator</span>
-              </button>
-
-              <button
-                onClick={() => { setActiveRole('walkin'); setIsMobileOpen(false); }}
-                className={`flex-1 md:flex-none px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[36px] ${
-                  activeRole === 'walkin'
-                    ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
-                    : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
-                }`}
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Walk-In Desk</span>
-              </button>
-            </div>
+        {/* Demo Controls - Single Horizontal Strip on Desktop */}
+        <div className={`${isMobileOpen ? 'flex' : 'hidden md:flex'} flex-col md:flex-row items-stretch md:items-center gap-1.5 sm:gap-2 pt-2 md:pt-0 shrink-0`}>
+          
+          {/* Main Demo Controls Label */}
+          <div className="hidden md:inline-flex items-center space-x-1 text-amber-400 font-extrabold uppercase text-[10px] tracking-wider pr-2 border-r border-agri-green/40 shrink-0 font-mono">
+            <Clapperboard className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>DEMO CONTROLS</span>
           </div>
+
+          {/* Primary Demo Modes: Farmer | Operator | Walk-In Desk */}
+          <div className="flex items-center space-x-1 shrink-0">
+            <button
+              onClick={() => { setActiveRole('farmer'); setIsMobileOpen(false); }}
+              className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[32px] ${
+                activeRole === 'farmer'
+                  ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
+                  : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
+              }`}
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Farmer</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveRole('operator'); setIsMobileOpen(false); }}
+              className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[32px] ${
+                activeRole === 'operator'
+                  ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
+                  : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
+              }`}
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Operator</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveRole('walkin'); setIsMobileOpen(false); }}
+              className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center space-x-1 touch-target min-h-[32px] ${
+                activeRole === 'walkin'
+                  ? 'bg-agri-gold text-agri-green-dark font-extrabold shadow-sm'
+                  : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
+              }`}
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Walk-In Desk</span>
+            </button>
+          </div>
+
+          {/* Operator Switches (In the SAME horizontal row when Operator mode is active) */}
+          {activeRole === 'operator' && (
+            <div className="flex items-center space-x-1 pl-1 md:border-l md:border-agri-green/40 shrink-0">
+              <button
+                onClick={() => { setActiveRole('operator'); setOperatorChannel('online'); setIsMobileOpen(false); }}
+                className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center touch-target min-h-[32px] ${
+                  operatorChannel === 'online'
+                    ? 'bg-emerald-600 text-white font-extrabold shadow-sm'
+                    : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
+                }`}
+                title="Online / Advance Booking Operator"
+              >
+                <span>Online Operator</span>
+              </button>
+
+              <button
+                onClick={() => { setActiveRole('operator'); setOperatorChannel('physical'); setIsMobileOpen(false); }}
+                className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center justify-center touch-target min-h-[32px] ${
+                  operatorChannel === 'physical'
+                    ? 'bg-amber-500 text-slate-950 font-extrabold shadow-sm'
+                    : 'text-agri-ivory/70 hover:text-white hover:bg-white/10 font-medium'
+                }`}
+                title="Physical / Walk-In Channel Operator"
+              >
+                <span>Physical Operator</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Demo Scenario Triggers (Always visible on md+, Collapsible on mobile) */}
         <div className={`${isMobileOpen ? 'flex' : 'hidden md:flex'} flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 pt-2 md:pt-0 border-t md:border-t-0 border-white/10`}>
-          <div className="flex items-center space-x-1.5 shrink-0 justify-between sm:justify-start">
+          <div className="flex items-center space-x-1.5 shrink-0 justify-between sm:justify-start flex-wrap gap-y-1.5">
+            {/* 1. Offline Mode PWA Simulation Trigger */}
+            <button
+              onClick={toggleOfflineMode}
+              className={`w-full sm:w-auto px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center space-x-1.5 border shadow-sm transition-all touch-target min-h-[38px] ${
+                isOffline
+                  ? 'bg-red-950 text-red-200 border-red-500 animate-pulse'
+                  : 'bg-white/10 hover:bg-white/20 text-gray-200 border-white/20'
+              }`}
+              title="Simulate network connectivity drop / PWA offline caching"
+            >
+              {isOffline ? (
+                <>
+                  <WifiOff className="w-3.5 h-3.5 text-red-400" />
+                  <span>🔴 Reconnect Wi-Fi</span>
+                </>
+              ) : (
+                <>
+                  <Wifi className="w-3.5 h-3.5 text-amber-400" />
+                  <span>📶 Toggle Wi-Fi Drop</span>
+                </>
+              )}
+            </button>
+
+            {/* 2. Congestion Simulation Trigger */}
             {demoCondition === 'NORMAL' ? (
               <button
                 onClick={() => setDemoCondition('CONGESTED_SONIPAT')}

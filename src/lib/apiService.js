@@ -26,6 +26,11 @@ export function normalizeBooking(booking) {
     ? `${actualQtyNum} quintals × ₹${rateNum.toLocaleString()}/quintal = ₹${totalPayoutNum.toLocaleString()}`
     : `${expectedQtyNum} quintals × ₹${rateNum.toLocaleString()}/quintal (Est.)`;
 
+  const isAdvanceToken = ['SNP-011', 'SNP-012', 'SNP-013', 'SNP-014', 'SNP-015', 'SNP-016', 'SNP-017', 'SNP-027'].includes(booking.token) && !booking.slot_time?.includes('Spot Entry') && !booking.slotTime?.includes('Spot Entry');
+  const resolvedBookingType = (booking.booking_type === 'WALK_IN' || booking.bookingType === 'WALK_IN' || booking.booking_type === 'ASSISTED' || booking.token?.startsWith('W-') || booking.token?.startsWith('SON-') || booking.token?.startsWith('KAR-') || booking.slot_time?.includes('Spot Entry') || booking.slotTime?.includes('Spot Entry'))
+    ? 'WALK_IN'
+    : (isAdvanceToken ? 'ONLINE' : 'WALK_IN');
+
   return {
     id: booking.id,
     token: booking.token,
@@ -53,8 +58,8 @@ export function normalizeBooking(booking) {
     quality_grade: booking.quality_grade || booking.qualityGrade || null,
     counter: booking.counter || 'Counter 2',
     status: (booking.status || 'WAITING').toUpperCase(),
-    bookingType: booking.booking_type || booking.bookingType || 'ONLINE',
-    booking_type: booking.booking_type || booking.bookingType || 'ONLINE',
+    bookingType: resolvedBookingType,
+    booking_type: resolvedBookingType,
     ratePerQuintal: rateNum,
     rate_per_quintal: rateNum,
     totalPayout: totalPayoutNum,

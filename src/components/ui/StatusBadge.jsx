@@ -25,6 +25,9 @@ export const StatusBadge = ({ status, type = 'centre' }) => {
     } else if (status === 'PROCESSING') {
       label = 'At Inspection Counter';
       classes = 'bg-agri-gold-light text-agri-gold-dark border-agri-gold font-bold';
+    } else if (status === 'DRYING_REQUIRED' || status === 'SUSPENDED_DRYING') {
+      label = '☀️ Suspended - Drying Required';
+      classes = 'bg-rose-100 text-rose-900 border-rose-300 font-extrabold animate-pulse';
     } else if (status === 'COMPLETED') {
       label = 'Procurement Completed';
       classes = 'bg-agri-green-soft text-agri-status-success border-agri-green-border font-bold';

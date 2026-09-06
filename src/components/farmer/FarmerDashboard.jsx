@@ -64,6 +64,7 @@ export const FarmerDashboard = () => {
   
   // Current Booking State Breakdown
   const status = activeBooking?.status;
+  const isSuspendedDrying = status === 'DRYING_REQUIRED' || status === 'SUSPENDED_DRYING';
   const isWaiting = status === 'WAITING' || status === 'BOOKED' || status === 'SLOT_CONFIRMED';
   const isCheckedIn = status === 'CHECKED_IN';
   const isProcessing = status === 'PROCESSING';
@@ -148,52 +149,124 @@ export const FarmerDashboard = () => {
     <div className="space-y-6 animate-in fade-in duration-300 font-sans">
       
       {/* ========================================================================= */}
-      {/* 1. DYNAMIC CONGESTION ALERTS (REROUTE OR ADVISORY)                        */}
+      {/* 1. UPGRADED FUEL VS. TIME SMART REROUTE CARD (CONGESTION BENEFIT ANALYSIS)  */}
       {/* ========================================================================= */}
       {shouldShowBookingReroute && (
-        <div className="bg-[#4A1510] text-white rounded-2xl p-4 sm:p-5 shadow-lg border-2 border-rose-500 relative overflow-hidden animate-in slide-in-from-top duration-300">
-          <div className="space-y-3">
-            <div className="flex items-start space-x-3">
-              <div className="p-2 bg-rose-900 text-amber-300 rounded-xl shrink-0 border border-rose-500">
-                <AlertTriangle className="w-6 h-6 animate-pulse" />
+        <div className="bg-gradient-to-br from-[#3b120c] via-[#2a0b06] to-[#1c0704] text-white rounded-3xl p-5 sm:p-6 shadow-2xl border-2 border-rose-500 relative overflow-hidden animate-in slide-in-from-top duration-300">
+          
+          {/* Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rose-500/30 pb-3.5">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-2 bg-rose-900/80 text-amber-300 rounded-xl shrink-0 border border-rose-500/60 shadow-sm">
+                <AlertTriangle className="w-5 h-5 text-amber-300 animate-pulse" />
               </div>
-              <div className="space-y-1">
-                <span className="text-[11px] font-extrabold uppercase bg-amber-400 text-rose-950 px-2.5 py-0.5 rounded font-mono">
-                  {isHindi ? '⚠️ मंडी में भारी भीड़ की सूचना' : '⚠️ MANDI HEAVY TRAFFIC ALERT'}
+              <div>
+                <span className="text-[10px] font-extrabold uppercase bg-amber-400 text-rose-950 px-2 py-0.5 rounded font-mono">
+                  {isHindi ? 'स्मार्ट री-रूट व मालभाड़ा सब्सिडी' : '⚡ SMART MANDI REROUTE & FREIGHT INCENTIVE'}
                 </span>
-
-                <h3 className="font-heading text-base sm:text-lg font-bold text-white">
-                  {isHindi
-                    ? `${bookedCentre.name} में इंतजार समय बढ़कर ~${bookedCentre.estWaitMinutes} मिनट हो गया है`
-                    : `${bookedCentre.name} waiting time increased to ~${bookedCentre.estWaitMinutes} min`}
+                <h3 className="font-heading text-base sm:text-lg font-bold text-white mt-0.5">
+                  {isHindi ? 'भारी भीड़ बाईपास व लागत-लाभ विश्लेषण' : 'Heavy Queue Congestion Detected at Sonipat Yard'}
                 </h3>
+              </div>
+            </div>
 
-                <p className="text-xs text-rose-100 leading-relaxed max-w-xl">
-                  {isHindi
-                    ? `आपकी वर्तमान बुकिंग (${activeBooking?.token}) इसी केंद्र पर है। पास की पानीपत मंडी में केवल ~${recommendedCentre.estWaitMinutes} मिनट का इंतजार है।`
-                    : `Your current token (${activeBooking?.token}) is registered at this congested yard. Panipat Mandi is available nearby with only ~${recommendedCentre.estWaitMinutes} min wait.`}
+            <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40 self-start sm:self-auto font-bold">
+              Govt. DBT Incentive Active
+            </span>
+          </div>
+
+          {/* Comparative Cost-Benefit Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-4">
+            
+            {/* Current Mandi Card (Red) */}
+            <div className="p-4 rounded-2xl bg-rose-950/60 border-2 border-rose-500/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-rose-300 uppercase tracking-wider">
+                  Current Booked Mandi
+                </span>
+                <span className="text-[10px] bg-rose-900 text-rose-200 px-2 py-0.5 rounded font-mono font-bold border border-rose-700">
+                  CONGESTED
+                </span>
+              </div>
+              <h4 className="font-heading font-black text-lg text-white">
+                {bookedCentre.name}
+              </h4>
+              <div className="p-2.5 bg-black/40 rounded-xl border border-rose-500/30 text-xs space-y-1 font-mono">
+                <p className="text-rose-200 flex justify-between">
+                  <span>Estimated Wait Time:</span>
+                  <strong className="text-rose-400 font-extrabold text-sm">~67 min wait</strong>
+                </p>
+                <p className="text-rose-300/80 flex justify-between text-[11px]">
+                  <span>Yard Capacity Load:</span>
+                  <span>94% (Heavy Truck Backlog)</span>
                 </p>
               </div>
             </div>
 
-            {/* Reroute Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-              <button
-                onClick={() => switchBookingCentre(recommendedCentre.id)}
-                className="bg-amber-400 hover:bg-amber-300 text-rose-950 font-extrabold text-xs px-4 py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5 touch-target min-h-[44px]"
-              >
-                <span>{isHindi ? `${recommendedCentre.name.split(' ')[0]} बदलें (~${recommendedCentre.estWaitMinutes}म)` : `Switch to ${recommendedCentre.name.split(' ')[0]} (~${recommendedCentre.estWaitMinutes}m)`}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            {/* Alternate Recommended Mandi Card (Green) */}
+            <div className="p-4 rounded-2xl bg-emerald-950/60 border-2 border-emerald-500/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                  Recommended Alternate Mandi
+                </span>
+                <span className="text-[10px] bg-emerald-900 text-emerald-200 px-2 py-0.5 rounded font-mono font-bold border border-emerald-600">
+                  FAST LANE
+                </span>
+              </div>
+              <h4 className="font-heading font-black text-lg text-white">
+                Panipat Sub-Mandi (12 km)
+              </h4>
+              <div className="p-2.5 bg-black/40 rounded-xl border border-emerald-500/30 text-xs space-y-1 font-mono">
+                <p className="text-emerald-200 flex justify-between">
+                  <span>Estimated Wait Time:</span>
+                  <strong className="text-emerald-300 font-extrabold text-sm">~14 min wait</strong>
+                </p>
+                <p className="text-emerald-300/80 flex justify-between text-[11px]">
+                  <span>Active Weighbridges:</span>
+                  <span>4 Scales Open (Low Traffic)</span>
+                </p>
+              </div>
+            </div>
 
-              <button
-                onClick={() => setDismissedRerouteAlert(true)}
-                className="bg-rose-950 hover:bg-rose-900 text-rose-200 text-xs font-semibold px-4 py-3 rounded-xl transition-colors border border-rose-700 text-center touch-target min-h-[44px]"
-              >
-                {isHindi ? `${bookedCentre.name.split(' ')[0]} ही रखें` : `Keep ${bookedCentre.name.split(' ')[0]}`}
-              </button>
+          </div>
+
+          {/* Economic Breakdown Bar */}
+          <div className="mt-3.5 p-3.5 bg-black/40 rounded-2xl border border-agri-gold/40 text-xs space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-center text-[11px] font-mono">
+              <div className="p-2 bg-white/5 rounded-xl border border-white/10">
+                <span className="text-gray-400 block text-[10px]">Est. Extra Diesel (12 km)</span>
+                <strong className="text-rose-400 text-xs font-bold">-₹180</strong>
+              </div>
+              <div className="p-2 bg-emerald-950/50 rounded-xl border border-emerald-500/30">
+                <span className="text-emerald-300 block text-[10px]">Govt. Freight Subsidy</span>
+                <strong className="text-emerald-300 text-xs font-bold">+₹200 (Added to DBT)</strong>
+              </div>
+              <div className="p-2 bg-agri-gold/20 rounded-xl border border-agri-gold/40">
+                <span className="text-agri-gold block text-[10px]">Net Economic Benefit</span>
+                <strong className="text-amber-300 text-xs font-extrabold">Save 53 mins & earn ₹20 extra</strong>
+              </div>
             </div>
           </div>
+
+          {/* Large Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-3">
+            <button
+              onClick={() => switchBookingCentre(recommendedCentre.id, 200)}
+              className="flex-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-rose-950 font-black text-xs sm:text-sm py-3.5 px-6 rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.01]"
+            >
+              <Sparkles className="w-4 h-4 text-rose-950 fill-rose-950" />
+              <span>{isHindi ? '⚡ री-रूट स्वीकारें व ₹200 सब्सिडी पाएं' : '⚡ Accept Reroute & Claim ₹200 Subsidy'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => setDismissedRerouteAlert(true)}
+              className="bg-white/10 hover:bg-white/20 text-rose-200 text-xs font-semibold py-3.5 px-5 rounded-2xl transition-colors border border-white/15 text-center cursor-pointer"
+            >
+              {isHindi ? 'सोनीपत में ही रुकें' : 'Keep Sonipat Yard'}
+            </button>
+          </div>
+
         </div>
       )}
 
@@ -356,16 +429,88 @@ export const FarmerDashboard = () => {
         )}
 
         {/* --------------------------------------------------------------------- */}
-        {/* STATE B: UPCOMING / WAITING MANDI VISIT                               */}
+        {/* STATE HOLDING YARD: MOISTURE FAILURE / SUN-DRYING REQUIRED            */}
+        {/* --------------------------------------------------------------------- */}
+        {activeBooking && isSuspendedDrying && (
+          <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-rose-950 via-[#3a100a] to-[#250804] border-2 border-amber-400 shadow-xl space-y-5 font-sans animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-400/30 pb-4">
+              <div>
+                <span className="text-xs text-amber-300 font-extrabold uppercase tracking-wider block font-mono bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30 w-fit">
+                  ☀️ {isHindi ? 'निरीक्षण स्थगित • धूप में सुखाना आवश्यक' : 'INSPECTION SUSPENDED • DRYING REQUIRED'}
+                </span>
+                <div className="flex items-center space-x-3 mt-1.5">
+                  <span className="font-heading font-black text-3xl sm:text-4xl text-white font-mono tracking-tight">
+                    {activeBooking.token}
+                  </span>
+                  <span className="text-xs font-black bg-rose-500/30 text-rose-200 px-3 py-1 rounded-full border border-rose-400/40 font-mono">
+                    MOISTURE: {activeBooking.moisturePercent || 19.2}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-left sm:text-right bg-black/40 p-3 rounded-xl border border-amber-400/30">
+                <span className="text-[11px] text-amber-200/80 block font-mono">
+                  {isHindi ? 'होल्डिंग यार्ड स्थान' : 'Holding Yard Location'}
+                </span>
+                <span className="text-xs font-bold text-amber-300 font-mono inline-block mt-0.5">
+                  {activeBooking.dryingYardLocation || 'Yard 2 • Solar Aeration Bed C'}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-black/40 rounded-xl border border-amber-400/30 space-y-2 text-xs text-amber-100">
+              <p className="font-bold text-sm text-amber-300 flex items-center space-x-1.5">
+                <span>⚠️ {isHindi ? 'नमी 17% सीमा से अधिक है' : 'Produce Moisture Exceeds 17.0% Permissible MSP Threshold'}</span>
+              </p>
+              <p className="text-amber-100/90 leading-relaxed">
+                {isHindi
+                  ? `आपकी फसल में नमी का स्तर ${activeBooking.moisturePercent || 19.2}% मापा गया है। लॉट को यार्ड 2 के सोलर ड्राइंग बेड में स्थानांतरित कर दिया गया है। जब तक नमी 17% से नीचे नहीं आती, आपका कतार समय स्थगित (PAUSED) रहेगा।`
+                  : `Your grain moisture was recorded at ${activeBooking.moisturePercent || 19.2}% (above the 17.0% MSP limit). Your lot has been directed to the on-yard solar drying bed. Your wait-time counter is PAUSED until aeration is complete.`}
+              </p>
+            </div>
+
+            {/* Suspended Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-center text-xs font-mono">
+              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10">
+                <span className="text-gray-400 block text-[10px]">Queue Wait Timer</span>
+                <strong className="text-amber-300 text-sm font-black">PAUSED ⏸</strong>
+              </div>
+              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10">
+                <span className="text-gray-400 block text-[10px]">Target Moisture</span>
+                <strong className="text-emerald-300 text-sm font-bold">&le; 17.0%</strong>
+              </div>
+              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 col-span-2 sm:col-span-1">
+                <span className="text-gray-400 block text-[10px]">Aeration ETA</span>
+                <strong className="text-amber-200 text-sm font-bold">~45 - 60 mins</strong>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setFarmerTab('queue')}
+              className="w-full bg-amber-400 hover:bg-amber-300 text-rose-950 font-black text-xs sm:text-sm py-3.5 px-5 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer"
+            >
+              <span>{isHindi ? 'होल्डिंग यार्ड स्थिति देखें →' : 'View Holding Yard Telemetry →'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* --------------------------------------------------------------------- */}
+        {/* STATE B: UPCOMING / WAITING MANDI VISIT (GREEN CHANNEL EXPRESS PASS)  */}
         {/* --------------------------------------------------------------------- */}
         {activeBooking && isWaiting && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#123621] border border-agri-gold/25 shadow-inner space-y-5 font-sans">
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#123621] border-2 border-agri-gold/40 shadow-inner space-y-5 font-sans relative overflow-hidden">
+            
+            {/* Express Green Channel Tag */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
-                <span className="text-xs text-agri-gold font-bold uppercase tracking-wider block font-mono">
-                  {isHindi ? 'आपकी आगामी मंडी यात्रा' : 'YOUR UPCOMING MANDI VISIT'}
-                </span>
-                <div className="flex items-center space-x-3 mt-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] text-agri-gold font-extrabold uppercase tracking-wider font-mono bg-agri-gold/20 px-2.5 py-0.5 rounded-full border border-agri-gold/30 inline-flex items-center space-x-1">
+                    <Sparkles className="w-3 h-3 text-agri-gold" />
+                    <span>EXPRESS PASS • GREEN CHANNEL</span>
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 mt-1.5">
                   <span className="font-heading font-black text-3xl sm:text-4xl text-white font-mono tracking-tight">
                     {activeBooking.token}
                   </span>
@@ -376,10 +521,10 @@ export const FarmerDashboard = () => {
               </div>
 
               <div className="text-left sm:text-right bg-[#17432A]/80 p-3 rounded-xl border border-white/10 sm:bg-transparent sm:p-0 sm:border-0">
-                <span className="text-[11px] text-agri-ivory/70 block">
-                  {isHindi ? 'आवंटित काउंटर / स्टेशन' : 'Assigned Station'}
+                <span className="text-[11px] text-agri-ivory/70 block font-mono">
+                  {isHindi ? 'आवंटित काउंटर / स्टेशन' : 'Assigned Fast-Track Station'}
                 </span>
-                <span className="text-xs font-bold text-white font-mono bg-[#17432A] px-3 py-1 rounded-lg border border-agri-gold/30 inline-block mt-0.5">
+                <span className="text-xs font-bold text-agri-gold font-mono bg-[#17432A] px-3 py-1 rounded-lg border border-agri-gold/30 inline-block mt-0.5">
                   {activeBooking.counter || 'Counter 2 (Main Scale)'}
                 </span>
               </div>

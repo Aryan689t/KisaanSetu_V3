@@ -109,14 +109,14 @@ export const LandingPage = ({ onSelectPortal }) => {
 
   return (
     <div className="min-h-screen bg-[#FAF7EE] text-agri-text selection:bg-agri-gold/30 font-sans flex flex-col justify-between">
-      
+
       {/* ========================================================================= */}
       {/* 1. PUBLIC HEADER                                                          */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 bg-[#17432A]/95 backdrop-blur-md text-white border-b border-agri-green-dark shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
-            
+
             {/* Left: Brand Logo & Tagline */}
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-agri-gold text-agri-green-dark flex items-center justify-center font-bold shadow-md ring-2 ring-agri-gold/30">
@@ -165,17 +165,15 @@ export const LandingPage = ({ onSelectPortal }) => {
               <div className="flex items-center bg-[#123621] p-1 rounded-xl border border-agri-gold/30 text-xs">
                 <button
                   onClick={() => setLang('en')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    lang === 'en' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/70 hover:text-white'
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${lang === 'en' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/70 hover:text-white'
+                    }`}
                 >
                   EN
                 </button>
                 <button
                   onClick={() => setLang('hi')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    lang === 'hi' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/70 hover:text-white'
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${lang === 'hi' ? 'bg-agri-gold text-agri-green-dark shadow-sm' : 'text-agri-ivory/70 hover:text-white'
+                    }`}
                 >
                   हिंदी
                 </button>
@@ -368,9 +366,9 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* 2. HERO SECTION                                                           */}
       {/* ========================================================================= */}
       <section className="relative overflow-hidden bg-[#0a2013] pt-8 pb-12 sm:pt-14 sm:pb-20 px-4 sm:px-6 lg:px-8 border-b-2 border-[#123621]">
-        
+
         {/* Authentic Indian Farmer & Field Photographic Background */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center sm:bg-[center_top_15%] bg-no-repeat pointer-events-none opacity-85 brightness-[1.03] contrast-[1.05] saturate-[1.12]"
           style={{ backgroundImage: `url(${farmerHeroBg})` }}
         />
@@ -381,10 +379,10 @@ export const LandingPage = ({ onSelectPortal }) => {
 
         <div className="relative max-w-7xl mx-auto z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
+
             {/* Left Column: Hero Content */}
             <div className="lg:col-span-7 space-y-6 text-white text-center lg:text-left">
-              
+
               {/* Main Headline */}
               <h1 className="font-heading text-3xl sm:text-5xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-sm">
                 {isHindi ? (
@@ -409,7 +407,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
               {/* Three Prominent Role Access Cards: Farmer, Mandi Operator, & Walk-In Desk */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 max-w-3xl mx-auto lg:mx-0">
-                
+
                 {/* Farmer Login Card */}
                 <button
                   onClick={() => onSelectPortal('farmer-auth')}
@@ -480,7 +478,7 @@ export const LandingPage = ({ onSelectPortal }) => {
             {/* Right Column: Visual Diagram of KisanSetu Flow */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border-2 border-agri-gold/40 relative">
-                
+
                 {/* Header Tag (Clean, No Ping Dot) */}
                 <div className="flex items-center justify-between pb-3 mb-4 border-b border-agri-ivory-muted">
                   <div className="flex items-center space-x-2">
@@ -495,7 +493,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
                 {/* Vertical Process Stream with Custom Badges */}
                 <div className="space-y-2.5">
-                  
+
                   {/* Step A */}
                   <div className="flex items-center space-x-3 p-2.5 rounded-xl bg-agri-ivory/50 border border-agri-ivory-muted hover:border-agri-green/30 transition-all">
                     <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
@@ -606,7 +604,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="problem" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#FAF7EE] border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-10">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-red-100 text-red-800 px-3 py-1 rounded-full border border-red-200 font-mono inline-block">
               {isHindi ? 'मौजूदा व्यवस्था की चुनौतियां' : 'Current Mandi Challenges'}
@@ -622,7 +620,7 @@ export const LandingPage = ({ onSelectPortal }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
+
             {/* Problem 1: Long Waiting */}
             <div className="bg-white rounded-2xl p-6 border border-agri-ivory-muted shadow-sm hover:shadow-md transition-all space-y-3">
               <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
@@ -693,7 +691,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="how-it-works" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-agri-green-soft text-agri-green-dark px-3 py-1 rounded-full border border-agri-green-border font-mono inline-block">
               {isHindi ? 'सरल व पारदर्शी समाधान' : 'The KisanSetu Solution'}
@@ -710,7 +708,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
           {/* 8-Step Grid Layout */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+
             {/* Step 1 */}
             <div className="p-5 rounded-2xl bg-[#FAF7EE] border border-agri-ivory-muted space-y-3 relative group hover:border-agri-green/40 transition-all">
               <div className="flex items-center justify-between">
@@ -878,7 +876,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="farmer-journey" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#FAF7EE] border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200 font-mono inline-block">
               {isHindi ? 'किसान अनुभव' : 'Farmer Experience'}
@@ -895,7 +893,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
           {/* Visual Timeline of 5 Simple Steps */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
-            
+
             {/* Step 1: Book */}
             <div className="bg-white rounded-2xl p-5 border border-agri-ivory-muted shadow-sm flex flex-col justify-between space-y-4">
               <div className="space-y-3">
@@ -1006,7 +1004,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="operator-journey" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200 font-mono inline-block">
               {isHindi ? 'मंडी प्रशासन एवं ऑपरेटर दृश्य' : 'Mandi Operations & Management'}
@@ -1022,10 +1020,10 @@ export const LandingPage = ({ onSelectPortal }) => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
+
             {/* Left: Operator Value Pillars */}
             <div className="lg:col-span-6 space-y-4">
-              
+
               <div className="bg-[#FAF7EE] p-5 rounded-2xl border border-agri-ivory-muted space-y-2">
                 <div className="flex items-center space-x-2">
                   <CalendarCheck className="w-5 h-5 text-blue-700" />
@@ -1073,7 +1071,7 @@ export const LandingPage = ({ onSelectPortal }) => {
             {/* Right: Operator Console Mockup Diagram */}
             <div className="lg:col-span-6">
               <div className="bg-[#17432A] text-white rounded-3xl p-5 sm:p-6 shadow-xl border-2 border-agri-gold/40 space-y-4">
-                
+
                 {/* Console Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-agri-green-light/20">
                   <div className="flex items-center space-x-2">
@@ -1115,7 +1113,7 @@ export const LandingPage = ({ onSelectPortal }) => {
                   <p className="text-[11px] font-bold text-agri-ivory uppercase tracking-wider font-mono">
                     {isHindi ? 'काउंटर स्थिति एवं लोड वितरण' : 'Active Counter Status'}
                   </p>
-                  
+
                   <div className="bg-[#123621] p-3 rounded-xl border border-white/10 flex items-center justify-between text-xs">
                     <div className="flex items-center space-x-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -1159,7 +1157,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="smart-recommendation" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#FAF7EE] border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-agri-gold/20 text-agri-green-dark px-3 py-1 rounded-full border border-agri-gold/40 font-mono inline-block">
               {isHindi ? 'बुद्धिमान लोड बैलेंसिंग' : 'Smart Load Balancing'}
@@ -1176,7 +1174,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
           {/* Interactive Side-by-Side Comparison */}
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            
+
             {/* Congested Mandi Card */}
             <div className="bg-white rounded-3xl p-6 border-2 border-red-200 shadow-md space-y-4 relative flex flex-col justify-between">
               <div className="space-y-3">
@@ -1219,7 +1217,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
             {/* Recommended Mandi Card */}
             <div className="bg-white rounded-3xl p-6 border-2 border-emerald-500 shadow-xl space-y-4 relative flex flex-col justify-between ring-4 ring-emerald-500/10">
-              
+
               {/* Recommended Badge */}
               <div className="absolute -top-3.5 right-6 bg-emerald-700 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full shadow-md tracking-wider flex items-center space-x-1 font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-agri-gold" />
@@ -1288,7 +1286,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="live-token" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-200 font-mono inline-block">
               {isHindi ? 'डिजिटल टोकन व कतार' : 'Live Token Transparency'}
@@ -1304,11 +1302,11 @@ export const LandingPage = ({ onSelectPortal }) => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-5xl mx-auto">
-            
+
             {/* Left: Realistic Live Digital Token Card */}
             <div className="lg:col-span-6">
               <div className="bg-white rounded-3xl border-2 border-agri-green p-6 shadow-xl space-y-4">
-                
+
                 {/* Token Pass Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-agri-ivory-muted">
                   <div className="flex items-center space-x-2">
@@ -1385,7 +1383,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
               {/* Queue Sequence Items */}
               <div className="space-y-2 font-mono text-xs">
-                
+
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-900">
                   <div className="flex items-center space-x-2">
                     <Check className="w-4 h-4 text-emerald-700" />
@@ -1445,7 +1443,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="msp-payment" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#FAF7EE] border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full border border-emerald-200 font-mono inline-block">
               {isHindi ? 'गारंटीकृत सरकारी एमएसपी' : 'Transparent MSP & DBT Payout'}
@@ -1461,7 +1459,7 @@ export const LandingPage = ({ onSelectPortal }) => {
           </div>
 
           <div className="max-w-4xl mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-agri-ivory-muted shadow-lg space-y-6">
-            
+
             {/* Payment Sequence */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="p-3 rounded-xl bg-agri-ivory/50 border border-agri-ivory-muted space-y-1">
@@ -1531,7 +1529,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="benefits" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-agri-green-soft text-agri-green-dark px-3 py-1 rounded-full border border-agri-green-border font-mono inline-block">
               {isHindi ? 'प्रमुख विशेषताएं' : 'Core Advantages'}
@@ -1547,7 +1545,7 @@ export const LandingPage = ({ onSelectPortal }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
+
             <div className="p-5 rounded-2xl bg-[#FAF7EE] border border-agri-ivory-muted space-y-2.5">
               <div className="w-10 h-10 rounded-xl bg-agri-green text-white flex items-center justify-center font-bold">
                 <Clock className="w-5 h-5" />
@@ -1642,7 +1640,7 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <section id="portals" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#FAF7EE] border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-10">
-          
+
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-agri-green-dark text-agri-gold px-3 py-1 rounded-full border border-agri-gold/40 font-mono inline-block">
               {isHindi ? 'समर्पित पहुंच पोर्टल' : 'Dedicated Access Portals'}
@@ -1658,7 +1656,7 @@ export const LandingPage = ({ onSelectPortal }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            
+
             {/* 1. FARMER PORTAL */}
             <div className="bg-white rounded-3xl p-6 border-2 border-emerald-500/40 shadow-lg hover:shadow-xl hover:border-emerald-600 transition-all flex flex-col justify-between space-y-5 group">
               <div className="space-y-3">
@@ -1798,9 +1796,9 @@ export const LandingPage = ({ onSelectPortal }) => {
       {/* ========================================================================= */}
       <footer className="bg-[#123621] text-agri-ivory/80 text-xs py-10 px-4 sm:px-6 lg:px-8 border-t border-agri-green-light/20">
         <div className="max-w-7xl mx-auto space-y-8">
-          
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-white/10">
-            
+
             {/* Col 1: Brand & Ministry */}
             <div className="md:col-span-6 space-y-3">
               <div className="flex items-center space-x-2">
