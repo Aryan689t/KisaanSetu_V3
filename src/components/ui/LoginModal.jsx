@@ -46,7 +46,7 @@ export const LoginModal = () => {
             </div>
             <div>
               <h3 className="font-heading font-bold text-base text-white">
-                {t('loginTitle', 'Sign in to KisanSetu')}
+                {t('loginTitle', 'Sign in to Annagati')}
               </h3>
               <p className="text-[11px] text-agri-ivory/80">
                 {t('loginSubtitle', 'Department of Consumer Affairs Procurement Portal')}
@@ -109,7 +109,7 @@ export const LoginModal = () => {
                       type="text"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="farmer@kisansetu.gov.in"
+                      placeholder="farmer@annagati.gov.in"
                       className="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-agri-green focus:border-transparent outline-none"
                     />
                   </div>

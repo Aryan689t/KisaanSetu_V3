@@ -424,8 +424,8 @@ export const SlotBookingModal = ({ centre: initialCentre, onClose }) => {
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
                 <p className="leading-relaxed">
                   {lang === 'hi'
-                    ? 'पुष्टि करने पर आपका अनुरोध केंद्रीय किसानसेतु बैकएंड को भेजा जाएगा और एक वास्तविक डिजिटल टोकन पास जारी किया जाएगा।'
-                    : 'On confirmation, your booking will be submitted to the central KisanSetu backend and assigned an official token pass.'}
+                    ? 'पुष्टि करने पर आपका अनुरोध केंद्रीय अन्नगति बैकएंड को भेजा जाएगा और एक वास्तविक डिजिटल टोकन पास जारी किया जाएगा।'
+                    : 'On confirmation, your booking will be submitted to the central Annagati backend and assigned an official token pass.'}
                 </p>
               </div>
             </div>

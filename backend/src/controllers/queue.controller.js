@@ -5,19 +5,33 @@ const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-
 export const getCentreQueue = async (req, res) => {
   try {
     const { centreId } = req.params;
+    const { channel, bookingType, booking_type } = req.query;
+
+    let typeFilter = (bookingType || booking_type || '').toUpperCase();
+    if (!typeFilter && channel) {
+      const ch = channel.toLowerCase();
+      if (ch === 'online') typeFilter = 'ONLINE';
+      if (ch === 'physical') typeFilter = 'WALK_IN';
+    }
 
     if (hasDatabaseUrl && prisma) {
       const centre = await prisma.centre.findUnique({ where: { id: centreId } });
+      const where = {
+        centre_id: centreId,
+        status: { in: ['WAITING', 'CHECKED_IN', 'PROCESSING', 'DRYING_REQUIRED'] }
+      };
+      if (typeFilter) {
+        where.booking_type = typeFilter;
+      }
+
       const activeBookings = await prisma.booking.findMany({
-        where: {
-          centre_id: centreId,
-          status: { in: ['WAITING', 'CHECKED_IN', 'PROCESSING'] }
-        },
+        where,
         orderBy: { created_at: 'asc' }
       });
 
       const currentProcessing = activeBookings.find(b => b.status === 'PROCESSING');
       const waitingCount = activeBookings.filter(b => b.status === 'WAITING' || b.status === 'CHECKED_IN').length;
+      const dryingYardCount = activeBookings.filter(b => b.status === 'DRYING_REQUIRED').length;
 
       return res.json({
         success: true,
@@ -26,26 +40,35 @@ export const getCentreQueue = async (req, res) => {
         activeCounters: centre?.active_counters || 4,
         totalActive: activeBookings.length,
         waitingCount,
+        dryingYardCount,
         currentServingToken: currentProcessing?.token || 'None',
         estWaitMinutesPerFarmer: 8,
+        channel: channel || 'all',
         queue: activeBookings
       });
     }
 
     if (supabase) {
       const { data: centre } = await supabase.from('centres').select('*').eq('id', centreId).single();
-      const { data: bookings, error } = await supabase
+      let query = supabase
         .from('bookings')
         .select('*')
         .eq('centre_id', centreId)
-        .in('status', ['WAITING', 'CHECKED_IN', 'PROCESSING'])
+        .in('status', ['WAITING', 'CHECKED_IN', 'PROCESSING', 'DRYING_REQUIRED'])
         .order('created_at', { ascending: true });
+
+      if (typeFilter) {
+        query = query.eq('booking_type', typeFilter);
+      }
+
+      const { data: bookings, error } = await query;
 
       if (error) throw error;
 
       const activeList = bookings || [];
       const currentProcessing = activeList.find(b => b.status === 'PROCESSING');
       const waitingCount = activeList.filter(b => b.status === 'WAITING' || b.status === 'CHECKED_IN').length;
+      const dryingYardCount = activeList.filter(b => b.status === 'DRYING_REQUIRED').length;
 
       return res.json({
         success: true,
@@ -54,8 +77,10 @@ export const getCentreQueue = async (req, res) => {
         activeCounters: centre?.active_counters || 4,
         totalActive: activeList.length,
         waitingCount,
+        dryingYardCount,
         currentServingToken: currentProcessing?.token || 'None',
         estWaitMinutesPerFarmer: 8,
+        channel: channel || 'all',
         queue: activeList
       });
     }

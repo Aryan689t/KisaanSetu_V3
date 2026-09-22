@@ -1,4 +1,4 @@
-# KisanSetu 🌾
+# Annagati 🌾
 
 > *Connecting farmers. Reducing congestion. Streamlining procurement.*
 
@@ -22,7 +22,7 @@ During crop procurement seasons, farmers often face long waiting times, overcrow
 
 ## 💡 Our Solution
 
-**KisanSetu** connects farmers with procurement centers and provides better visibility into center activity. Instead of farmers simply arriving at a center and waiting in an unpredictable queue, KisanSetu aims to provide them with useful information beforehand so they can make better decisions.
+**Annagati** connects farmers with procurement centers and provides better visibility into center activity. Instead of farmers simply arriving at a center and waiting in an unpredictable queue, Annagati aims to provide them with useful information beforehand so they can make better decisions.
 
 The system also provides tools for procurement-center staff and walk-in desks to manage the flow of farmers more efficiently.
 
@@ -43,11 +43,11 @@ The system also provides tools for procurement-center staff and walk-in desks to
 
 ---
 
-## 🧠 What Makes KisanSetu Different?
+## 🧠 What Makes Annagati Different?
 
-Existing procurement systems often focus primarily on record keeping and administrative operations. KisanSetu focuses more directly on the movement and experience of farmers around procurement centers.
+Existing procurement systems often focus primarily on record keeping and administrative operations. Annagati focuses more directly on the movement and experience of farmers around procurement centers.
 
-| Existing Approach | KisanSetu 🌾 |
+| Existing Approach | Annagati 🌾 |
 |---|---|
 | Primarily center-focused | Farmer + center focused |
 | Limited visibility for farmers | Farmer-facing center information |
@@ -62,7 +62,7 @@ Existing procurement systems often focus primarily on record keeping and adminis
 ### 1. High-Level Flow Architecture
 ```mermaid
 flowchart TD
-    F[Farmer] -->|Views Info & Status| UI(KisanSetu UI)
+    F[Farmer] -->|Views Info & Status| UI(Annagati UI)
     UI -->|API Requests| B[Backend API / Supabase]
     B --> DB[(Database)]
     B --> SL{Smart Logic}
@@ -100,7 +100,7 @@ graph LR
 
 ### 👨‍🌾 Farmer Flow
 ```
-Farmer Opens KisanSetu
+Farmer Opens Annagati
     ↓
 Views procurement centers & checks status
     ↓
@@ -151,7 +151,7 @@ Farmer / Walk-in Desk Receives Updates
 ## 📸 Screenshots / Demo
 
 **Landing Page**
-![KisanSetu Landing Page](./image.png)
+![Annagati Landing Page](./image.png)
 
 **👨‍🌾 Farmer Dashboard**
 ![Farmer Portal Login](./Farmer%20Dashboard.png)
@@ -173,7 +173,7 @@ Farmer / Walk-in Desk Receives Updates
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd KisanSetu
+cd Annagati
 
 # Install dependencies
 npm install

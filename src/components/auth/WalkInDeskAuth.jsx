@@ -6,7 +6,7 @@ export const WalkInDeskAuth = ({ onBack }) => {
   const { loginWithRole, lang } = useDemo();
   const isHindi = lang === 'hi';
 
-  const [operatorEmail, setOperatorEmail] = useState('desk.operator@kisansetu.gov.in');
+  const [operatorEmail, setOperatorEmail] = useState('desk.operator@annagati.gov.in');
   const [deskStaffId, setDeskStaffId] = useState('APMC-DESK-01');
   const [gatePin, setGatePin] = useState('');
 
@@ -19,7 +19,7 @@ export const WalkInDeskAuth = ({ onBack }) => {
   };
 
   const handleQuickDemo = () => {
-    loginWithRole('walkin', 'desk.operator@kisansetu.gov.in', {
+    loginWithRole('walkin', 'desk.operator@annagati.gov.in', {
       fullName: 'Suresh Patel',
       district: 'Sonipat Main Yard • Gate 1 Desk'
     });
@@ -46,7 +46,7 @@ export const WalkInDeskAuth = ({ onBack }) => {
             </div>
             <div>
               <span className="font-heading text-lg sm:text-xl font-bold text-white block">
-                KisanSetu • Walk-In & Assisted Desk Portal
+                Annagati • Walk-In & Assisted Desk Portal
               </span>
               <span className="text-[10px] text-agri-gold">
                 APMC Mandi Gate Entry & Spot Token Registration Desk
@@ -91,7 +91,7 @@ export const WalkInDeskAuth = ({ onBack }) => {
                   required
                   value={operatorEmail}
                   onChange={(e) => setOperatorEmail(e.target.value)}
-                  placeholder="desk.sonipat@kisansetu.gov.in"
+                  placeholder="desk.sonipat@annagati.gov.in"
                   className="w-full pl-9 pr-3 py-2.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-agri-green outline-none font-medium"
                 />
               </div>

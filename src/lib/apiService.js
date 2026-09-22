@@ -1,5 +1,5 @@
 /**
- * Frontend REST API Service Layer for KisanSetu
+ * Frontend REST API Service Layer for Annagati
  * Communicates with the Express backend REST API endpoints (/api).
  */
 
@@ -56,6 +56,20 @@ export function normalizeBooking(booking) {
     moisture_percent: booking.moisture_percent != null ? Number(booking.moisture_percent) : null,
     qualityGrade: booking.quality_grade || booking.qualityGrade || null,
     quality_grade: booking.quality_grade || booking.qualityGrade || null,
+    qualityParameters: booking.quality_parameters || booking.qualityParameters || null,
+    quality_parameters: booking.quality_parameters || booking.qualityParameters || null,
+    arrivalTime: booking.arrival_time || booking.arrivalTime || null,
+    arrival_time: booking.arrival_time || booking.arrivalTime || null,
+    estTime: booking.est_time || booking.estTime || null,
+    est_time: booking.est_time || booking.estTime || null,
+    suspendedAt: booking.suspended_at || booking.suspendedAt || null,
+    suspended_at: booking.suspended_at || booking.suspendedAt || null,
+    dryingYardLocation: booking.drying_yard_location || booking.dryingYardLocation || null,
+    drying_yard_location: booking.drying_yard_location || booking.dryingYardLocation || null,
+    freightSubsidy: booking.freight_subsidy != null ? Number(booking.freight_subsidy) : (booking.freightSubsidy != null ? Number(booking.freightSubsidy) : 0),
+    freight_subsidy: booking.freight_subsidy != null ? Number(booking.freight_subsidy) : (booking.freightSubsidy != null ? Number(booking.freightSubsidy) : 0),
+    reroutedFrom: booking.rerouted_from || booking.reroutedFrom || null,
+    rerouted_from: booking.rerouted_from || booking.reroutedFrom || null,
     counter: booking.counter || 'Counter 2',
     status: (booking.status || 'WAITING').toUpperCase(),
     bookingType: resolvedBookingType,
@@ -113,7 +127,7 @@ async function apiRequest(endpoint, options = {}) {
       throw new Error('Connection timed out. Please check if the backend server is running.');
     }
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-      throw new Error('Unable to connect to KisanSetu backend. Please ensure the backend service is running on port 5000.');
+      throw new Error('Unable to connect to Annagati backend. Please ensure the backend service is running on port 5000.');
     }
     throw error;
   }
@@ -133,7 +147,12 @@ export async function createBooking({
   aadhaarLast4,
   bookingType = 'ONLINE',
   status,
-  counter
+  counter,
+  arrivalTime,
+  estTime,
+  freightSubsidy,
+  reroutedFrom,
+  qualityParameters
 }) {
   if (!centreId) throw new Error('Procurement Centre is required');
   if (!cropName) throw new Error('Crop Name is required');
@@ -150,7 +169,12 @@ export async function createBooking({
     aadhaarLast4: aadhaarLast4 || '4821',
     bookingType: bookingType || 'ONLINE',
     status: status || (bookingType === 'WALK_IN' ? 'CHECKED_IN' : 'WAITING'),
-    counter: counter || 'Counter 2'
+    counter: counter || 'Counter 2',
+    arrivalTime: arrivalTime || null,
+    estTime: estTime || null,
+    freightSubsidy: freightSubsidy || 0,
+    reroutedFrom: reroutedFrom || null,
+    qualityParameters: qualityParameters || null
   };
 
   try {
@@ -177,13 +201,37 @@ export async function createBooking({
     if (directRes?.success && directRes.data) {
       return {
         success: true,
-        message: 'Slot booked successfully in KisanSetu Registry',
+        message: 'Slot booked successfully in Annagati Registry',
         data: normalizeBooking(directRes.data)
       };
     }
 
     throw apiErr;
   }
+}
+
+/**
+ * Sends a high-moisture batch to the Holding/Drying Yard via POST /api/operator/send-to-drying-yard.
+ */
+export async function sendToDryingYardApi({ token, bookingId, moisturePercent, dryingYardLocation }) {
+  const response = await apiRequest('/operator/send-to-drying-yard', {
+    method: 'POST',
+    body: JSON.stringify({ token, bookingId, moisturePercent, dryingYardLocation }),
+    role: 'operator'
+  });
+  return response;
+}
+
+/**
+ * Submits procurement weighment & quality assessment via POST /api/operator/complete-procurement.
+ */
+export async function completeProcurementApi({ token, bookingId, actualQty, moisturePercent, qualityGrade, ratePerQuintal, qualityParameters }) {
+  const response = await apiRequest('/operator/complete-procurement', {
+    method: 'POST',
+    body: JSON.stringify({ token, bookingId, actualQty, moisturePercent, qualityGrade, ratePerQuintal, qualityParameters }),
+    role: 'operator'
+  });
+  return response;
 }
 
 /**
@@ -194,6 +242,7 @@ export async function fetchBookings(filters = {}) {
   if (filters.centreId) params.append('centreId', filters.centreId);
   if (filters.status) params.append('status', filters.status);
   if (filters.token) params.append('token', filters.token);
+  if (filters.bookingType) params.append('bookingType', filters.bookingType);
   if (filters.limit) params.append('limit', filters.limit);
 
   const query = params.toString() ? `?${params.toString()}` : '';
@@ -220,8 +269,9 @@ export async function fetchBookingById(id) {
 /**
  * Fetches live centre queue from GET /api/queue/:centreId.
  */
-export async function fetchCentreQueue(centreId) {
-  const response = await apiRequest(`/queue/${encodeURIComponent(centreId)}`, { method: 'GET' });
+export async function fetchCentreQueue(centreId, channel = null) {
+  const query = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+  const response = await apiRequest(`/queue/${encodeURIComponent(centreId)}${query}`, { method: 'GET' });
   return response;
 }
 
@@ -234,3 +284,4 @@ export async function fetchQueuePosition(centreId, bookingId) {
   });
   return response;
 }
+

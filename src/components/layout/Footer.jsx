@@ -10,7 +10,7 @@ export const Footer = () => {
           <div className="md:col-span-2 space-y-2">
             <div className="flex items-center space-x-2 text-white font-heading font-bold text-base">
               <Wheat className="w-5 h-5 text-agri-gold" />
-              <span>KisanSetu Platform</span>
+              <span>Annagati Platform</span>
             </div>
             <p className="text-agri-ivory/70 leading-relaxed max-w-md text-xs">
               Smart Crop Procurement & Queue Management System. Developed for the Department of Consumer Affairs (DoCA), Ministry of Consumer Affairs, Food & Public Distribution, Government of India.
@@ -47,7 +47,7 @@ export const Footer = () => {
         </div>
 
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-agri-ivory/50">
-          <p>© 2026 KisanSetu Platform | Problem Statement 26032 | Hackathon Prototype</p>
+          <p>© 2026 Annagati Platform | Problem Statement 26032 | Hackathon Prototype</p>
           <p className="mt-2 sm:mt-0 flex items-center space-x-1">
             <ShieldAlert className="w-3.5 h-3.5 text-agri-gold" />
             <span>Built for Smart Automation in Public Food Procurement</span>

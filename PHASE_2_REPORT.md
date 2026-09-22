@@ -1,6 +1,6 @@
 # Phase 2 Implementation Report: Supabase Frontend Integration
 
-> **Project**: KisanSetu (Smart Crop Procurement & Mandi Queue Management)  
+> **Project**: Annagati (Smart Crop Procurement & Mandi Queue Management)  
 > **Status**: Completed Phase 2 (Farmer → Operator → Admin Core Workflow connected to Supabase)  
 > **Build Status**: Production Vite build passing cleanly (`✓ built in 3.23s`, 0 errors).
 
@@ -8,7 +8,7 @@
 
 ## 1. Files Changed
 
-1. **[`src/lib/supabaseService.js`](file:///c:/HTML/kisansetu_V2/src/lib/supabaseService.js)**
+1. **`src/lib/supabaseService.js`**
    - Implemented dynamic data fetching: `fetchBookings()`, `fetchActiveBookings()`, `fetchCentres()`, and `fetchActiveQueueMetrics()`.
    - Implemented database mutations matching Supabase schema:
      - `createSlotBooking(bookingData)` (aliased as `createBooking`)
@@ -19,7 +19,7 @@
    - Robust UUID vs. token detection so updates by either ID or token string work reliably.
    - Preserved fallback data mapping so the UI never crashes if Supabase is initializing or temporarily unreachable.
 
-2. **[`src/context/DemoContext.jsx`](file:///c:/HTML/kisansetu_V2/src/context/DemoContext.jsx)**
+2. **`src/context/DemoContext.jsx`**
    - **Initial Mount Sync**: Added `refreshBookings()` inside `useEffect`, loading real `centres` and `bookings` from Supabase on application load.
    - **Dynamic Active Booking**: Removed the hardcoded dependency on `SNP-014` as the only source of truth. The active farmer booking is now resolved dynamically via `activeBookingToken` (persisted across page reloads in `localStorage`).
    - **Real Booking Creation**: `bookSlot()` creates a real row in the Supabase `bookings` table, updates `queueItems`, saves the new token to `localStorage`, and switches the farmer to the live queue.
@@ -27,10 +27,10 @@
    - **Admin Action Persistence**: `disbursePayment()` updates `payment_status = 'DISBURSED'` and generates a real DBT transaction reference in Supabase.
    - **Payment History Sync**: Completed and disbursed bookings from Supabase automatically populate the farmer's "Payments & History" tab.
 
-3. **[`src/components/layout/SubtleDemoBar.jsx`](file:///c:/HTML/kisansetu_V2/src/components/layout/SubtleDemoBar.jsx)**
+3. **`src/components/layout/SubtleDemoBar.jsx`**
    - Updated the fast-forward demo triggers (`Call`, `Complete`, `Disburse`) to dynamically target `activeBooking?.token` rather than a static string. They work seamlessly on both the seeded `SNP-014` and any newly booked farmer token.
 
-4. **[`src/components/ui/TokenDisplay.jsx`](file:///c:/HTML/kisansetu_V2/src/components/ui/TokenDisplay.jsx)**
+4. **`src/components/ui/TokenDisplay.jsx`**
    - Updated farmers-ahead queue position and farmer name display to compute dynamically from the live `queueItems` list rather than fixed static strings.
 
 ---

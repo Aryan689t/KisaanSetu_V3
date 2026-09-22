@@ -67,7 +67,7 @@ export const Navbar = () => {
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-white">
-                    {t('navBrand', 'KisanSetu')}
+                    {t('navBrand', 'Annagati')}
                   </span>
                   <span className="text-[10px] font-bold bg-agri-green-dark/80 text-agri-gold px-2 py-0.5 rounded border border-agri-gold/30 hidden xs:inline-block font-mono">
                     DoCA Mandi

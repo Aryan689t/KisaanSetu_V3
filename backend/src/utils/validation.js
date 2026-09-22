@@ -1,5 +1,5 @@
 /**
- * Server-Side Validation Utilities for KisanSetu API
+ * Server-Side Validation Utilities for Annagati API
  */
 
 export const sanitizeMobile = (val) => {
@@ -32,3 +32,30 @@ export const isValidAadhaarLast4 = (val) => {
   if (!val) return false;
   return /^\d{4}$/.test(String(val).trim());
 };
+
+export const ALLOWED_BOOKING_TYPES = ['ONLINE', 'WALK_IN', 'ASSISTED'];
+export const isValidBookingType = (val) => {
+  if (!val) return true; // defaults to ONLINE
+  return ALLOWED_BOOKING_TYPES.includes(String(val).toUpperCase());
+};
+
+export const ALLOWED_OPERATOR_CHANNELS = ['online', 'physical'];
+export const isValidOperatorChannel = (val) => {
+  if (!val) return true; // defaults to online
+  return ALLOWED_OPERATOR_CHANNELS.includes(String(val).toLowerCase());
+};
+
+export const ALLOWED_BOOKING_STATUSES = [
+  'WAITING',
+  'CHECKED_IN',
+  'PROCESSING',
+  'COMPLETED',
+  'CANCELLED',
+  'DRYING_REQUIRED',
+  'NO_SHOW'
+];
+export const isValidBookingStatus = (val) => {
+  if (!val) return false;
+  return ALLOWED_BOOKING_STATUSES.includes(String(val).toUpperCase());
+};
+

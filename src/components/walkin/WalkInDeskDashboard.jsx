@@ -742,7 +742,7 @@ export const WalkInDeskDashboard = () => {
                       <span>DELIVERED NOW</span>
                     </div>
                     <p className="font-mono text-xs text-emerald-300">
-                      "KisanSetu: Token {confirmedToken.token} issued for {farmerName}. Directed to: {confirmedToken.counter || assignedCounter}. Please proceed to your weighbridge when called."
+                      "Annagati: Token {confirmedToken.token} issued for {farmerName}. Directed to: {confirmedToken.counter || assignedCounter}. Please proceed to your weighbridge when called."
                     </p>
                   </div>
                 )}

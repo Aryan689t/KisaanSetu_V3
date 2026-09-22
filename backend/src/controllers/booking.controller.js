@@ -6,13 +6,15 @@ const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-
 
 export const getBookings = async (req, res) => {
   try {
-    const { centreId, status, token, limit = 50 } = req.query;
+    const { centreId, status, token, bookingType, booking_type, limit = 50 } = req.query;
+    const typeFilter = (bookingType || booking_type || '').toUpperCase();
 
     if (hasDatabaseUrl && prisma) {
       const where = {};
       if (centreId) where.centre_id = centreId;
       if (status) where.status = status.toUpperCase();
       if (token) where.token = token.toUpperCase();
+      if (typeFilter) where.booking_type = typeFilter;
 
       const bookings = await prisma.booking.findMany({
         where,
@@ -29,6 +31,7 @@ export const getBookings = async (req, res) => {
       if (centreId) query = query.eq('centre_id', centreId);
       if (status) query = query.eq('status', status.toUpperCase());
       if (token) query = query.eq('token', token.toUpperCase());
+      if (typeFilter) query = query.eq('booking_type', typeFilter);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -85,7 +88,17 @@ export const createBooking = async (req, res) => {
       farmerName,
       mobile,
       aadhaarLast4 = '4821',
-      token: requestedToken
+      token: requestedToken,
+      arrivalTime,
+      arrival_time,
+      estTime,
+      est_time,
+      qualityParameters,
+      quality_parameters,
+      freightSubsidy = 0,
+      freight_subsidy = 0,
+      reroutedFrom,
+      rerouted_from
     } = req.body;
 
     // 1. Validation
@@ -118,9 +131,16 @@ export const createBooking = async (req, res) => {
 
     const effectiveFarmerName = farmerName ? sanitizePersonName(farmerName) : (req.user?.name || 'Ramesh Singh (YOU)');
     const effectiveMobile = mobile ? sanitizeMobile(mobile) : (req.user?.phone || '9876543210');
-    const bookingType = req.body.bookingType || req.body.booking_source || 'ONLINE'; // ONLINE, ASSISTED, WALK_IN
+    const rawBookingType = (req.body.bookingType || req.body.booking_type || 'ONLINE').toUpperCase();
+    const bookingType = ['ONLINE', 'WALK_IN', 'ASSISTED'].includes(rawBookingType) ? rawBookingType : 'ONLINE';
     const initialStatus = req.body.status || (bookingType === 'WALK_IN' ? 'CHECKED_IN' : 'WAITING');
     const slotCapacityLimit = Number(req.body.slotCapacity || 5); // Configurable max 5 trucks per 30-min window
+
+    const effectiveArrivalTime = arrivalTime || arrival_time ? new Date(arrivalTime || arrival_time).toISOString() : null;
+    const effectiveEstTime = estTime || est_time ? new Date(estTime || est_time).toISOString() : null;
+    const effectiveQualityParams = qualityParameters || quality_parameters || null;
+    const effectiveFreightSubsidy = Number(freightSubsidy || freight_subsidy || 0);
+    const effectiveReroutedFrom = reroutedFrom || rerouted_from || null;
 
     // 2. Prisma Database Flow (with Transaction-based capacity verification & atomic concurrency lock)
     if (hasDatabaseUrl && prisma) {
@@ -144,7 +164,7 @@ export const createBooking = async (req, res) => {
           });
 
           if (activeInSlot >= slotCapacityLimit) {
-            const conflictErr = new Error(`Selected 30-minute arrival window is at full capacity (${activeInSlot}/${slotCapacityLimit}). Please select an alternative slot.`);
+            const conflictErr = new Error(`Selected arrival window is at full capacity (${activeInSlot}/${slotCapacityLimit}). Please select an alternative slot.`);
             conflictErr.statusCode = 409;
             conflictErr.code = 'SLOT_FULL';
             throw conflictErr;
@@ -181,7 +201,12 @@ export const createBooking = async (req, res) => {
               booking_type: bookingType,
               counter: req.body.counter || 'Counter 2',
               rate_per_quintal: 2200,
-              payment_status: 'PENDING'
+              payment_status: 'PENDING',
+              arrival_time: effectiveArrivalTime ? new Date(effectiveArrivalTime) : null,
+              est_time: effectiveEstTime ? new Date(effectiveEstTime) : null,
+              quality_parameters: effectiveQualityParams,
+              freight_subsidy: effectiveFreightSubsidy,
+              rerouted_from: effectiveReroutedFrom
             },
             include: { centre: true }
           });
@@ -232,7 +257,7 @@ export const createBooking = async (req, res) => {
         return res.status(409).json({
           success: false,
           code: 'SLOT_FULL',
-          message: `Selected 30-minute arrival window is at full capacity (${slotBookingsCount}/${slotCapacityLimit}). Please select an alternative slot.`
+          message: `Selected arrival window is at full capacity (${slotBookingsCount}/${slotCapacityLimit}). Please select an alternative slot.`
         });
       }
 
@@ -272,10 +297,36 @@ export const createBooking = async (req, res) => {
         booking_type: bookingType,
         counter: req.body.counter || 'Counter 2',
         rate_per_quintal: 2200,
-        payment_status: 'PENDING'
+        payment_status: 'PENDING',
+        arrival_time: effectiveArrivalTime,
+        est_time: effectiveEstTime,
+        quality_parameters: effectiveQualityParams,
+        freight_subsidy: effectiveFreightSubsidy,
+        rerouted_from: effectiveReroutedFrom
       };
 
-      const { data, error } = await supabase.from('bookings').insert([newBookingPayload]).select('*, centres(*)').single();
+      let { data, error } = await supabase.from('bookings').insert([newBookingPayload]).select('*, centres(*)').maybeSingle();
+
+      if (error && (error.code === 'PGRST204' || error.message?.includes('schema cache'))) {
+        const basePayload = {
+          token: tokenToUse,
+          centre_id: validCentreId,
+          farmer_name: effectiveFarmerName,
+          mobile: effectiveMobile,
+          aadhaar_last4: aadhaarLast4,
+          crop_name: cropName,
+          slot_time: slotTime,
+          expected_qty: Number(expectedQty),
+          status: initialStatus,
+          counter: req.body.counter || 'Counter 2',
+          rate_per_quintal: 2200,
+          payment_status: 'PENDING'
+        };
+        const retryRes = await supabase.from('bookings').insert([basePayload]).select('*, centres(*)').maybeSingle();
+        if (retryRes.error) throw retryRes.error;
+        data = { ...retryRes.data, ...newBookingPayload };
+        error = null;
+      }
 
       if (error) throw error;
 
@@ -303,7 +354,29 @@ export const createBooking = async (req, res) => {
 export const updateBooking = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const body = req.body;
+
+    // Normalize keys to database snake_case columns
+    const updateData = {};
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.bookingType !== undefined || body.booking_type !== undefined) updateData.booking_type = (body.bookingType || body.booking_type).toUpperCase();
+    if (body.counter !== undefined) updateData.counter = body.counter;
+    if (body.actualQty !== undefined || body.actual_qty !== undefined) updateData.actual_qty = Number(body.actualQty ?? body.actual_qty);
+    if (body.moisturePercent !== undefined || body.moisture_percent !== undefined) updateData.moisture_percent = Number(body.moisturePercent ?? body.moisture_percent);
+    if (body.qualityGrade !== undefined || body.quality_grade !== undefined) updateData.quality_grade = body.qualityGrade || body.quality_grade;
+    if (body.qualityParameters !== undefined || body.quality_parameters !== undefined) updateData.quality_parameters = body.qualityParameters || body.quality_parameters;
+    if (body.ratePerQuintal !== undefined || body.rate_per_quintal !== undefined) updateData.rate_per_quintal = Number(body.ratePerQuintal ?? body.rate_per_quintal);
+    if (body.totalPayout !== undefined || body.total_payout !== undefined) updateData.total_payout = Number(body.totalPayout ?? body.total_payout);
+    if (body.paymentStatus !== undefined || body.payment_status !== undefined) updateData.payment_status = body.paymentStatus || body.payment_status;
+    if (body.dbtReference !== undefined || body.dbt_reference !== undefined) updateData.dbt_reference = body.dbtReference || body.dbt_reference;
+    if (body.centreId !== undefined || body.centre_id !== undefined) updateData.centre_id = body.centreId || body.centre_id;
+    if (body.suspendedAt !== undefined || body.suspended_at !== undefined) updateData.suspended_at = body.suspendedAt || body.suspended_at;
+    if (body.dryingYardLocation !== undefined || body.drying_yard_location !== undefined) updateData.drying_yard_location = body.dryingYardLocation || body.drying_yard_location;
+    if (body.freightSubsidy !== undefined || body.freight_subsidy !== undefined) updateData.freight_subsidy = Number(body.freightSubsidy ?? body.freight_subsidy);
+    if (body.reroutedFrom !== undefined || body.rerouted_from !== undefined) updateData.rerouted_from = body.reroutedFrom || body.rerouted_from;
+    if (body.slotTime !== undefined || body.slot_time !== undefined) updateData.slot_time = body.slotTime || body.slot_time;
+    if (body.arrivalTime !== undefined || body.arrival_time !== undefined) updateData.arrival_time = body.arrivalTime || body.arrival_time;
+    if (body.estTime !== undefined || body.est_time !== undefined) updateData.est_time = body.estTime || body.est_time;
 
     if (hasDatabaseUrl && prisma) {
       const updated = isUuid(id)
@@ -315,9 +388,31 @@ export const updateBooking = async (req, res) => {
 
     if (supabase) {
       const query = supabase.from('bookings').update(updateData);
-      const { data, error } = isUuid(id)
-        ? await query.eq('id', id).select().single()
-        : await query.eq('token', id.toUpperCase()).select().single();
+      let { data, error } = isUuid(id)
+        ? await query.eq('id', id).select().maybeSingle()
+        : await query.eq('token', id.toUpperCase()).select().maybeSingle();
+
+      if (error && (error.code === 'PGRST204' || error.message?.includes('schema cache'))) {
+        const safeUpdate = { ...updateData };
+        delete safeUpdate.quality_parameters;
+        delete safeUpdate.arrival_time;
+        delete safeUpdate.est_time;
+        delete safeUpdate.suspended_at;
+        delete safeUpdate.drying_yard_location;
+        delete safeUpdate.freight_subsidy;
+        delete safeUpdate.rerouted_from;
+        delete safeUpdate.booking_type;
+
+        const retryQuery = supabase.from('bookings').update(safeUpdate);
+        const retryRes = isUuid(id)
+          ? await retryQuery.eq('id', id).select().maybeSingle()
+          : await retryQuery.eq('token', id.toUpperCase()).select().maybeSingle();
+
+        if (!retryRes.error) {
+          data = { ...(retryRes.data || {}), ...updateData };
+          error = null;
+        }
+      }
 
       if (error) throw error;
       return res.json({ success: true, message: 'Booking updated successfully', data });

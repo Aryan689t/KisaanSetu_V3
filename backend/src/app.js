@@ -16,7 +16,7 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    service: 'KisanSetu Backend REST API',
+    service: 'Annagati Backend REST API',
     status: 'OPERATIONAL',
     timestamp: new Date().toISOString()
   });

@@ -393,7 +393,7 @@ export const AssistedBookingModal = ({ onClose }) => {
                   <span>DELIVERED NOW</span>
                 </div>
                 <p className="font-mono text-[11px] text-emerald-300">
-                  "KisanSetu: Token {confirmedToken.token} issued for {farmerName}. Yard: {selectedCentre.name.split(' ')[0]}. Station: {confirmedToken.counter || assignedCounter}. Gate entry verified. Payout via DBT post-weighment."
+                  "Annagati: Token {confirmedToken.token} issued for {farmerName}. Yard: {selectedCentre.name.split(' ')[0]}. Station: {confirmedToken.counter || assignedCounter}. Gate entry verified. Payout via DBT post-weighment."
                 </p>
               </div>
             )}

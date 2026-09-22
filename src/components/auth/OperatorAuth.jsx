@@ -11,7 +11,7 @@ export const OperatorAuth = ({ onBack }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    loginWithRole('operator', `${operatorId.toLowerCase()}@kisansetu.gov.in`);
+    loginWithRole('operator', `${operatorId.toLowerCase()}@annagati.gov.in`);
   };
 
   return (
@@ -35,7 +35,7 @@ export const OperatorAuth = ({ onBack }) => {
             </div>
             <div>
               <span className="font-heading text-lg sm:text-xl font-bold text-white block">
-                KisanSetu • Mandi Operator Staff Portal
+                Annagati • Mandi Operator Staff Portal
               </span>
               <span className="text-[10px] text-blue-200">
                 Gate Inspection & Weighment Management System

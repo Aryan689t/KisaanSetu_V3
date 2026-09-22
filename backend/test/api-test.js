@@ -23,7 +23,7 @@ async function request(method, path, body = null, headers = {}) {
 }
 
 async function runTests() {
-  console.log('🚀 Starting KisanSetu Backend API Test Suite...\n');
+  console.log('🚀 Starting Annagati Backend API Test Suite...\n');
   let passed = 0;
   let failed = 0;
 
@@ -74,7 +74,7 @@ async function runTests() {
       cropName: 'Wheat (Sharbati)',
       slotTime: '02:00 PM - 02:30 PM',
       expectedQty: 45.0,
-      farmerName: 'KisanSetu Automated Test',
+      farmerName: 'Annagati Automated Test',
       mobile: '+91 99999 88888',
       token: testToken
     });
@@ -87,11 +87,14 @@ async function runTests() {
       failed++;
     }
 
-    // 5. GET /api/queue/:centreId returns real queue data
+    // 5. GET /api/queue/:centreId returns real queue data with channel filtering
     console.log('Test 5: GET /api/queue/cnt-sonipat returns live queue');
     const queueRes = await request('GET', '/api/queue/cnt-sonipat');
+    const onlineQueueRes = await request('GET', '/api/queue/cnt-sonipat?channel=online');
+    const physicalQueueRes = await request('GET', '/api/queue/cnt-sonipat?channel=physical');
+
     if (queueRes.status === 200 && queueRes.data.success && Array.isArray(queueRes.data.queue)) {
-      console.log(`  ✅ PASSED: Queue loaded for ${queueRes.data.centreName} (${queueRes.data.totalActive} active)\n`);
+      console.log(`  ✅ PASSED: Live queue returned for ${queueRes.data.centreName} (All: ${queueRes.data.totalActive}, Online: ${onlineQueueRes.data?.queue?.length ?? 0}, Physical: ${physicalQueueRes.data?.queue?.length ?? 0})\n`);
       passed++;
     } else {
       console.error('  ❌ FAILED:', queueRes);
@@ -124,14 +127,40 @@ async function runTests() {
       failed++;
     }
 
-    // 8. Complete-procurement stores real procurement data
-    console.log('Test 8: POST /api/operator/complete-procurement');
+    // 8. Moisture failure / Drying Yard test
+    console.log('Test 8: POST /api/operator/send-to-drying-yard (Moisture > 17%)');
+    const dryingRes = await request('POST', '/api/operator/send-to-drying-yard', {
+      token: testToken,
+      moisturePercent: 18.5,
+      dryingYardLocation: 'Yard 2 • Solar Aeration Bed C'
+    }, {
+      Authorization: `Bearer ${operatorToken}`
+    });
+    if (dryingRes.status === 200 && dryingRes.data.data?.status === 'DRYING_REQUIRED') {
+      console.log(`  ✅ PASSED: Token ${testToken} transferred to Drying Yard (status: DRYING_REQUIRED, moisture: 18.5%)\n`);
+      passed++;
+    } else {
+      console.error('  ❌ FAILED:', dryingRes);
+      failed++;
+    }
+
+    // 9. Complete-procurement stores real procurement data with quality parameters
+    console.log('Test 9: POST /api/operator/complete-procurement (Produce dried to 13.8%)');
     const procRes = await request('POST', '/api/operator/complete-procurement', {
       token: testToken,
       actualQty: 44.2,
-      moisturePercent: 12.1,
+      moisturePercent: 13.8,
       qualityGrade: 'Grade A',
-      ratePerQuintal: 2275
+      ratePerQuintal: 2275,
+      qualityParameters: {
+        moisturePercent: 13.8,
+        foreignMatter: 1.1,
+        damagedGrains: 0.8,
+        immatureGrains: 1.0,
+        admixture: 0.4,
+        weevilledGrains: 0.1,
+        allPassed: true
+      }
     }, {
       Authorization: `Bearer ${operatorToken}`
     });
@@ -143,8 +172,8 @@ async function runTests() {
       failed++;
     }
 
-    // 9. Admin overview & DBT Payment Disbursal
-    console.log('Test 9: GET /api/admin/overview & POST /api/admin/disburse-payment');
+    // 10. Admin overview & DBT Payment Disbursal
+    console.log('Test 10: GET /api/admin/overview & POST /api/admin/disburse-payment');
     const adminOverview = await request('GET', '/api/admin/overview', null, { 'x-role': 'admin' });
     const disburseRes = await request('POST', '/api/admin/disburse-payment', { token: testToken }, { 'x-role': 'admin' });
 
@@ -156,8 +185,8 @@ async function runTests() {
       failed++;
     }
 
-    // 10. Invalid requests return proper HTTP error codes
-    console.log('Test 10: Error handling - Invalid booking creation');
+    // 11. Invalid requests return proper HTTP error codes
+    console.log('Test 11: Error handling - Invalid booking creation');
     const invalidBooking = await request('POST', '/api/bookings', { centreId: 'cnt-nonexistent' });
     if (invalidBooking.status === 400 || invalidBooking.status === 404) {
       console.log(`  ✅ PASSED: Correctly returned HTTP ${invalidBooking.status}: "${invalidBooking.data?.message}"\n`);

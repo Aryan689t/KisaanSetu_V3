@@ -125,7 +125,7 @@ export const LandingPage = ({ onSelectPortal }) => {
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-heading text-xl sm:text-2xl font-black tracking-tight text-white">
-                    KisanSetu
+                    Annagati
                   </span>
                   <span className="text-[10px] font-extrabold bg-agri-green-dark text-agri-gold px-2 py-0.5 rounded-full border border-agri-gold/40 font-mono tracking-wider">
                     PS 26032
@@ -475,7 +475,7 @@ export const LandingPage = ({ onSelectPortal }) => {
 
             </div>
 
-            {/* Right Column: Visual Diagram of KisanSetu Flow */}
+            {/* Right Column: Visual Diagram of Annagati Flow */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border-2 border-agri-gold/40 relative">
 
@@ -483,7 +483,7 @@ export const LandingPage = ({ onSelectPortal }) => {
                 <div className="flex items-center justify-between pb-3 mb-4 border-b border-agri-ivory-muted">
                   <div className="flex items-center space-x-2">
                     <span className="text-xs font-bold text-agri-green uppercase tracking-wider font-mono">
-                      {isHindi ? 'लाइव प्रक्रिया प्रवाह' : 'KisanSetu Flow Preview'}
+                      {isHindi ? 'लाइव प्रक्रिया प्रवाह' : 'Annagati Flow Preview'}
                     </span>
                   </div>
                   <span className="text-[10px] bg-agri-gold/20 text-agri-green-dark font-extrabold px-2 py-0.5 rounded border border-agri-gold/30">
@@ -687,21 +687,21 @@ export const LandingPage = ({ onSelectPortal }) => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. HOW KISANSETU WORKS SECTION                                            */}
+      {/* 4. HOW ANNAGATI WORKS SECTION                                             */}
       {/* ========================================================================= */}
       <section id="how-it-works" className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-agri-ivory-muted">
         <div className="max-w-7xl mx-auto space-y-12">
 
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase bg-agri-green-soft text-agri-green-dark px-3 py-1 rounded-full border border-agri-green-border font-mono inline-block">
-              {isHindi ? 'सरल व पारदर्शी समाधान' : 'The KisanSetu Solution'}
+              {isHindi ? 'सरल व पारदर्शी समाधान' : 'The Annagati Solution'}
             </span>
             <h2 className="font-heading text-2xl sm:text-4xl font-extrabold text-agri-text">
               {isHindi ? 'खेत से बैंक खाते तक — आसान चरणों में' : 'From your farm to payment — in a few simple steps'}
             </h2>
             <p className="text-xs sm:text-sm text-agri-text-muted leading-relaxed">
               {isHindi
-                ? 'किसानसेतु पूरी खरीद प्रक्रिया को सुव्यवस्थित करता है ताकि किसान अपनी सुविधानुसार समय चुन सकें और पारदर्शी भुगतान प्राप्त कर सकें।'
+                ? 'अन्नगति पूरी खरीद प्रक्रिया को सुव्यवस्थित करता है ताकि किसान अपनी सुविधानुसार समय चुन सकें और पारदर्शी भुगतान प्राप्त कर सकें।'
                 : 'A structured, transparent procurement pipeline designed to eliminate physical queue fatigue and empower farmers.'}
             </p>
           </div>
@@ -886,7 +886,7 @@ export const LandingPage = ({ onSelectPortal }) => {
             </h2>
             <p className="text-xs sm:text-sm text-agri-text-muted leading-relaxed">
               {isHindi
-                ? 'किसानसेतु का उपयोग करना उतना ही आसान है जितना फोन पर एक संदेश देखना।'
+                ? 'अन्नगति का उपयोग करना उतना ही आसान है जितना फोन पर एक संदेश देखना।'
                 : 'A step-by-step visual walkthrough showing how simple and stress-free selling crops becomes.'}
             </p>
           </div>
@@ -1014,7 +1014,7 @@ export const LandingPage = ({ onSelectPortal }) => {
             </h2>
             <p className="text-xs sm:text-sm text-agri-text-muted leading-relaxed">
               {isHindi
-                ? 'किसानसेतु केवल किसानों के लिए ही नहीं, बल्कि मंडी ऑपरेटरों और खरीद एजेंसियों को भी सुगम प्रबंधन की पूरी शक्ति देता है।'
+                ? 'अन्नगति केवल किसानों के लिए ही नहीं, बल्कि मंडी ऑपरेटरों और खरीद एजेंसियों को भी सुगम प्रबंधन की पूरी शक्ति देता है।'
                 : 'Mandi operators get real-time operational visibility over scheduled arrivals, weighbridge counter queues, and procurement metrics.'}
             </p>
           </div>
@@ -1167,8 +1167,8 @@ export const LandingPage = ({ onSelectPortal }) => {
             </h2>
             <p className="text-xs sm:text-sm text-agri-text-muted leading-relaxed">
               {isHindi
-                ? 'किसानसेतु लाइव कतार, इंतजार समय और मंडी क्षमता का विश्लेषण कर किसान को समय बचाने वाले नजदीकी केंद्र का सुझाव देता है।'
-                : 'KisanSetu analyzes live queue telemetry to suggest alternative nearby yards when they offer significantly lower waiting times.'}
+                ? 'अन्नगति लाइव कतार, इंतजार समय और मंडी क्षमता का विश्लेषण कर किसान को समय बचाने वाले नजदीकी केंद्र का सुझाव देता है।'
+                : 'Annagati analyzes live queue telemetry to suggest alternative nearby yards when they offer significantly lower waiting times.'}
             </p>
           </div>
 
@@ -1221,7 +1221,7 @@ export const LandingPage = ({ onSelectPortal }) => {
               {/* Recommended Badge */}
               <div className="absolute -top-3.5 right-6 bg-emerald-700 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full shadow-md tracking-wider flex items-center space-x-1 font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-agri-gold" />
-                <span>{isHindi ? 'किसानसेतु अनुशंसित' : 'KisanSetu Recommended'}</span>
+                <span>{isHindi ? 'अन्नगति अनुशंसित' : 'Annagati Recommended'}</span>
               </div>
 
               <div className="space-y-3">
@@ -1273,8 +1273,8 @@ export const LandingPage = ({ onSelectPortal }) => {
                 {isHindi ? '⚠️ किसान का अधिकार सर्वोपरि: ' : '🔒 Farmer Control Guarantee: '}
               </span>
               {isHindi
-                ? 'किसानसेतु केवल कम भीड़ वाले केंद्र का सुझाव देता है। मंडी बदलने या न बदलने का अंतिम निर्णय पूरी तरह किसान के हाथ में रहता है।'
-                : 'KisanSetu never forces a centre change. Alternative mandis are suggested only to save time; the final choice always remains 100% with the farmer.'}
+                ? 'अन्नगति केवल कम भीड़ वाले केंद्र का सुझाव देता है। मंडी बदलने या न बदलने का अंतिम निर्णय पूरी तरह किसान के हाथ में रहता है।'
+                : 'Annagati never forces a centre change. Alternative mandis are suggested only to save time; the final choice always remains 100% with the farmer.'}
             </p>
           </div>
 
@@ -1535,7 +1535,7 @@ export const LandingPage = ({ onSelectPortal }) => {
               {isHindi ? 'प्रमुख विशेषताएं' : 'Core Advantages'}
             </span>
             <h2 className="font-heading text-2xl sm:text-4xl font-extrabold text-agri-text">
-              {isHindi ? 'किसानसेतु से किसान व मंडी को होने वाले लाभ' : 'Why KisanSetu changes mandi procurement'}
+              {isHindi ? 'अन्नगति से किसान व मंडी को होने वाले लाभ' : 'Why Annagati changes mandi procurement'}
             </h2>
             <p className="text-xs sm:text-sm text-agri-text-muted leading-relaxed">
               {isHindi
@@ -1805,7 +1805,7 @@ export const LandingPage = ({ onSelectPortal }) => {
                 <div className="w-8 h-8 rounded-lg bg-agri-gold text-agri-green-dark flex items-center justify-center font-bold">
                   <Wheat className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="font-heading text-lg font-black text-white">KisanSetu</span>
+                <span className="font-heading text-lg font-black text-white">Annagati</span>
               </div>
               <p className="text-xs text-agri-ivory/70 leading-relaxed max-w-md">
                 Department of Consumer Affairs (DoCA), Ministry of Consumer Affairs, Food & Public Distribution, Government of India.
@@ -1854,7 +1854,7 @@ export const LandingPage = ({ onSelectPortal }) => {
               © 2026 Department of Consumer Affairs (DoCA), Govt. of India. All rights reserved.
             </p>
             <p className="font-mono text-[10px]">
-              KisanSetu V3.0 • SIH PS 26032
+              Annagati V3.0 • SIH PS 26032
             </p>
           </div>
 

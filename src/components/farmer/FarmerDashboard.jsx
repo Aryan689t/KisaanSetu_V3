@@ -96,8 +96,8 @@ export const FarmerDashboard = () => {
       icon: HelpCircle,
       badgeText: 'Gate Check-in',
       content: isHindi 
-        ? 'कृपया अपना आधार कार्ड, किसान क्रेडिट कार्ड / बैंक पासबुक की प्रति और अपना किसानसेतु टोकन पास (डिजिटल या प्रिंटेड) साथ लाएं।'
-        : 'Please bring your Aadhaar Card, Kisan Credit Card / Bank Passbook copy, and your KisanSetu Token Pass (digital or printed).'
+        ? 'कृपया अपना आधार कार्ड, किसान क्रेडिट कार्ड / बैंक पासबुक की प्रति और अपना अन्नगति टोकन पास (डिजिटल या प्रिंटेड) साथ लाएं।'
+        : 'Please bring your Aadhaar Card, Kisan Credit Card / Bank Passbook copy, and your Annagati Token Pass (digital or printed).'
     },
     {
       id: 'faq-2',
@@ -131,8 +131,8 @@ export const FarmerDashboard = () => {
         <div className="space-y-2">
           <p className="text-xs sm:text-sm text-agri-text leading-relaxed">
             {isHindi
-              ? 'हाँ! जब किसानसेतु भारी कतार भीड़ (>85% क्षमता) का पता लगाता है, तो आपको अपने डैशबोर्ड पर 1-क्लिक विकल्प मिलेगा जिससे आप पास की कम-भीड़ वाली मंडी में आसानी से स्लॉट ट्रांसफर कर सकते हैं।'
-              : 'Yes! When KisanSetu detects heavy queue congestion (>85% yard capacity), you will receive a 1-click option on your dashboard to seamlessly transfer your slot to a nearby low-wait Mandi.'}
+              ? 'हाँ! जब अन्नगति भारी कतार भीड़ (>85% क्षमता) का पता लगाता है, तो आपको अपने डैशबोर्ड पर 1-क्लिक विकल्प मिलेगा जिससे आप पास की कम-भीड़ वाली मंडी में आसानी से स्लॉट ट्रांसफर कर सकते हैं।'
+              : 'Yes! When Annagati detects heavy queue congestion (>85% yard capacity), you will receive a 1-click option on your dashboard to seamlessly transfer your slot to a nearby low-wait Mandi.'}
           </p>
           <button
             onClick={() => setFarmerTab('centres')}
@@ -771,7 +771,7 @@ export const FarmerDashboard = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 5. RECOMMENDED MANDI CARD (KisanSetu Differentiating Feature)             */}
+      {/* 5. RECOMMENDED MANDI CARD (Annagati Differentiating Feature)              */}
       {/* ========================================================================= */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border-2 border-agri-green/30 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-agri-ivory-muted">

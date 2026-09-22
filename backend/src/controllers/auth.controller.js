@@ -5,27 +5,118 @@ import { isValidPersonName, isValidMobile, sanitizePersonName, sanitizeMobile } 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'kisansetu-jwt-secret-key-2026';
 
-// Demo users database
+// Demo users database with 3 Online Operators & 2 Physical Operators
 const demoUsers = [
   {
     id: 'usr-farmer-1',
-    email: 'farmer@kisansetu.gov.in',
+    email: 'farmer@annagati.gov.in',
     full_name: 'Ramesh Singh',
     role: 'farmer',
+    operator_channel: 'online',
     phone: '9876543210'
   },
   {
-    id: 'usr-operator-1',
-    email: 'operator@kisansetu.gov.in',
-    full_name: 'Rajesh Kumar (Yard Incharge)',
+    id: 'usr-farmer-1-legacy',
+    email: 'farmer@kisansetu.gov.in',
+    full_name: 'Ramesh Singh',
+    role: 'farmer',
+    operator_channel: 'online',
+    phone: '9876543210'
+  },
+  {
+    id: 'usr-operator-online1',
+    email: 'operator.online1@annagati.gov.in',
+    full_name: 'Rajesh Kumar (Online Op 1)',
     role: 'operator',
-    phone: '9812345678'
+    operator_channel: 'online',
+    phone: '9812345671'
+  },
+  {
+    id: 'usr-operator-online1-legacy',
+    email: 'operator.online1@kisansetu.gov.in',
+    full_name: 'Rajesh Kumar (Online Op 1)',
+    role: 'operator',
+    operator_channel: 'online',
+    phone: '9812345671'
+  },
+  {
+    id: 'usr-operator-online2',
+    email: 'operator.online2@annagati.gov.in',
+    full_name: 'Anil Verma (Online Op 2)',
+    role: 'operator',
+    operator_channel: 'online',
+    phone: '9812345672'
+  },
+  {
+    id: 'usr-operator-online2-legacy',
+    email: 'operator.online2@kisansetu.gov.in',
+    full_name: 'Anil Verma (Online Op 2)',
+    role: 'operator',
+    operator_channel: 'online',
+    phone: '9812345672'
+  },
+  {
+    id: 'usr-operator-online3',
+    email: 'operator.online3@annagati.gov.in',
+    full_name: 'Vikas Sharma (Online Op 3)',
+    role: 'operator',
+    operator_channel: 'online',
+    phone: '9812345673'
+  },
+  {
+    id: 'usr-operator-online3-legacy',
+    email: 'operator.online3@kisansetu.gov.in',
+    full_name: 'Vikas Sharma (Online Op 3)',
+    role: 'operator',
+    operator_channel: 'online',
+    phone: '9812345673'
+  },
+  {
+    id: 'usr-operator-physical1',
+    email: 'operator.physical1@annagati.gov.in',
+    full_name: 'Suresh Patel (Physical Op 1)',
+    role: 'operator',
+    operator_channel: 'physical',
+    phone: '9812345674'
+  },
+  {
+    id: 'usr-operator-physical1-legacy',
+    email: 'operator.physical1@kisansetu.gov.in',
+    full_name: 'Suresh Patel (Physical Op 1)',
+    role: 'operator',
+    operator_channel: 'physical',
+    phone: '9812345674'
+  },
+  {
+    id: 'usr-operator-physical2',
+    email: 'operator.physical2@annagati.gov.in',
+    full_name: 'Devender Singh (Physical Op 2)',
+    role: 'operator',
+    operator_channel: 'physical',
+    phone: '9812345675'
+  },
+  {
+    id: 'usr-operator-physical2-legacy',
+    email: 'operator.physical2@kisansetu.gov.in',
+    full_name: 'Devender Singh (Physical Op 2)',
+    role: 'operator',
+    operator_channel: 'physical',
+    phone: '9812345675'
   },
   {
     id: 'usr-admin-1',
+    email: 'admin@annagati.gov.in',
+    full_name: 'S. K. Sharma (DoCA Admin)',
+    role: 'admin',
+    operator_channel: 'online',
+    phone: '9811002233'
+  },
+  {
+    id: 'usr-admin-1-legacy',
     email: 'admin@kisansetu.gov.in',
     full_name: 'S. K. Sharma (DoCA Admin)',
     role: 'admin',
+    operator_channel: 'online',
     phone: '9811002233'
   }
 ];
@@ -184,7 +275,7 @@ export const login = async (req, res) => {
     // Lookup in demo users
     const matched = demoUsers.find(u => u.email === email) || {
       id: `usr-${Date.now()}`,
-      email: email || 'farmer@kisansetu.gov.in',
+      email: email || 'farmer@annagati.gov.in',
       full_name: 'Ramesh Singh',
       role: 'farmer'
     };

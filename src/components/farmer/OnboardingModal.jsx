@@ -33,7 +33,7 @@ export const OnboardingModal = () => {
           <div className="space-y-4">
             <div className="text-center space-y-1">
               <h2 className="font-heading text-2xl font-bold text-agri-green">
-                Namaste! Welcome to KisanSetu
+                Namaste! Welcome to Annagati
               </h2>
               <p className="text-sm text-agri-text-muted">
                 अपनी भाषा का चयन करें / Choose your preferred language

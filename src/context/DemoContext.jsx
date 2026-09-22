@@ -91,7 +91,7 @@ export function parseBookingSchedule(booking) {
 export const translations = {
   en: {
     // Brand & Header
-    navBrand: 'KisanSetu',
+    navBrand: 'Annagati',
     navTagline: 'Department of Consumer Affairs • Direct Crop Procurement',
     home: 'Home',
     mandi: 'Mandi',
@@ -132,7 +132,7 @@ export const translations = {
     mandiFaqTitle: 'Mandi Guidelines & Frequently Asked Questions (FAQ)',
     
     faq1Q: 'What documents are mandatory when arriving at the Mandi gate?',
-    faq1A: 'Please bring your Aadhaar Card, Kisan Credit Card / Bank Passbook copy, and your KisanSetu Token Pass (digital or printed).',
+    faq1A: 'Please bring your Aadhaar Card, Kisan Credit Card / Bank Passbook copy, and your Annagati Token Pass (digital or printed).',
     
     faq2Q: 'What is the maximum allowed moisture percentage for Grade A Paddy?',
     faq2A: 'The maximum permissible moisture limit for MSP procurement is 17%. Paddy exceeding 17% will require on-yard sun drying before weighment.',
@@ -141,7 +141,7 @@ export const translations = {
     faq3A: 'Once the Mandi Operator records your net weight and quality approval, DoCA Admin authorizes payout release within 24 to 48 hours directly into your Aadhaar-linked SBI bank account.',
     
     faq4Q: 'Can I reroute my booking if my primary Mandi is congested?',
-    faq4A: 'Yes! When KisanSetu detects heavy queue congestion (>85% yard capacity), you will receive a 1-click option on your dashboard to seamlessly transfer your slot to a nearby low-wait Mandi.',
+    faq4A: 'Yes! When Annagati detects heavy queue congestion (>85% yard capacity), you will receive a 1-click option on your dashboard to seamlessly transfer your slot to a nearby low-wait Mandi.',
     
     // Booking Summary Breakdown
     cropGrade: 'Crop & Variety',
@@ -152,7 +152,7 @@ export const translations = {
     coordinateRef: 'GPS & Gate Ref',
 
     // Auth Modal
-    loginTitle: 'Sign in to KisanSetu',
+    loginTitle: 'Sign in to Annagati',
     loginSubtitle: 'Manage crop slots, track weighment tokens, and monitor MSP payments.',
     emailLabel: 'Mobile / Email Address',
     passwordLabel: 'Password',
@@ -162,7 +162,7 @@ export const translations = {
   },
   hi: {
     // Brand & Header
-    navBrand: 'किसानसेतु',
+    navBrand: 'अन्नगति',
     navTagline: 'उपभोक्ता मामले विभाग • प्रत्यक्ष फसल खरीद',
     home: 'होम',
     mandi: 'मंडी',
@@ -203,7 +203,7 @@ export const translations = {
     mandiFaqTitle: 'मंडी दिशानिर्देश व अक्सर पूछे जाने वाले प्रश्न (FAQ)',
     
     faq1Q: 'मंडी गेट पर आगमन के समय कौन से दस्तावेज अनिवार्य हैं?',
-    faq1A: 'कृपया अपना आधार कार्ड, किसान क्रेडिट कार्ड / बैंक पासबुक की प्रति और अपना किसानसेतु टोकन पास (डिजिटल या प्रिंटेड) साथ लाएं।',
+    faq1A: 'कृपया अपना आधार कार्ड, किसान क्रेडिट कार्ड / बैंक पासबुक की प्रति और अपना अन्नगति टोकन पास (डिजिटल या प्रिंटेड) साथ लाएं।',
     
     faq2Q: 'ग्रेड ए धान के लिए अधिकतम अनुमत नमी प्रतिशत क्या है?',
     faq2A: 'एमएसपी खरीद के लिए अधिकतम अनुमत नमी की सीमा 17% है। 17% से अधिक नमी वाले धान को तौल से पहले मंडी में सुखाना होगा।',
@@ -212,7 +212,7 @@ export const translations = {
     faq3A: 'ऑपरेटर द्वारा तौल व गुणवत्ता अनुमोदन दर्ज करने के बाद, DoCA एडमिन 24 से 48 घंटों में आपके आधार से जुड़े एसबीआई बैंक खाते में सीधे भुगतान जारी कर देता है।',
     
     faq4Q: 'यदि मेरी प्राथमिक मंडी में भीड़ है तो क्या मैं बुकिंग बदल सकता हूँ?',
-    faq4A: 'हाँ! जब किसानसेतु भारी कतार (>85% क्षमता) का पता लगाता है, तो आपको पास की कम प्रतीक्षा वाली मंडी में स्लॉट स्थानांतरित करने का 1-क्लिक विकल्प मिलता है।',
+    faq4A: 'हाँ! जब अन्नगति भारी कतार (>85% क्षमता) का पता लगाता है, तो आपको पास की कम प्रतीक्षा वाली मंडी में स्लॉट स्थानांतरित करने का 1-क्लिक विकल्प मिलता है।',
     
     // Booking Summary Breakdown
     cropGrade: 'फसल व किस्म',
@@ -223,7 +223,7 @@ export const translations = {
     coordinateRef: 'जीपीएस व गेट संदर्भ',
 
     // Auth Modal
-    loginTitle: 'किसानसेतु में साइन इन करें',
+    loginTitle: 'अन्नगति में साइन इन करें',
     loginSubtitle: 'फसल स्लॉट प्रबंधित करें, टोकन ट्रैक करें और एमएसपी भुगतान की निगरानी करें।',
     emailLabel: 'मोबाइल / ईमेल पता',
     passwordLabel: 'पासवर्ड',
@@ -238,7 +238,7 @@ export const DEMO_PROFILES = {
   farmer: {
     name: 'Ramesh Singh',
     roleTitle: 'Farmer',
-    email: 'farmer@kisansetu.gov.in',
+    email: 'farmer@annagati.gov.in',
     district: 'Sonipat, Haryana',
     initials: 'RS',
     mobile: '9876543210',
@@ -247,7 +247,7 @@ export const DEMO_PROFILES = {
   operator: {
     name: 'Rajesh Kumar',
     roleTitle: 'Procurement Operator',
-    email: 'operator@kisansetu.gov.in',
+    email: 'operator@annagati.gov.in',
     district: 'Sonipat Procurement Yard',
     initials: 'RK',
     mobile: '9812345678',
@@ -256,7 +256,7 @@ export const DEMO_PROFILES = {
   walkin: {
     name: 'Suresh Patel',
     roleTitle: 'Gate Desk Operator',
-    email: 'desk.operator@kisansetu.gov.in',
+    email: 'desk.operator@annagati.gov.in',
     district: 'Sonipat Main Yard • Gate 1 Desk',
     initials: 'SP',
     mobile: '9812345678',
@@ -275,7 +275,7 @@ export const DEMO_PROFILES = {
 
 export const getDemoUserForRole = (role, customEmail = '', customData = {}) => {
   const profile = DEMO_PROFILES[role] || DEMO_PROFILES.farmer;
-  const fullName = customData.fullName || customData.full_name || (customEmail && !customEmail.includes('@kisansetu.gov.in') ? customEmail.split('@')[0] : profile.name);
+  const fullName = customData.fullName || customData.full_name || (customEmail && !customEmail.includes('@annagati.gov.in') && !customEmail.includes('@kisansetu.gov.in') ? customEmail.split('@')[0] : profile.name);
   const email = customEmail || profile.email;
   const district = customData.district || profile.district;
   const mobile = customData.mobile || customData.phone || profile.mobile;
@@ -326,11 +326,11 @@ export const DemoProvider = ({ children }) => {
   // Navigation & Role State
   const [activeRole, setActiveRoleState] = useState(() => {
     try {
-      const savedRole = localStorage.getItem('kisansetu_role');
+      const savedRole = localStorage.getItem('annagati_role') || localStorage.getItem('kisansetu_role');
       if (savedRole && ['farmer', 'operator', 'walkin', 'admin'].includes(savedRole)) {
         return savedRole;
       }
-      const savedUser = localStorage.getItem('kisansetu_user');
+      const savedUser = localStorage.getItem('annagati_user') || localStorage.getItem('kisansetu_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
         if (parsed?.user_metadata?.role) return parsed.user_metadata.role;
@@ -347,7 +347,7 @@ export const DemoProvider = ({ children }) => {
   // Demonstrates Advance Booking (3 operators / low load) vs Physical Walk-In (2 operators / high load)
   const [operatorChannel, setOperatorChannelState] = useState(() => {
     try {
-      return localStorage.getItem('kisansetu_operator_channel') || 'online';
+      return localStorage.getItem('annagati_operator_channel') || localStorage.getItem('kisansetu_operator_channel') || 'online';
     } catch {
       return 'online';
     }
@@ -357,6 +357,7 @@ export const DemoProvider = ({ children }) => {
     if (!channel || !['online', 'physical'].includes(channel)) return;
     setOperatorChannelState(channel);
     try {
+      localStorage.setItem('annagati_operator_channel', channel);
       localStorage.setItem('kisansetu_operator_channel', channel);
     } catch {}
   };
@@ -369,14 +370,16 @@ export const DemoProvider = ({ children }) => {
   // User & Authentication State (persisted across page reloads / browser reopen)
   const [user, setUser] = useState(() => {
     try {
-      const savedUser = localStorage.getItem('kisansetu_user');
+      const savedUser = localStorage.getItem('annagati_user') || localStorage.getItem('kisansetu_user');
       if (!savedUser) return null;
       const parsed = JSON.parse(savedUser);
       // Validate that the stored user session is structurally valid
       if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
         // Check expiration if session has expires_at timestamp
         if (parsed.expires_at && Date.now() > parsed.expires_at) {
+          localStorage.removeItem('annagati_user');
           localStorage.removeItem('kisansetu_user');
+          localStorage.removeItem('annagati_role');
           localStorage.removeItem('kisansetu_role');
           return null;
         }
@@ -393,6 +396,7 @@ export const DemoProvider = ({ children }) => {
     if (!role || !['farmer', 'operator', 'walkin', 'admin'].includes(role)) return;
     setActiveRoleState(role);
     try {
+      localStorage.setItem('annagati_role', role);
       localStorage.setItem('kisansetu_role', role);
     } catch {}
 
@@ -404,6 +408,7 @@ export const DemoProvider = ({ children }) => {
       }
       const nextUser = getDemoUserForRole(role);
       try {
+        localStorage.setItem('annagati_user', JSON.stringify(nextUser));
         localStorage.setItem('kisansetu_user', JSON.stringify(nextUser));
       } catch {}
       return nextUser;
@@ -421,9 +426,11 @@ export const DemoProvider = ({ children }) => {
       if (session?.user) {
         setUser(session.user);
         try {
+          localStorage.setItem('annagati_user', JSON.stringify(session.user));
           localStorage.setItem('kisansetu_user', JSON.stringify(session.user));
           if (session.user.user_metadata?.role) {
             setActiveRoleState(session.user.user_metadata.role);
+            localStorage.setItem('annagati_role', session.user.user_metadata.role);
             localStorage.setItem('kisansetu_role', session.user.user_metadata.role);
           }
         } catch {}
@@ -436,16 +443,20 @@ export const DemoProvider = ({ children }) => {
       if (session?.user) {
         setUser(session.user);
         try {
+          localStorage.setItem('annagati_user', JSON.stringify(session.user));
           localStorage.setItem('kisansetu_user', JSON.stringify(session.user));
           if (session.user.user_metadata?.role) {
             setActiveRole(session.user.user_metadata.role);
+            localStorage.setItem('annagati_role', session.user.user_metadata.role);
             localStorage.setItem('kisansetu_role', session.user.user_metadata.role);
           }
         } catch {}
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         try {
+          localStorage.removeItem('annagati_user');
           localStorage.removeItem('kisansetu_user');
+          localStorage.removeItem('annagati_role');
           localStorage.removeItem('kisansetu_role');
         } catch {}
       }
@@ -483,7 +494,7 @@ export const DemoProvider = ({ children }) => {
   // Active Selected Booking Token (persisted in localStorage across refreshes)
   const [activeBookingToken, setActiveBookingTokenState] = useState(() => {
     try {
-      return localStorage.getItem('kisansetu_active_token') || 'SNP-014';
+      return localStorage.getItem('annagati_active_token') || localStorage.getItem('kisansetu_active_token') || 'SNP-014';
     } catch {
       return 'SNP-014';
     }
@@ -497,7 +508,7 @@ export const DemoProvider = ({ children }) => {
       addNotification(
         next ? '🔴 Offline Mode Active' : '🟢 Network Connection Restored',
         next 
-          ? 'Network connection dropped. KisanSetu is caching all actions locally in IndexedDB/Storage.'
+          ? 'Network connection dropped. Annagati is caching all actions locally in IndexedDB/Storage.'
           : 'Back online. Telemetry and queue sync re-established with APMC server.',
         next ? 'warning' : 'success',
         'farmer'
@@ -509,7 +520,10 @@ export const DemoProvider = ({ children }) => {
   const setActiveBookingToken = (token) => {
     setActiveBookingTokenState(token);
     try {
-      if (token) localStorage.setItem('kisansetu_active_token', token);
+      if (token) {
+        localStorage.setItem('annagati_active_token', token);
+        localStorage.setItem('kisansetu_active_token', token);
+      }
     } catch (e) {
       console.warn('Could not save active token to localStorage:', e);
     }
@@ -518,7 +532,7 @@ export const DemoProvider = ({ children }) => {
   // Set of tokens created by the current farmer in this browser session
   const [sessionFarmerTokens, setSessionFarmerTokens] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('kisansetu_farmer_tokens');
+      const saved = sessionStorage.getItem('annagati_farmer_tokens') || sessionStorage.getItem('kisansetu_farmer_tokens');
       return saved ? JSON.parse(saved) : ['SNP-014'];
     } catch {
       return ['SNP-014'];
@@ -822,7 +836,10 @@ export const DemoProvider = ({ children }) => {
     if (bookingRecord?.token && bookingType === 'ONLINE') {
       setSessionFarmerTokens(prev => {
         const updated = Array.from(new Set([...prev, bookingRecord.token]));
-        try { sessionStorage.setItem('kisansetu_farmer_tokens', JSON.stringify(updated)); } catch (e) {}
+        try {
+          sessionStorage.setItem('annagati_farmer_tokens', JSON.stringify(updated));
+          sessionStorage.setItem('kisansetu_farmer_tokens', JSON.stringify(updated));
+        } catch (e) {}
         return updated;
       });
       setActiveBookingToken(bookingRecord.token);
@@ -1084,6 +1101,7 @@ export const DemoProvider = ({ children }) => {
   const loginWithRole = (role, email = '', userData = {}) => {
     setActiveRoleState(role);
     try {
+      localStorage.setItem('annagati_role', role);
       localStorage.setItem('kisansetu_role', role);
     } catch {}
 
@@ -1091,6 +1109,7 @@ export const DemoProvider = ({ children }) => {
 
     setUser(authenticatedUser);
     try {
+      localStorage.setItem('annagati_user', JSON.stringify(authenticatedUser));
       localStorage.setItem('kisansetu_user', JSON.stringify(authenticatedUser));
     } catch (e) {
       console.warn('Could not persist user session:', e);
@@ -1113,8 +1132,11 @@ export const DemoProvider = ({ children }) => {
     setUser(null);
     setSession(null);
     try {
+      localStorage.removeItem('annagati_user');
       localStorage.removeItem('kisansetu_user');
+      localStorage.removeItem('annagati_role');
       localStorage.removeItem('kisansetu_role');
+      sessionStorage.removeItem('annagati_farmer_tokens');
       sessionStorage.removeItem('kisansetu_farmer_tokens');
     } catch {}
     
@@ -1137,10 +1159,15 @@ export const DemoProvider = ({ children }) => {
     setActiveBookingToken('SNP-014');
     setSessionFarmerTokens(['SNP-014']);
     try {
+      localStorage.setItem('annagati_active_token', 'SNP-014');
       localStorage.setItem('kisansetu_active_token', 'SNP-014');
+      localStorage.removeItem('annagati_farmer_tokens');
       localStorage.removeItem('kisansetu_farmer_tokens');
+      sessionStorage.removeItem('annagati_farmer_tokens');
       sessionStorage.removeItem('kisansetu_farmer_tokens');
+      localStorage.removeItem('annagati_user');
       localStorage.removeItem('kisansetu_user');
+      localStorage.removeItem('annagati_role');
       localStorage.removeItem('kisansetu_role');
     } catch {}
     

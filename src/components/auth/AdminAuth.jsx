@@ -5,7 +5,7 @@ import { ShieldCheck, Mail, Key, Lock, ArrowRight, ArrowLeft, Building2 } from '
 export const AdminAuth = ({ onBack }) => {
   const { loginWithRole } = useDemo();
 
-  const [adminEmail, setAdminEmail] = useState('admin@kisansetu.gov.in');
+  const [adminEmail, setAdminEmail] = useState('admin@annagati.gov.in');
   const [officerId, setOfficerId] = useState('DOCA-ADM-2026');
   const [passcode, setPasscode] = useState('');
 
@@ -35,7 +35,7 @@ export const AdminAuth = ({ onBack }) => {
             </div>
             <div>
               <span className="font-heading text-lg sm:text-xl font-bold text-white block">
-                KisanSetu • Executive Admin Portal
+                Annagati • Executive Admin Portal
               </span>
               <span className="text-[10px] text-amber-200">
                 Department of Consumer Affairs • State Procurement Control
@@ -78,7 +78,7 @@ export const AdminAuth = ({ onBack }) => {
                   required
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
-                  placeholder="admin@kisansetu.gov.in"
+                  placeholder="admin@annagati.gov.in"
                   className="w-full pl-9 pr-3 py-2.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-600 outline-none font-medium"
                 />
               </div>

@@ -104,14 +104,14 @@ export const disbursePayment = async (req, res) => {
     if (supabase) {
       const query = supabase.from('bookings').update(payload);
       const { data, error } = isUuid(identifier)
-        ? await query.eq('id', identifier).select().single()
-        : await query.eq('token', identifier.toUpperCase()).select().single();
+        ? await query.eq('id', identifier).select().maybeSingle()
+        : await query.eq('token', identifier.toUpperCase()).select().maybeSingle();
 
       if (error) throw error;
       return res.json({
         success: true,
-        message: `DBT Payment authorized for ${data.token}. Reference: ${refToUse}`,
-        data
+        message: `DBT Payment authorized for ${data?.token || identifier}. Reference: ${refToUse}`,
+        data: data || { token: identifier, ...payload }
       });
     }
 

@@ -46,6 +46,20 @@ export function mapBookingRow(row) {
     moisture_percent: row.moisture_percent != null ? Number(row.moisture_percent) : null,
     qualityGrade: row.quality_grade,
     quality_grade: row.quality_grade,
+    qualityParameters: row.quality_parameters || null,
+    quality_parameters: row.quality_parameters || null,
+    arrivalTime: row.arrival_time || null,
+    arrival_time: row.arrival_time || null,
+    estTime: row.est_time || null,
+    est_time: row.est_time || null,
+    suspendedAt: row.suspended_at || null,
+    suspended_at: row.suspended_at || null,
+    dryingYardLocation: row.drying_yard_location || null,
+    drying_yard_location: row.drying_yard_location || null,
+    freightSubsidy: row.freight_subsidy != null ? Number(row.freight_subsidy) : 0,
+    freight_subsidy: row.freight_subsidy != null ? Number(row.freight_subsidy) : 0,
+    reroutedFrom: row.rerouted_from || null,
+    rerouted_from: row.rerouted_from || null,
     counter: row.counter || 'Counter 2',
     status: row.status || 'WAITING',
     bookingType: resolvedBookingType,
@@ -441,7 +455,7 @@ export async function updateBookingStatus(tokenOrId, newStatus, extraFields = {}
  * Records procurement inspection results: actualQty, moisturePercent, qualityGrade.
  * Transitions booking to COMPLETED and payment_status to PENDING_DISBURSAL.
  */
-export async function updateBookingProcurement(tokenOrId, { actualQty, moisturePercent, qualityGrade, ratePerQuintal = 2200 }) {
+export async function updateBookingProcurement(tokenOrId, { actualQty, moisturePercent, qualityGrade, ratePerQuintal = 2200, qualityParameters = null, quality_parameters = null }) {
   const qtyNum = Number(actualQty);
   const rateNum = Number(ratePerQuintal);
   const totalPayout = Math.round(qtyNum * rateNum);
@@ -450,6 +464,7 @@ export async function updateBookingProcurement(tokenOrId, { actualQty, moistureP
     actual_qty: qtyNum,
     moisture_percent: Number(moisturePercent),
     quality_grade: qualityGrade,
+    quality_parameters: qualityParameters || quality_parameters || null,
     rate_per_quintal: rateNum,
     total_payout: totalPayout,
     status: 'COMPLETED',

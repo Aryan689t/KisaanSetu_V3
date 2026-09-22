@@ -1,5 +1,5 @@
 /**
- * KisanSetu Dynamic Mandi Capacity & Load Balancing Engine
+ * Annagati Dynamic Mandi Capacity & Load Balancing Engine
  * Provides transparent, explainable operational telemetry calculations without black-box ML.
  */
 

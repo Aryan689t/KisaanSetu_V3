@@ -37,7 +37,7 @@ export const FarmerAuth = ({ onBack }) => {
       return;
     }
 
-    const userEmail = mobile ? `${mobile}@kisansetu.gov.in` : 'farmer@kisansetu.gov.in';
+    const userEmail = mobile ? `${mobile}@annagati.gov.in` : 'farmer@annagati.gov.in';
     const data = isRegisterMode ? {
       fullName: fullName.trim() || 'Farmer',
       mobile: mobile.trim(),
@@ -72,7 +72,7 @@ export const FarmerAuth = ({ onBack }) => {
             </div>
             <div>
               <span className="font-heading text-lg sm:text-xl font-bold text-white block">
-                KisanSetu • {lang === 'hi' ? 'किसान पोर्टल' : 'Farmer Portal'}
+                Annagati • {lang === 'hi' ? 'किसान पोर्टल' : 'Farmer Portal'}
               </span>
               <span className="text-[10px] text-agri-ivory/80">
                 Department of Consumer Affairs • Direct Procurement
